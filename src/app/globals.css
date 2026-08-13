@@ -169,6 +169,15 @@ textarea {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
+    max-height: calc(100dvh - 48px);
+    overflow-x: visible;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .mobile-header[data-open="true"] .mobile-header__panel > header {
+    overflow: visible;
   }
 }
 
