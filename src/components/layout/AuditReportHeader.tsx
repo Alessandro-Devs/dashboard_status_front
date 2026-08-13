@@ -29,8 +29,8 @@ export default function AuditReportHeader() {
   const learning = section === "Aprendizaje";
   const evaluation = section === "Evaluación";
   const tutoring = section === "Tutoría y Formación";
-  const title = tutoring ? "Tutoría y Formación" : evaluation ? "Avance en aplicación de pruebas" : learning ? "Avance de contenidos" : school ? "Gestión Escolar" : "Reporte de auditorías de Centros Escolares";
-  const subtitle = tutoring ? "Seguimiento de accesos, modelamientos y tutoría virtual" : evaluation ? "Seguimiento de aplicación de CML y Prueba Progreso" : learning ? "Seguimiento de creación, producción y publicación de clases" : school ? "Seguimiento de gestión escolar" : "Todos los bloques";
+  const title = tutoring ? "Tutoría y Formación" : evaluation ? "Evaluación" : learning ? "Aprendizaje" : school ? "Gestión Escolar" : "Gestión de Calidad";
+  const subtitle = tutoring ? "Seguimiento de accesos, modelamientos y tutoría virtual" : evaluation ? "Seguimiento de aplicación de CML" : learning ? "Seguimiento de creación, producción y publicación de clases" : school ? "Seguimiento de gestión escolar" : "Todos los bloques";
   useEffect(() => {
     const finishNavigation = () => setNavigating(false);
     window.addEventListener("dashboard:arrived", finishNavigation);
@@ -41,8 +41,16 @@ export default function AuditReportHeader() {
     const view = viewBySection[item];
     setNavigating(true);
     window.dispatchEvent(new CustomEvent("dashboard:navigate", { detail: { id: view } }));
+    state.setActiveSection(item);
     window.history.replaceState(null, "", `/#${view}`);
-    document.getElementById(view)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestAnimationFrame(() => {
+      const target = document.getElementById(view);
+      const header = document.querySelector<HTMLElement>(".mobile-header");
+      if (!target) return;
+      const headerHeight = header?.getBoundingClientRect().height ?? 0;
+      const targetTop = window.scrollY + target.getBoundingClientRect().top;
+      window.scrollTo({ top: Math.max(targetTop - headerHeight, 0), behavior: "smooth" });
+    });
   };
 
   return <header className="w-full bg-[#0f273c] text-white">
@@ -50,9 +58,9 @@ export default function AuditReportHeader() {
       <div className="flex h-[34px] shrink-0 items-center gap-1">{navItems.map((item) => { const active=section===item; return <button key={item} type="button" aria-pressed={active} onClick={()=>navigate(item)} className={`relative flex h-full items-center whitespace-nowrap px-3 text-[11px] font-medium sm:px-5 ${active?"bg-[#102b40] text-white":"text-[#9ab0c2] hover:text-white"}`}>{item}{active&&<span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#59b8f8]"/>}</button>; })}</div>
       <p className="ml-auto hidden shrink-0 text-[9px] font-semibold uppercase lg:block">Modernización Educativa</p>
     </nav>
-    <div aria-hidden={navigating} className={`audit-filter-bar mx-auto max-w-[1080px] flex-col gap-5 px-4 sm:px-6 lg:min-h-[92px] lg:flex-row lg:items-center lg:justify-between lg:gap-8 ${navigating ? "hidden" : "flex py-5 lg:py-3"}`}>
+    <div aria-hidden={navigating} className={`audit-filter-bar mx-auto flex max-w-[1080px] flex-col gap-5 px-4 py-5 sm:px-6 lg:min-h-[92px] lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-3 ${navigating ? "invisible pointer-events-none" : "visible"}`}>
       <div><h1 className="font-serif text-xl font-bold sm:text-[25px]">{title}</h1><p className="mt-1 text-[11px] text-[#b8cada]">{subtitle}</p></div>
-      <div className="audit-header-filters">{learning ? <LearningFilters/> : evaluation ? <PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/> : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
+      <div className="audit-header-filters">{learning ? <LearningFilters/> : evaluation ? null : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
         {school&&<PlatformFilters/>}<FilterSelect label="Bloque" selected={state.blocks} options={blocks} onChange={state.setBlocks} className="w-[92px]"/>{!school&&<FilterSelect label="Componente" selected={state.components} options={components} onChange={state.setComponents} className="w-[110px]"/>}<PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/>
       </div>}</div>
     </div>

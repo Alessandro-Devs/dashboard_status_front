@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import AuditReportPage from "@/components/page/GestionCalidad/AuditReportPage";
-import SchoolManagementPage from "@/components/page/GestionEscolar/SchoolManagementPage";
+import SchoolManagementActivities from "@/components/page/GestionEscolar/SchoolManagementActivities";
+import SchoolNoAccessDashboard from "@/components/page/GestionEscolar/SchoolNoAccessDashboard";
 import LearningPage from "@/components/page/Aprendizaje/LearningPage";
 import EvaluationPage from "@/components/page/Evaluacion/EvaluationPage";
 import TutoringAndTrainingPage from "@/components/page/TutoriaFormacion/TutoringAndTrainingPage";
@@ -11,7 +12,7 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 
 const sections = [
   { id: "gestion-calidad", label: "Gestión de Calidad", description: "Auditorías, cumplimiento y hallazgos", content: <AuditReportPage /> },
-  { id: "gestion-escolar", label: "Gestión Escolar", description: "Centros, asistencia y gestión operativa", content: <SchoolManagementPage /> },
+  { id: "gestion-escolar", label: "Gestión Escolar", description: "Principales actividades de los grupos 1, 2, 3, 4 y 5", content: <><SchoolManagementActivities /><SchoolNoAccessDashboard /></> },
   { id: "aprendizaje", label: "Aprendizaje", description: "Avance y producción de contenidos", content: <LearningPage /> },
   { id: "evaluacion", label: "Evaluación", description: "Aplicación y resultados de pruebas", content: <EvaluationPage /> },
   { id: "tutoria-formacion", label: "Tutoría y Formación", description: "Accesos, modelamientos y tutoría virtual", content: <TutoringAndTrainingPage /> },
@@ -19,22 +20,37 @@ const sections = [
 
 export default function AllDashboardSections() {
   const { setActiveSection, startDate, endDate } = useAuditFilters();
-  const pendingSection = useRef<string | null>(null);
+  const pendingSection = useRef<{ id: string; direction: "up" | "down" } | null>(null);
   const hasData = startDate === dashboardDatabase.metadata.fechaCorte
     && endDate === dashboardDatabase.metadata.fechaCorte;
 
   useEffect(() => {
     const beginNavigation = (event: Event) => {
-      pendingSection.current = (event as CustomEvent<{ id: string }>).detail?.id ?? null;
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      const target = id ? document.getElementById(id) : null;
+      if (id && target) {
+        pendingSection.current = {
+          id,
+          direction: target.getBoundingClientRect().top >= 190 ? "down" : "up",
+        };
+      }
     };
 
     const updateActiveSection = () => {
-      const marker = 190;
+      const header = document.querySelector<HTMLElement>(".mobile-header");
+      const marker = (header?.getBoundingClientRect().height ?? 0) + 4;
 
       if (pendingSection.current) {
-        const target = document.getElementById(pendingSection.current);
-        if (target && target.getBoundingClientRect().top <= marker) {
-          const arrivedId = pendingSection.current;
+        const pending = pendingSection.current;
+        const target = document.getElementById(pending.id);
+        const targetTop = target?.getBoundingClientRect().top;
+        const arrived = targetTop !== undefined && (
+          pending.direction === "down"
+            ? targetTop <= marker + 60
+            : targetTop >= marker - 60
+        );
+        if (target && arrived) {
+          const arrivedId = pending.id;
           const arrived = sections.find((section) => section.id === arrivedId);
           pendingSection.current = null;
           if (arrived) setActiveSection(arrived.label);

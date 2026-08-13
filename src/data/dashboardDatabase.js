@@ -17,6 +17,9 @@ gestionCalidad: {
     cobertura: 19,
     cumplimiento: 77.3,
     hallazgos: 23,
+    hallazgosMayor: 9,
+    hallazgosMenor: 5,
+    observaciones: 9,
     grupos: 6,
   },
 
@@ -186,23 +189,54 @@ gestionCalidad: {
   },
   evaluacion: {
     pruebas: {
-      cml:{title:"Prueba CML",schoolPercentage:81,schoolApplied:"612",schoolPending:"142",enrollmentPercentage:77,enrollmentApplied:"10,842",enrollmentPending:"3318"},
+        cml: {
+          title: "Prueba CML",
+
+          // Cobertura del operativo
+          schoolPercentage: 95.7,
+          schoolUniverse: "752",
+          schoolApplied: "720",
+          schoolPending: "32",
+
+          // Participación global del operativo
+          enrollmentPercentage: 85.8,
+          enrollmentUniverse: "226,001",
+          enrollmentApplied: "193,875",
+          enrollmentPending: "32,126",
+        },
       progreso:{title:"Prueba Progreso",schoolPercentage:76,schoolApplied:"574",schoolPending:"180",enrollmentPercentage:68,enrollmentApplied:"9638",enrollmentPending:"4522"},
     },
     bloquesCentros: [{block:"B1",universe:150,applied:136,pending:14,percentage:91},{block:"B2",universe:160,applied:139,pending:21,percentage:87},{block:"B3",universe:150,applied:127,pending:23,percentage:85},{block:"B4",universe:144,applied:111,pending:33,percentage:77},{block:"B5",universe:150,applied:99,pending:51,percentage:66}],
     bloquesMatricula: [{block:"B1",universe:2840,applied:2450,pending:390,percentage:86},{block:"B2",universe:2960,applied:2398,pending:562,percentage:81},{block:"B3",universe:2810,applied:2179,pending:631,percentage:78},{block:"B4",universe:2740,applied:1985,pending:755,percentage:72},{block:"B5",universe:2810,applied:1830,pending:980,percentage:65}],
-    composicionUniverso: [{title:"Se mantienen",value:716,percentage:95,change:"↓ 1 pp",type:"neutral"},{title:"Mejoran / suben",value:38,percentage:5,change:"↗ 1 pp",type:"positive"},{title:"Bajan",value:0,percentage:0,change:"— 0 pp",type:"negative"}],
+    composicionUniverso: {
+      lengua: {
+        total: [{title:"Se mantienen",value:272,percentage:73.1,type:"neutral"},{title:"Mejoran / suben",value:61,percentage:16.4,type:"positive"},{title:"Bajan",value:39,percentage:10.5,type:"negative"}],
+        grupos: {
+          B2_Rezago: [{title:"Se mantienen",value:43,percentage:67.2,type:"neutral"},{title:"Mejoran / suben",value:17,percentage:26.6,type:"positive"},{title:"Bajan",value:4,percentage:6.3,type:"negative"}],
+          B2: [{title:"Se mantienen",value:86,percentage:70.5,type:"neutral"},{title:"Mejoran / suben",value:20,percentage:16.4,type:"positive"},{title:"Bajan",value:16,percentage:13.1,type:"negative"}],
+          B1: [{title:"Se mantienen",value:143,percentage:76.9,type:"neutral"},{title:"Mejoran / suben",value:24,percentage:12.9,type:"positive"},{title:"Bajan",value:19,percentage:10.2,type:"negative"}],
+        },
+      },
+      matematica: {
+        total: [{title:"Se mantienen",value:267,percentage:71.8,type:"neutral"},{title:"Mejoran / suben",value:82,percentage:22,type:"positive"},{title:"Bajan",value:23,percentage:6.2,type:"negative"}],
+        grupos: {
+          B2_Rezago: [{title:"Se mantienen",value:39,percentage:60,type:"neutral"},{title:"Mejoran / suben",value:20,percentage:30.8,type:"positive"},{title:"Bajan",value:6,percentage:9.2,type:"negative"}],
+          B2: [{title:"Se mantienen",value:75,percentage:62,type:"neutral"},{title:"Mejoran / suben",value:37,percentage:30.6,type:"positive"},{title:"Bajan",value:9,percentage:7.4,type:"negative"}],
+          B1: [{title:"Se mantienen",value:153,percentage:82.3,type:"neutral"},{title:"Mejoran / suben",value:25,percentage:13.4,type:"positive"},{title:"Bajan",value:8,percentage:4.3,type:"negative"}],
+        },
+      },
+    },
     trayectoria: [{label:"Excelente",value:126,percentage:"17%",color:"bg-[#16a34a]",text:"text-[#16a34a]"},{label:"Bueno",value:247,percentage:"33%",color:"bg-[#65a30d]",text:"text-[#65a30d]"},{label:"Medio",value:222,percentage:"29%",color:"bg-[#eab308]",text:"text-[#d69b00]"},{label:"Bajo",value:105,percentage:"14%",color:"bg-[#f97316]",text:"text-[#f97316]"},{label:"Crítico",value:54,percentage:"7%",color:"bg-[#ef4444]",text:"text-[#ef4444]"}],
   },
   tutoriaFormacion: {
   accesos: {
     centros: "600",
     docentes: "6,095",
-    docentesConAcceso: "5,958",
-    porcentajeDocentes: 97.8,
-    estudiantes: "180,071",
+    docentesConAcceso: "5,974",
+    porcentajeDocentes: 98.0,
+    estudiantes: "180,177",
     estudiantesConAcceso: "167,590",
-    porcentajeEstudiantes: 93.1,
+    porcentajeEstudiantes: 93.0,
   },
 
   modelamientos: {
@@ -210,33 +244,33 @@ gestionCalidad: {
 
     claseRegularRemediacion: {
       totalEsperados: "7,468",
-      realizados: "4,821",
-      porcentaje: 64.6,
+      realizados: "4,988",
+      porcentaje: 66.8,
     },
 
     soloClaseRegular: {
       totalDocentes: "962",
-      realizados: "817",
-      porcentaje: 84.9,
+      realizados: "842",
+      porcentaje: 87.5,
     },
 
     soloRemediacion: {
       totalDocentes: "1,097",
-      realizados: "842",
-      porcentaje: 76.8,
+      realizados: "880",
+      porcentaje: 80.2,
     },
 
     meta: {
       total: "9,437",
-      realizados: "6,480",
-      porcentaje: 68.7,
+      realizados: "6,710",
+      porcentaje: 71.1,
     },
   },
 
   diagnosticos: {
-    docentesDiagnosticados: "627",
+    docentesDiagnosticados: "983",
     totalDocentes: "6,095",
-    porcentaje: 10,
+    porcentaje: 16.1,
   },
 
   tutoriaVirtual: {

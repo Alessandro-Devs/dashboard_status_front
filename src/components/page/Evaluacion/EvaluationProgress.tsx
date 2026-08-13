@@ -1,5 +1,18 @@
 "use client";
-import { useState } from "react";
-import { ChevronLeft, Filter, TrendingUp } from "lucide-react";
-import { trajectorySummary, universeComposition } from "./evaluationData";
-export default function EvaluationProgress({onBack}:{onBack:()=>void}) { const[subject,setSubject]=useState("Lengua");const[block,setBlock]=useState("Todos los bloques");const[month,setMonth]=useState(4);return <main className="flex-1 bg-[#f5f8fc] px-4 pb-16 pt-5 text-[#17324a]"><div className="mx-auto max-w-[1020px]"><button onClick={onBack} className="mb-4 flex items-center gap-1 text-[8px] text-[#176fc8]"><ChevronLeft className="h-3 w-3"/>Volver a Evaluación</button><section className="rounded-lg border bg-white p-4"><div className="flex items-center gap-3"><Filter className="h-4 w-4 text-[#8296a9]"/><h3 className="text-[10px] font-semibold">Filtros de análisis</h3></div><div className="mt-4 grid gap-4 md:grid-cols-3"><div><label className="text-[7px] uppercase">Materia</label><div className="mt-2 flex">{["Lengua","Matemática"].map((item)=><button key={item} onClick={()=>setSubject(item)} className={`h-[30px] flex-1 text-[8px] ${subject===item?"bg-[#1971d1] text-white":"border"}`}>{item}</button>)}</div></div><label className="text-[7px] uppercase">Bloque<select value={block} onChange={(e)=>setBlock(e.target.value)} className="mt-2 block h-[30px] w-full rounded border px-3 text-[8px] normal-case">{["Todos los bloques","Bloque 1","Bloque 2","Bloque 3","Bloque 4","Bloque 5"].map(item=><option key={item}>{item}</option>)}</select></label><label className="text-[7px] uppercase">Periodo: Mes {month}<input type="range" min="1" max="6" value={month} onChange={(e)=>setMonth(Number(e.target.value))} className="mt-3 block w-full accent-[#1971d1]"/></label></div></section><section className="mt-5"><h2 className="text-sm font-semibold">COMPOSICIÓN DEL UNIVERSO</h2><p className="mt-1 text-[8px] text-[#8fa1b5]">{subject} · {block} · Mes 1 → Mes {month}</p><div className="mt-4 grid gap-3 md:grid-cols-3">{universeComposition.map((item)=><article key={item.title} className="rounded-lg border bg-white p-4"><p className="text-[10px] font-semibold">{item.title}</p><div className="mt-4 flex justify-between"><div><strong className="text-2xl">{item.value}</strong><p className="text-[7px]">centros escolares</p></div><strong className={item.type==="positive"?"text-[#168642]":item.type==="negative"?"text-[#ef3333]":""}>{item.percentage}%</strong></div><p className="mt-4 border-t pt-3 text-right text-[7px]">{item.change}</p></article>)}</div></section><section className="mt-4 rounded-lg border bg-white p-4"><div className="flex items-center gap-3"><TrendingUp className="h-4 w-4 text-[#2478cd]"/><div><h3 className="text-[10px] font-semibold">Trayectoria de resultados</h3><p className="text-[7px] text-[#8da0b2]">Movimiento entre niveles de desempeño</p></div></div><div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-5">{trajectorySummary.map(item=><div key={item.label} className="rounded-md border p-3"><span className={`inline-block h-2.5 w-2.5 rounded-full ${item.color}`}/><span className="ml-2 text-[7px]">{item.label}</span><p className={`mt-2 text-xl font-semibold ${item.text}`}>{item.value}</p><p className="text-[7px]">{item.percentage} del universo</p></div>)}</div></section></div></main>; }
+
+import { ChevronLeft } from "lucide-react";
+import EvaluationComparison from "./EvaluationComparison";
+
+export default function EvaluationProgress({ onBack }: { onBack: () => void }) {
+  return (
+    <main className="flex-1 bg-[#f5f8fc] px-4 pb-16 pt-5 text-[#17324a]">
+      <div className="mx-auto max-w-[1020px]">
+        <button onClick={onBack} className="mb-4 flex items-center gap-1 text-[8px] text-[#176fc8]">
+          <ChevronLeft className="h-3 w-3" />
+          Volver a Evaluación
+        </button>
+        <EvaluationComparison />
+      </div>
+    </main>
+  );
+}
