@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import FilterSelect from "./FilterSelect";
 import LearningFilters from "./LearningFilters";
@@ -13,12 +13,18 @@ const navItems = ["Gestión de Calidad", "Gestión Escolar", "Aprendizaje", "Eva
 const viewBySection: Record<string,string> = { "Gestión de Calidad":"gestion-calidad", "Gestión Escolar":"gestion-escolar", Aprendizaje:"aprendizaje", Evaluación:"evaluacion", "Tutoría y Formación":"tutoria-formacion" };
 const blocks = ["B1","B2","B3","B4","B5"].map((label) => ({id:label.toLowerCase(),label}));
 const components = ["Conectividad","Infraestructura","Gestión escolar","Tutoría y formación","Calidad","Aprendizaje","Evaluación"].map((label) => ({id:label,label}));
+const subscribeToHydration = () => () => undefined;
 
 export default function AuditReportHeader() {
   const state = useAuditFilters();
   const [navigating, setNavigating] = useState(false);
   const pathname = usePathname();
-  const section = pathname.startsWith("/gestion-escolar") ? "Gestión Escolar" : state.activeSection;
+  const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
+  const section = !hydrated
+    ? "Gestión de Calidad"
+    : pathname.startsWith("/gestion-escolar")
+      ? "Gestión Escolar"
+      : state.activeSection;
   const school = section === "Gestión Escolar";
   const learning = section === "Aprendizaje";
   const evaluation = section === "Evaluación";
@@ -35,7 +41,7 @@ export default function AuditReportHeader() {
     const view = viewBySection[item];
     setNavigating(true);
     window.dispatchEvent(new CustomEvent("dashboard:navigate", { detail: { id: view } }));
-    window.history.replaceState(null, "", `#${view}`);
+    window.history.replaceState(null, "", `/#${view}`);
     document.getElementById(view)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 

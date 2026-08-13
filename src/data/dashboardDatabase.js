@@ -178,10 +178,10 @@ gestionCalidad: {
     gestionOperativa: { directoresActivos:"859",observaciones:"803",realimentaciones:"745",ticketsSinAcceso:"99",ticketsN2:"36",directoresFormados:"1997",bloques:"5" },
   },
   aprendizaje: {
-    lineas: [
-      {id:"ihfb",name:"IHFB",accent:"blue",authoring:100,authoringRange:"101-160",production:58,productionRange:"110-139",publication:38,publicationRange:"110-129"},
-      {id:"kira",name:"Kira",accent:"purple",authoring:96,authoringRange:"101-160",production:63,productionRange:"101-138",publication:44,publicationRange:"101-127"},
-      {id:"xai",name:"xAI",accent:"green",authoring:92,authoringRange:"101-160",production:57,productionRange:"101-135",publication:36,publicationRange:"101-122"},
+    estadoLxp: [
+      {id:"ihfb",name:"IHFB",accent:"blue",estatus:{trimestre:3,estado:"En producción y publicación",hastaClase:139,descripcion:"Trimestre 3 en producción y publicación hasta clase 139."},pendiente:{title:"Completar producción",description:"Completar producción, revisión y publicación del T3 completo."},barrera:{title:"Tiempos de revisión",description:"Los tiempos de revisión se traslapan con otros flujos de contenido."}},
+      {id:"kira",name:"Kira",accent:"green",estatus:{trimestrePublicado:2,trimestreEnProceso:3,hastaClase:120,descripcion:"Trimestre 2 publicado; Trimestre 3 en proceso hasta clase 120."},pendiente:{title:"Avanzar producción",description:"Avanzar producción y publicación del T3 completo."},barrera:{title:"Equipo compartido",description:"Equipo compartido con xAI, lo que limita la capacidad de producción simultánea."}},
+      {id:"xai",name:"xAI",accent:"purple",estatus:{trimestre:2,estado:"En desarrollo",hastaClase:70,descripcion:"Trimestre 2 en desarrollo; hasta clase 70."},pendiente:{title:"Retomar desarrollo",description:"Retomar y completar el desarrollo del Ciclo 1."},barrera:{title:"Alto tiempo de producción",description:"Alto tiempo de producción por clase y necesidad de optimizar el flujo de creación de contenido.",tiempoPorClase:{minHoras:15,maxHoras:18,descripcion:"Sigue tomando entre 15 y 18 horas crear 1 clase."}}},
     ],
   },
   evaluacion: {
@@ -195,14 +195,126 @@ gestionCalidad: {
     trayectoria: [{label:"Excelente",value:126,percentage:"17%",color:"bg-[#16a34a]",text:"text-[#16a34a]"},{label:"Bueno",value:247,percentage:"33%",color:"bg-[#65a30d]",text:"text-[#65a30d]"},{label:"Medio",value:222,percentage:"29%",color:"bg-[#eab308]",text:"text-[#d69b00]"},{label:"Bajo",value:105,percentage:"14%",color:"bg-[#f97316]",text:"text-[#f97316]"},{label:"Crítico",value:54,percentage:"7%",color:"bg-[#ef4444]",text:"text-[#ef4444]"}],
   },
   tutoriaFormacion: {
-    accesos: {centros:"754",docentes:"6842",docentesConAcceso:"5847",porcentajeDocentes:85,estudiantes:"14.160",estudiantesConAcceso:"11.842",porcentajeEstudiantes:84},
-    modelamientos: {totalDocentes:"6842",realizados:"4280",meta:"5000",porcentajeMeta:86,claseRegular:"2640",porcentajeClaseRegular:62,remediacion:"1640",porcentajeRemediacion:38},
-    tutoriaVirtual: [
-      {title:"Clase",percentage:88,accent:"blue",rows:[["B1",145,132,91],["B2",152,139,91],["B3",141,124,88],["B4",136,117,86],["B5",148,126,85]]},
-      {title:"Refuerzo",percentage:87,accent:"purple",rows:[["B1",128,116,91],["B2",136,121,89],["B3",119,101,85],["B4",124,108,87],["B5",131,112,85]]},
-      {title:"Remediación",percentage:85,accent:"orange",rows:[["B1",92,83,90],["B2",97,85,88],["B3",89,73,82],["B4",91,77,85],["B5",95,78,82]]},
-    ],
+  accesos: {
+    centros: "600",
+    docentes: "6,095",
+    docentesConAcceso: "5,958",
+    porcentajeDocentes: 97.8,
+    estudiantes: "180,071",
+    estudiantesConAcceso: "167,590",
+    porcentajeEstudiantes: 93.1,
   },
+
+  modelamientos: {
+    totalDocentes: "6,095",
+
+    claseRegularRemediacion: {
+      totalEsperados: "7,468",
+      realizados: "4,821",
+      porcentaje: 64.6,
+    },
+
+    soloClaseRegular: {
+      totalDocentes: "962",
+      realizados: "817",
+      porcentaje: 84.9,
+    },
+
+    soloRemediacion: {
+      totalDocentes: "1,097",
+      realizados: "842",
+      porcentaje: 76.8,
+    },
+
+    meta: {
+      total: "9,437",
+      realizados: "6,480",
+      porcentaje: 68.7,
+    },
+  },
+
+  diagnosticos: {
+    docentesDiagnosticados: "627",
+    totalDocentes: "6,095",
+    porcentaje: 10,
+  },
+
+  tutoriaVirtual: {
+    bloques1y2: [
+      {
+        tipo: "Clase regular",
+        bloque1: 1565,
+        bloque2: 1205,
+        total: 2770,
+        cumplimiento: {
+          bloque1: {
+            realizados: 1565,
+            universo: 1866,
+            porcentaje: 84,
+          },
+          bloque2: {
+            realizados: 1205,
+            universo: 1488,
+            porcentaje: 81,
+          },
+        },
+      },
+      {
+        tipo: "Refuerzo",
+        bloque1: 149,
+        bloque2: 349,
+        total: 498,
+        cumplimiento: {
+          realizados: 498,
+          universo: 735,
+          porcentaje: 67,
+        },
+      },
+      {
+        tipo: "Remediación",
+        bloque1: 822,
+        bloque2: 0,
+        total: 822,
+        cumplimiento: {
+          realizados: 822,
+          universo: 1134,
+          porcentaje: 73,
+        },
+      },
+    ],
+
+    resumenBloques1y2: {
+      bloque1: 1974,
+      bloque2: 1547,
+      total: 3521,
+    },
+
+    grupos345: [
+      {
+        tipo: "Clase regular",
+        total: 4151,
+        cumplimiento: {
+          realizados: 4151,
+          universo: 4719,
+          porcentaje: 88,
+        },
+      },
+      {
+        tipo: "Remediación",
+        total: 4028,
+        cumplimiento: {
+          realizados: 4028,
+          universo: 4855,
+          porcentaje: 83,
+        },
+      },
+    ],
+
+    resumenGrupos345: {
+      total: 5201,
+    },
+  },
+},
 };
 
 export default dashboardDatabase;

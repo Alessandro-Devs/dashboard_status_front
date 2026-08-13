@@ -51,6 +51,9 @@ export default function AllDashboardSections() {
       }
 
       setActiveSection(current.label);
+      if (window.location.hash !== `#${current.id}` || window.location.search) {
+        window.history.replaceState(null, "", `/#${current.id}`);
+      }
     };
 
     updateActiveSection();
