@@ -235,7 +235,7 @@ gestionCalidad: {
     docentesConAcceso: "5,974",
     porcentajeDocentes: 98.0,
     estudiantes: "180,177",
-    estudiantesConAcceso: "167,590",
+    estudiantesConAcceso: "168,326",
     porcentajeEstudiantes: 93.0,
   },
 
