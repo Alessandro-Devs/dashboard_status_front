@@ -1,9 +1,16 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useAuditFilters } from "@/stores/AuditFiltersContext";
 
 export default function MobileHeaderShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const { activeSection } = useAuditFilters();
+  const selectedSection = pathname.startsWith("/gestion-escolar")
+    ? "Gestión Escolar"
+    : activeSection;
 
   return (
     <div
@@ -17,7 +24,7 @@ export default function MobileHeaderShell({ children }: { children: ReactNode })
         aria-controls="mobile-header-panel"
         onClick={() => setOpen((value) => !value)}
       >
-        <span>{open ? "Cerrar menú" : "Abrir menú"}</span>
+        <span>{selectedSection}</span>
         <span aria-hidden="true" className="mobile-header__icon">
           <span />
           <span />
