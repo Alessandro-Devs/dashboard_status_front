@@ -34,9 +34,9 @@ export default function AuditReportHeader() {
     </nav>
     <div className="mx-auto flex max-w-[1080px] flex-col gap-5 px-4 py-5 sm:px-6 lg:min-h-[92px] lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-3">
       <div><h1 className="font-serif text-xl font-bold sm:text-[25px]">{title}</h1><p className="mt-1 text-[11px] text-[#b8cada]">{subtitle}</p></div>
-      {learning ? <LearningFilters/> : evaluation ? <EvaluationDates startDate={state.startDate} endDate={state.endDate} onChange={state.setPeriod}/> : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
+      <div className="audit-header-filters">{learning ? <LearningFilters/> : evaluation ? <EvaluationDates startDate={state.startDate} endDate={state.endDate} onChange={state.setPeriod}/> : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
         {school&&<PlatformFilters/>}<FilterSelect label="Bloque" selected={state.blocks} options={blocks} onChange={state.setBlocks} className="w-[92px]"/>{!school&&<FilterSelect label="Componente" selected={state.components} options={components} onChange={state.setComponents} className="w-[110px]"/>}<PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/>
-      </div>}
+      </div>}</div>
     </div>
   </header>;
 }

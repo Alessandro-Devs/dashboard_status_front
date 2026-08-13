@@ -36,6 +36,59 @@ textarea {
 }
 
 @media (max-width: 639px) {
+  .audit-header-filters,
+  .audit-header-filters > div,
+  .audit-header-filters fieldset,
+  .audit-header-filters label {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .audit-header-filters > div,
+  .audit-header-filters > div > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 12px;
+  }
+
+  .audit-header-filters select,
+  .audit-header-filters label > input,
+  .audit-header-filters fieldset > div,
+  .audit-header-filters button[aria-expanded] {
+    width: 100% !important;
+    min-width: 0;
+    height: 40px !important;
+    font-size: 12px !important;
+    border-radius: 7px;
+  }
+
+  .audit-header-filters fieldset > div {
+    display: flex;
+    padding: 2px;
+  }
+
+  .audit-header-filters fieldset button {
+    min-width: 0;
+    height: 100%;
+    flex: 1 1 0;
+  }
+
+  .audit-header-filters div[class*="absolute"] {
+    right: auto;
+    left: 0;
+    width: 100% !important;
+    max-width: calc(100vw - 40px);
+  }
+
+  .audit-header-filters select {
+    padding-inline: 12px 36px;
+  }
+
+  .audit-header-filters input[type="date"] {
+    padding-inline: 12px;
+  }
+
   .mobile-header__toggle {
     position: relative;
     z-index: 1;
