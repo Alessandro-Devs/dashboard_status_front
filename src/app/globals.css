@@ -37,8 +37,11 @@ textarea {
 
 @media (max-width: 639px) {
   .mobile-header {
-    position: relative;
-    top: auto;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .mobile-header__toggle {

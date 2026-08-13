@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { blockData, type BlockItem } from "./evaluationData";
+import { blockData, enrollmentData, type BlockItem } from "./evaluationData";
 
 type DetailMode = "centros" | "matricula";
-const enrollmentData: BlockItem[] = [
-  {block:"B1",universe:2840,applied:2450,pending:390,percentage:86},{block:"B2",universe:2960,applied:2398,pending:562,percentage:81},{block:"B3",universe:2810,applied:2179,pending:631,percentage:78},{block:"B4",universe:2740,applied:1985,pending:755,percentage:72},{block:"B5",universe:2810,applied:1830,pending:980,percentage:65},
-];
-
 export default function BlockDetailModal({title,onClose}:{title:string;onClose:()=>void}) {
   const [mode,setMode]=useState<DetailMode>("centros");
   const data=mode==="centros"?blockData:enrollmentData;

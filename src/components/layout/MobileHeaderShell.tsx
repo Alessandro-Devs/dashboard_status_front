@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 
@@ -11,6 +11,12 @@ export default function MobileHeaderShell({ children }: { children: ReactNode })
   const selectedSection = pathname.startsWith("/gestion-escolar")
     ? "Gestión Escolar"
     : activeSection;
+
+  useEffect(() => {
+    const closeNavigation = () => setOpen(false);
+    window.addEventListener("dashboard:navigate", closeNavigation);
+    return () => window.removeEventListener("dashboard:navigate", closeNavigation);
+  }, []);
 
   return (
     <div

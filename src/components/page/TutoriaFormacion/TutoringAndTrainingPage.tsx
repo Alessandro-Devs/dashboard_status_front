@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { BookOpen, ChevronLeft, ChevronRight, GraduationCap, KeyRound, Monitor, UserCheck, Users } from "lucide-react";
+import { dashboardDatabase } from "@/data/dashboardDatabase";
 
 type Step = "accesos" | "modelamientos" | "tutoria";
 type Accent = "blue" | "purple" | "green";
@@ -14,11 +15,7 @@ const accessCards = [
   { title:"ESTUDIANTES CON ACCESO", value:"11.842", subtitle:"de 14.160", badge:"84%", icon:UserCheck, tone:"teal" },
 ];
 
-const tutorTables = [
-  { title:"Clase", percentage:88, accent:"blue", rows:[["B1",145,132,91],["B2",152,139,91],["B3",141,124,88],["B4",136,117,86],["B5",148,126,85]] },
-  { title:"Refuerzo", percentage:87, accent:"purple", rows:[["B1",128,116,91],["B2",136,121,89],["B3",119,101,85],["B4",124,108,87],["B5",131,112,85]] },
-  { title:"Remediación", percentage:85, accent:"orange", rows:[["B1",92,83,90],["B2",97,85,88],["B3",89,73,82],["B4",91,77,85],["B5",95,78,82]] },
-] as const;
+const tutorTables = dashboardDatabase.tutoriaFormacion.tutoriaVirtual as { title:string;percentage:number;accent:"blue"|"purple"|"orange";rows:[string,number,number,number][] }[];
 
 const tones:Record<string,string> = {
   slate:"bg-[#f1f4f7] text-[#263e54]", blue:"bg-[#eaf3ff] text-[#1671d3]", green:"bg-[#eaf8ef] text-[#168642]",

@@ -4,11 +4,9 @@ import { useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import AttendanceChart from "./AttendanceChart";
+import { dashboardDatabase } from "@/data/dashboardDatabase";
 
-const cards = [
-  ["Estudiantes - KIRA", "88%", "19,518 de 22,179 estudiantes", "blue"], ["Estudiantes - IHFB", "92%", "14,776 de 16,061 estudiantes", "purple"],
-  ["Docentes - KIRA", "93%", "984 de 1058 docentes", "blue"], ["Docentes - IHFB", "95%", "728 de 766 docentes", "purple"],
-];
+const cards = dashboardDatabase.gestionEscolar.asistenciaTarjetas;
 
 export default function AttendanceSection() {
   const [type, setType] = useState<"students" | "teachers">("students");

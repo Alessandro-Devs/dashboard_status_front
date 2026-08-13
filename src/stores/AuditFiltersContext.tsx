@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { dashboardDatabase } from "@/data/dashboardDatabase";
 
 export type Platform = "KIRA" | "IHFB";
 type DashboardState = { activeSection: string; setActiveSection: (value: string) => void; trimesters: string[]; setTrimesters: (value: string[]) => void; learningLines: string[]; setLearningLines: (value: string[]) => void; platforms: Platform[]; togglePlatform: (value: Platform) => void; blocks: string[]; setBlocks: (value: string[]) => void; components: string[]; setComponents: (value: string[]) => void; startDate: string; endDate: string; setPeriod: (start: string, end: string) => void };
@@ -13,8 +14,8 @@ export function AuditFiltersProvider({ children }: { children: ReactNode }) {
   const [platforms, setPlatforms] = useState<Platform[]>(["KIRA", "IHFB"]);
   const [blocks, setBlocks] = useState<string[]>([]);
   const [components, setComponents] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState("2026-07-01");
-  const [endDate, setEndDate] = useState("2026-07-31");
+  const [startDate, setStartDate] = useState(dashboardDatabase.metadata.fechaCorte);
+  const [endDate, setEndDate] = useState(dashboardDatabase.metadata.fechaCorte);
   const value = useMemo(() => ({ activeSection, setActiveSection, trimesters, setTrimesters, learningLines, setLearningLines, platforms, togglePlatform: (platform: Platform) => setPlatforms((current) => current.includes(platform) ? (current.length === 1 ? current : current.filter((item) => item !== platform)) : [...current, platform]), blocks, setBlocks, components, setComponents, startDate, endDate, setPeriod: (start: string, end: string) => { setStartDate(start); setEndDate(end); } }), [activeSection, trimesters, learningLines, platforms, blocks, components, startDate, endDate]);
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;
 }

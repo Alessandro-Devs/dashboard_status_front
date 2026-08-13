@@ -1,7 +1,5 @@
-import DashboardPage from "@/components/page/DashboardPage";
+import AllDashboardSections from "@/components/page/AllDashboardSections";
 
-export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const params = await searchParams;
-  const view = typeof params.view === "string" ? params.view : "gestion-calidad";
-  return <DashboardPage view={view} />;
+export default function HomePage() {
+  return <AllDashboardSections />;
 }

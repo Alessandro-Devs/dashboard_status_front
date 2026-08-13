@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import FilterSelect from "./FilterSelect";
 import LearningFilters from "./LearningFilters";
@@ -10,29 +11,40 @@ import TutoringFilters from "./TutoringFilters";
 
 const navItems = ["Gestión de Calidad", "Gestión Escolar", "Aprendizaje", "Evaluación", "Tutoría y Formación"];
 const viewBySection: Record<string,string> = { "Gestión de Calidad":"gestion-calidad", "Gestión Escolar":"gestion-escolar", Aprendizaje:"aprendizaje", Evaluación:"evaluacion", "Tutoría y Formación":"tutoria-formacion" };
-const sectionByView: Record<string,string> = Object.fromEntries(Object.entries(viewBySection).map(([section,view]) => [view,section]));
 const blocks = ["B1","B2","B3","B4","B5"].map((label) => ({id:label.toLowerCase(),label}));
 const components = ["Conectividad","Infraestructura","Gestión escolar","Tutoría y formación","Calidad","Aprendizaje","Evaluación"].map((label) => ({id:label,label}));
 
 export default function AuditReportHeader() {
   const state = useAuditFilters();
-  const router = useRouter();
-  const params = useSearchParams();
-  const section = sectionByView[params.get("view") ?? ""] ?? state.activeSection;
+  const [navigating, setNavigating] = useState(false);
+  const pathname = usePathname();
+  const section = pathname.startsWith("/gestion-escolar") ? "Gestión Escolar" : state.activeSection;
   const school = section === "Gestión Escolar";
   const learning = section === "Aprendizaje";
   const evaluation = section === "Evaluación";
   const tutoring = section === "Tutoría y Formación";
   const title = tutoring ? "Tutoría y Formación" : evaluation ? "Avance en aplicación de pruebas" : learning ? "Avance de contenidos" : school ? "Gestión Escolar" : "Reporte de auditorías de Centros Escolares";
   const subtitle = tutoring ? "Seguimiento de accesos, modelamientos y tutoría virtual" : evaluation ? "Seguimiento de aplicación de CML y Prueba Progreso" : learning ? "Seguimiento de creación, producción y publicación de clases" : school ? "Seguimiento de gestión escolar" : "Todos los bloques";
-  const navigate = (item:string) => { state.setActiveSection(item); router.push(`/?view=${viewBySection[item]}`); };
+  useEffect(() => {
+    const finishNavigation = () => setNavigating(false);
+    window.addEventListener("dashboard:arrived", finishNavigation);
+    return () => window.removeEventListener("dashboard:arrived", finishNavigation);
+  }, []);
+
+  const navigate = (item:string) => {
+    const view = viewBySection[item];
+    setNavigating(true);
+    window.dispatchEvent(new CustomEvent("dashboard:navigate", { detail: { id: view } }));
+    window.history.replaceState(null, "", `#${view}`);
+    document.getElementById(view)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return <header className="w-full bg-[#0f273c] text-white">
     <nav aria-label="Navegación principal" className="audit-main-nav flex min-h-[34px] items-center gap-3 overflow-x-auto border-b border-[#24445d] bg-[#071a29] px-4">
       <div className="flex h-[34px] shrink-0 items-center gap-1">{navItems.map((item) => { const active=section===item; return <button key={item} type="button" aria-pressed={active} onClick={()=>navigate(item)} className={`relative flex h-full items-center whitespace-nowrap px-3 text-[11px] font-medium sm:px-5 ${active?"bg-[#102b40] text-white":"text-[#9ab0c2] hover:text-white"}`}>{item}{active&&<span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#59b8f8]"/>}</button>; })}</div>
       <p className="ml-auto hidden shrink-0 text-[9px] font-semibold uppercase lg:block">Modernización Educativa</p>
     </nav>
-    <div className="audit-filter-bar mx-auto flex max-w-[1080px] flex-col gap-5 px-4 py-5 sm:px-6 lg:min-h-[92px] lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-3">
+    <div aria-hidden={navigating} className={`audit-filter-bar mx-auto max-w-[1080px] flex-col gap-5 px-4 sm:px-6 lg:min-h-[92px] lg:flex-row lg:items-center lg:justify-between lg:gap-8 ${navigating ? "hidden" : "flex py-5 lg:py-3"}`}>
       <div><h1 className="font-serif text-xl font-bold sm:text-[25px]">{title}</h1><p className="mt-1 text-[11px] text-[#b8cada]">{subtitle}</p></div>
       <div className="audit-header-filters">{learning ? <LearningFilters/> : evaluation ? <PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/> : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
         {school&&<PlatformFilters/>}<FilterSelect label="Bloque" selected={state.blocks} options={blocks} onChange={state.setBlocks} className="w-[92px]"/>{!school&&<FilterSelect label="Componente" selected={state.components} options={components} onChange={state.setComponents} className="w-[110px]"/>}<PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/>

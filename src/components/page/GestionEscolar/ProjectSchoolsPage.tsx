@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./BackToSchoolSection";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { projectSchoolsChart, projectSchoolsTable } from "./projectSchoolsData";
 
