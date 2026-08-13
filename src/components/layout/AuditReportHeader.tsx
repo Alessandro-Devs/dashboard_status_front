@@ -34,22 +34,11 @@ export default function AuditReportHeader() {
     </nav>
     <div className="audit-filter-bar mx-auto flex max-w-[1080px] flex-col gap-5 px-4 py-5 sm:px-6 lg:min-h-[92px] lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-3">
       <div><h1 className="font-serif text-xl font-bold sm:text-[25px]">{title}</h1><p className="mt-1 text-[11px] text-[#b8cada]">{subtitle}</p></div>
-      <div className="audit-header-filters">{learning ? <LearningFilters/> : evaluation ? <EvaluationDates startDate={state.startDate} endDate={state.endDate} onChange={state.setPeriod}/> : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
+      <div className="audit-header-filters">{learning ? <LearningFilters/> : evaluation ? <PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/> : tutoring ? <TutoringFilters/> : <div className="flex flex-wrap items-end gap-3">
         {school&&<PlatformFilters/>}<FilterSelect label="Bloque" selected={state.blocks} options={blocks} onChange={state.setBlocks} className="w-[92px]"/>{!school&&<FilterSelect label="Componente" selected={state.components} options={components} onChange={state.setComponents} className="w-[110px]"/>}<PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod}/>
       </div>}</div>
     </div>
   </header>;
-}
-
-function EvaluationDates({startDate,endDate,onChange}:{startDate:string;endDate:string;onChange:(start:string,end:string)=>void}) {
-  return <div className="flex flex-wrap items-end gap-3">
-    <DateInput label="Desde" value={startDate} onChange={(value)=>onChange(value,endDate)}/>
-    <DateInput label="Hasta" value={endDate} onChange={(value)=>onChange(startDate,value)}/>
-  </div>;
-}
-
-function DateInput({label,value,onChange}:{label:string;value:string;onChange:(value:string)=>void}) {
-  return <label className="text-[8px] font-semibold uppercase text-[#b8cada]">{label}<input type="date" value={value} onChange={(event)=>onChange(event.target.value)} className="mt-1 block h-[29px] w-[132px] rounded-sm border border-[#496176] bg-[#152f44] px-2 text-[9px] font-medium normal-case text-white outline-none focus:border-[#69bdf5]"/></label>;
 }
 
 function PlatformFilters() {
