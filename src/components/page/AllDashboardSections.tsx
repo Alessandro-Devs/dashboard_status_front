@@ -2,17 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import AuditReportPage from "@/components/page/GestionCalidad/AuditReportPage";
-import SchoolManagementActivities from "@/components/page/GestionEscolar/SchoolManagementActivities";
 import SchoolNoAccessDashboard from "@/components/page/GestionEscolar/SchoolNoAccessDashboard";
 import LearningPage from "@/components/page/Aprendizaje/LearningPage";
 import EvaluationPage from "@/components/page/Evaluacion/EvaluationPage";
 import TutoringAndTrainingPage from "@/components/page/TutoriaFormacion/TutoringAndTrainingPage";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
+import { SectionFilters } from "@/components/layout/AuditReportHeader";
 
 const sections = [
   { id: "gestion-calidad", label: "Gestión de Calidad", description: "Auditorías, cumplimiento y hallazgos", content: <AuditReportPage /> },
-  { id: "gestion-escolar", label: "Gestión Escolar", description: "Principales actividades de los grupos 1, 2, 3, 4 y 5", content: <><SchoolManagementActivities /><SchoolNoAccessDashboard /></> },
+  { id: "gestion-escolar", label: "Gestión Escolar", description: "Seguimiento de no accesos", content: <SchoolNoAccessDashboard /> },
   { id: "aprendizaje", label: "Aprendizaje", description: "Avance y producción de contenidos", content: <LearningPage /> },
   { id: "evaluacion", label: "Evaluación", description: "Aplicación y resultados de pruebas", content: <EvaluationPage /> },
   { id: "tutoria-formacion", label: "Tutoría y Formación", description: "Accesos, modelamientos y tutoría virtual", content: <TutoringAndTrainingPage /> },
@@ -83,18 +83,15 @@ export default function AllDashboardSections() {
     };
   }, [setActiveSection]);
 
-  return <>{sections.map((section, index) => (
+  return <>{sections.map((section) => (
     <section key={section.id} id={section.id} aria-label={section.label} className="scroll-mt-[150px]">
       <div className="border-y border-[#d9e1e8] bg-[#eef3f8]">
-        <div className="mx-auto flex min-h-[48px] w-full max-w-[1020px] items-center gap-3 px-4 py-2.5 text-[#526a80]">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#c9d5e0] bg-white text-[8px] font-bold text-[#1971c9]">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <div className="min-w-0 sm:flex sm:items-baseline sm:gap-3">
-            <h2 className="text-[10px] font-bold uppercase tracking-[.08em] text-[#29445b]">{section.label}</h2>
-            <p className="mt-0.5 truncate text-[8px] text-[#8296a8] sm:mt-0">{section.description}</p>
+        <div className="mx-auto flex w-full max-w-[1080px] flex-col gap-3 px-4 py-3 text-[#526a80] sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-bold text-[#29445b]">{section.id === "gestion-calidad" ? "Gestión Calidad" : section.label}</h2>
+            {section.id !== "gestion-calidad" && <p className="mt-0.5 text-[9px] text-[#8296a8]">{section.description}</p>}
           </div>
-          <span className="ml-auto hidden text-[7px] font-semibold uppercase tracking-[.14em] text-[#9aabba] sm:block">Módulo de seguimiento</span>
+          {section.id === "aprendizaje" && <SectionFilters section={section.label} />}
         </div>
       </div>
       {section.id !== "gestion-calidad" || hasData ? section.content : <EmptyModuleData label={section.label} />}

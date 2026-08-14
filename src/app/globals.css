@@ -35,6 +35,26 @@ textarea {
   font-family: inherit;
 }
 
+/* Controles globales sobre la franja gris compacta del encabezado. */
+.audit-filter-bar label,
+.audit-filter-bar legend {
+  color: #61788c !important;
+}
+
+.audit-filter-bar select,
+.audit-filter-bar label > input,
+.audit-filter-bar button[aria-expanded] {
+  border-color: #c7d3de !important;
+  background-color: #ffffff !important;
+  color: #29445b !important;
+}
+
+.audit-filter-bar select:hover,
+.audit-filter-bar label > input:hover,
+.audit-filter-bar button[aria-expanded]:hover {
+  border-color: #79a9d4 !important;
+}
+
 /* Mantiene legibles las etiquetas pequeñas sin agrandar títulos ni métricas. */
 main :is(
   [class*="text-[5px]"],
@@ -123,7 +143,7 @@ main :is(
   }
 
   .audit-filter-bar {
-    background: #0f273c;
+    background: transparent;
   }
 
   .audit-header-filters,

@@ -9,7 +9,7 @@ const DashboardContext = createContext<DashboardState | null>(null);
 
 export function AuditFiltersProvider({ children }: { children: ReactNode }) {
   const [activeSection, setActiveSection] = useState("Gestión de Calidad");
-  const [trimesters, setTrimesters] = useState<string[]>(["t3"]);
+  const [trimesters, setTrimesters] = useState<string[]>([]);
   const [learningLines, setLearningLines] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>(["KIRA", "IHFB"]);
   const [blocks, setBlocks] = useState<string[]>([]);

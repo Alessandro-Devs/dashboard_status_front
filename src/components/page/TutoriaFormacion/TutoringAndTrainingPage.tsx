@@ -1,27 +1,29 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, GraduationCap, KeyRound, Monitor, Stethoscope, UserCheck, Users } from "lucide-react";
+import { BadgeCheck, BookOpen, ChevronLeft, ChevronRight, GraduationCap, Handshake, KeyRound, Monitor, Stethoscope, UserCheck, Users } from "lucide-react";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
 
-type Step = "accesos" | "modelamientos" | "diagnosticos" | "tutoria";
-type Accent = "blue" | "purple" | "orange" | "green";
+type Step = "accesos" | "modelamientos" | "diagnosticos" | "tutoria" | "acompanamientos";
+type Accent = "blue" | "purple" | "orange" | "green" | "teal";
 const data = dashboardDatabase.tutoriaFormacion;
 const tones: Record<string,string> = { blue:"bg-[#eaf3ff] text-[#1671d3]", purple:"bg-[#f2ecff] text-[#7544f4]", orange:"bg-[#fff3e6] text-[#e77b13]", green:"bg-[#eaf8ef] text-[#168642]", teal:"bg-[#e8f5f3] text-[#087f75]", slate:"bg-[#f1f4f7] text-[#263e54]" };
 
 export default function TutoringAndTrainingPage() {
   const [step,setStep] = useState<Step>("accesos");
   return <main className="flex-1 bg-[#f5f8fc] text-[#17324a]"><div className="mx-auto w-full max-w-[1200px] px-4 pb-16 pt-6 sm:px-6">
-    <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-xl border border-[#d7e0e8] bg-white p-2 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-xl border border-[#d7e0e8] bg-white p-2 sm:grid-cols-2 lg:grid-cols-5">
       <StepButton index="01" label="Accesos" icon={<KeyRound className="h-4 w-4"/>} active={step==="accesos"} accent="blue" onClick={()=>setStep("accesos")}/>
       <StepButton index="02" label="Modelamientos" icon={<Monitor className="h-4 w-4"/>} active={step==="modelamientos"} accent="purple" onClick={()=>setStep("modelamientos")}/>
       <StepButton index="03" label="Diagnósticos" icon={<Stethoscope className="h-4 w-4"/>} active={step==="diagnosticos"} accent="orange" onClick={()=>setStep("diagnosticos")}/>
       <StepButton index="04" label="Tutoría virtual" icon={<BookOpen className="h-4 w-4"/>} active={step==="tutoria"} accent="green" onClick={()=>setStep("tutoria")}/>
+      <StepButton index="05" label="Acompañamientos" icon={<Handshake className="h-4 w-4"/>} active={step==="acompanamientos"} accent="teal" onClick={()=>setStep("acompanamientos")}/>
     </div>
     {step==="accesos" && <AccessView onNext={()=>setStep("modelamientos")}/>} 
     {step==="modelamientos" && <ModelingView onBack={()=>setStep("accesos")} onNext={()=>setStep("diagnosticos")}/>} 
     {step==="diagnosticos" && <DiagnosticsView onBack={()=>setStep("modelamientos")} onNext={()=>setStep("tutoria")}/>} 
-    {step==="tutoria" && <TutoringView onBack={()=>setStep("diagnosticos")}/>} 
+    {step==="tutoria" && <TutoringView onBack={()=>setStep("diagnosticos")} onNext={()=>setStep("acompanamientos")}/>} 
+    {step==="acompanamientos" && <AcompanamientosView onBack={()=>setStep("tutoria")}/>} 
   </div></main>;
 }
 
@@ -53,11 +55,13 @@ function DiagnosticsView({onBack,onNext}:{onBack:()=>void;onNext:()=>void}) {
   return <section className="mt-6"><SectionTitle index="03" title="Diagnósticos" subtitle="Cobertura de docentes diagnosticados" icon={<Stethoscope className="h-4 w-4"/>} accent="orange"/><div className="mt-5 grid gap-4 lg:grid-cols-[.65fr_1.35fr]"><MetricCard title="DOCENTES DIAGNOSTICADOS" value={diagnostic.docentesDiagnosticados} subtitle={`de ${diagnostic.totalDocentes} docentes`} badge={`${diagnostic.porcentaje}%`} tone="orange" icon={<UserCheck className="h-4 w-4"/>}/><Card><div className="flex items-end justify-between"><div><h3 className="text-[12px] font-semibold">Avance de diagnósticos</h3><p className="mt-1 text-[9px] text-[#8da0b5]">Docentes diagnosticados respecto al universo</p></div><strong className="text-[26px] text-[#e77b13]">{diagnostic.porcentaje}%</strong></div><Progress label="DIAGNÓSTICOS" current={diagnostic.docentesDiagnosticados} total={diagnostic.totalDocentes} percentage={diagnostic.porcentaje} color="#e77b13"/></Card></div><Navigation onBack={onBack} back="Modelamientos" onNext={onNext} next="Ver Tutoría virtual"/></section>;
 }
 
-function TutoringView({onBack}:{onBack:()=>void}) {
+function TutoringView({onBack,onNext}:{onBack:()=>void;onNext:()=>void}) {
   const virtual=data.tutoriaVirtual;
   const rows=[...virtual.bloques1y2.map(item=>{const detail=item.cumplimiento;const percentage=detail.bloque1&&detail.bloque2?Math.round((detail.bloque1.porcentaje+detail.bloque2.porcentaje)/2):detail.porcentaje??0;return {scope:"Bloques 1 y 2",type:item.tipo,total:item.total,percentage};}),...virtual.grupos345.map(item=>({scope:"Grupos 3, 4 y 5",type:item.tipo,total:item.total,percentage:item.cumplimiento.porcentaje}))];
-  return <section className="mt-6"><SectionTitle index="04" title="Tutoría virtual" subtitle="Cumplimiento de tutorías por bloque y modalidad" icon={<BookOpen className="h-4 w-4"/>} accent="green"/><div className="mt-5 grid gap-3 sm:grid-cols-2"><MetricCard title="TOTAL BLOQUES 1 Y 2" value={String(virtual.resumenBloques1y2.total)} subtitle={`B1: ${virtual.resumenBloques1y2.bloque1} · B2: ${virtual.resumenBloques1y2.bloque2}`} tone="blue" icon={<BookOpen className="h-4 w-4"/>}/><MetricCard title="TOTAL GRUPOS 3, 4 Y 5" value={String(virtual.resumenGrupos345.total)} tone="green" icon={<GraduationCap className="h-4 w-4"/>}/></div><Card className="mt-4 overflow-x-auto"><div className="min-w-[520px]"><div className="grid grid-cols-4 border-b pb-3 text-[8px] font-semibold text-[#8296a8]"><span>GRUPO</span><span>TIPO</span><span className="text-right">REALIZADOS</span><span className="text-right">CUMPLIMIENTO</span></div>{rows.map(row=><div key={`${row.scope}-${row.type}`} className="grid grid-cols-4 border-b py-3 text-[9px]"><span>{row.scope}</span><strong>{row.type}</strong><span className="text-right">{row.total}</span><strong className="text-right text-[#168642]">{row.percentage}%</strong></div>)}</div></Card><div className="mt-5"><Back onClick={onBack}>Diagnósticos</Back></div></section>;
+  return <section className="mt-6"><SectionTitle index="04" title="Tutoría virtual" subtitle="Cumplimiento de tutorías por bloque y modalidad" icon={<BookOpen className="h-4 w-4"/>} accent="green"/><div className="mt-5 grid gap-3 sm:grid-cols-2"><MetricCard title="TOTAL BLOQUES 1 Y 2" value={String(virtual.resumenBloques1y2.total)} subtitle={`B1: ${virtual.resumenBloques1y2.bloque1} · B2: ${virtual.resumenBloques1y2.bloque2}`} tone="blue" icon={<BookOpen className="h-4 w-4"/>}/><MetricCard title="TOTAL GRUPOS 3, 4 Y 5" value={String(virtual.resumenGrupos345.total)} tone="green" icon={<GraduationCap className="h-4 w-4"/>}/></div><Card className="mt-4 overflow-x-auto"><div className="min-w-[520px]"><div className="grid grid-cols-4 border-b pb-3 text-[8px] font-semibold text-[#8296a8]"><span>GRUPO</span><span>TIPO</span><span className="text-right">REALIZADOS</span><span className="text-right">CUMPLIMIENTO</span></div>{rows.map(row=><div key={`${row.scope}-${row.type}`} className="grid grid-cols-4 border-b py-3 text-[9px]"><span>{row.scope}</span><strong>{row.type}</strong><span className="text-right">{row.total}</span><strong className="text-right text-[#168642]">{row.percentage}%</strong></div>)}</div></Card><Navigation onBack={onBack} back="Diagnósticos" onNext={onNext} next="Ver Acompañamientos"/></section>;
 }
+
+function AcompanamientosView({onBack}:{onBack:()=>void}) { return <section className="mt-6"><SectionTitle index="05" title="Acompañamientos" subtitle="Seguimiento acumulado de acompañamientos realizados a docentes" icon={<Handshake className="h-4 w-4"/>} accent="teal"/><div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr]"><div className="rounded-xl border border-[#b9ddd7] bg-white px-5 py-4"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-4"><div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eef8f6]"><Handshake className="h-4 w-4 text-[#0b7a75]"/></div><div><p className="text-[10px] font-semibold uppercase tracking-[.06em] text-[#91a2b5]">ACOMPAÑAMIENTOS REALIZADOS</p><p className="mt-1 text-[10px] text-[#9aacbf]">Acumulado a la fecha</p></div></div><p className="pr-2 text-right text-[44px] font-medium leading-none text-[#0b7a75]">9562</p></div></div><div className="rounded-xl border border-[#b9ddd7] bg-white px-5 py-4"><div className="flex items-start gap-4"><div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eef8f6]"><BadgeCheck className="h-4 w-4 text-[#198754]"/></div><div><p className="text-[10px] font-semibold uppercase tracking-[.06em] text-[#91a2b5]">ESTADO</p><p className="mt-5 text-[18px] font-semibold text-[#17324a]">En seguimiento</p><p className="mt-2 text-[10px] text-[#9aacbf]">Indicador acumulado del proceso</p></div></div></div></div><div className="mt-5"><Back onClick={onBack}>Tutoría virtual</Back></div></section> }
 
 function MetricCard({title,value,subtitle,badge,tone,icon}:{title:string;value:string;subtitle?:string;badge?:string;tone:string;icon:ReactNode}) { return <Card><div className="flex justify-between"><span className={`flex h-9 w-9 items-center justify-center rounded-lg ${tones[tone]}`}>{icon}</span>{badge&&<span className={`h-fit rounded-full px-2 py-1 text-[9px] font-semibold ${tones[tone]}`}>{badge}</span>}</div><p className="mt-4 text-[9px] font-medium text-[#8399b6]">{title}</p><p className="mt-3 text-[25px] font-medium leading-none">{value}</p>{subtitle&&<p className="mt-2 text-[8px] text-[#91a4b8]">{subtitle}</p>}</Card>; }
 function ProgressCard({title,totalDocentes,realizados,porcentaje}:{title:string;totalDocentes:string;realizados:string;porcentaje:number}) { return <Card><h3 className="text-[12px] font-semibold">{title}</h3><Progress label="REALIZADOS" current={realizados} total={totalDocentes} percentage={porcentaje} color="#7544f4"/></Card>; }

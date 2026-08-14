@@ -167,6 +167,71 @@ gestionCalidad: {
   ],
 },
   gestionEscolar: {
+    actividades: {
+      periodo: "10/08/2026 — 12/08/2026",
+      observacion: [
+        {label:"Directores Activos",value:162,percentage:42.3},
+        {label:"Observaciones Realizadas",value:467,percentage:24.4},
+        {label:"Realimentaciones Realizadas",value:245,percentage:12.8},
+      ],
+      formacion: [
+        {label:"Grupo 1",value:183,percentage:99.7},
+        {label:"Grupo 2",value:196,percentage:100},
+        {label:"Grupo 3",value:192,percentage:96.5},
+        {label:"Grupo 4",value:198,percentage:98.5},
+        {label:"Grupo 5",value:189,percentage:94.5},
+      ],
+      horariosG12: [{label:"CE Verificados/Aprobados",value:383,percentage:100}],
+      horariosG345: [
+        {label:"CE Verificados/Aprobados",value:555,percentage:92.5},
+        {label:"Con observaciones",value:25,percentage:4.2},
+        {label:"Casos especiales",value:5,percentage:0.8},
+        {label:"No aplica",value:1,percentage:0.2},
+        {label:"Nuevos centros escolares",value:14,percentage:2.3},
+      ],
+      accionesObservacion: [
+        "Llamadas de monitoreo a directores de G1 y G2.",
+        "Capacitación de Técnicos de Gestión Escolar en el uso del aplicativo de observación.",
+        "Técnicos del SDP solucionan las incidencias del aplicativo de observación.",
+      ],
+      accionesHorarios: [
+        "Videollamadas con el director para ajustar el horario escolar.",
+        "Monitoreo diario por medio de WhatsApp.",
+      ],
+    },
+    noAccesos: {
+      historialDocentes: [
+        {fecha:"2026-08-07",valor:1743},
+        {fecha:"2026-08-10",valor:1102},
+        {fecha:"2026-08-11",valor:1043},
+      ],
+      historialClases: [
+        {fecha:"2026-08-07",valor:5044},
+        {fecha:"2026-08-10",valor:2995},
+        {fecha:"2026-08-11",valor:2915},
+      ],
+      resumen: [
+        {title:"DOCENTES NO ACCESOS",value:"88",subtitle:"Docentes únicos",color:"orange",icon:"shield"},
+        {title:"NÚMERO DE CLASES",value:"156",subtitle:"Clases asociadas a docentes sin acceso",color:"blue",icon:"clipboard"},
+      ],
+      evolucion: [
+        {day:"Viernes 7",ihfb:1442,kira:3612},
+        {day:"Lunes 10",ihfb:1084,kira:1911},
+        {day:"Martes 11",ihfb:1062,kira:1853},
+      ],
+      acciones: [
+        {title:"Campaña para Directores",description:"Comunicación y seguimiento dirigido a directores.",icon:"users"},
+        {title:"Campaña para Docentes",description:"Contacto directo para promover y recuperar accesos.",icon:"headphones"},
+        {title:"Llamadas a Directores",description:"Call Center y registro de incidencias en SDP.",icon:"phone"},
+        {title:"Monitoreo diario del TGE",description:"Seguimiento diario del comportamiento de accesos.",icon:"check"},
+        {title:"Formación para Directores",description:"Acompañamiento y orientación a equipos directivos.",icon:"users"},
+      ],
+      limitaciones: [
+        "Centros escolares con internet no funcional o sin internet.",
+        "Requerimiento de personal técnico en la coordinación.",
+        "Rotación y movilidad de docentes en centros escolares.",
+      ],
+    },
     kpis: [
       {title:"Matrícula",value:"38,240",description:"Estudiantes registrados",style:"blue"},
       {title:"Docentes",value:"1824",description:"Docentes registrados",style:"purple"},
@@ -176,9 +241,30 @@ gestionCalidad: {
     asistenciaTarjetas: [["Estudiantes - KIRA","88%","19,518 de 22,179 estudiantes","blue"],["Estudiantes - IHFB","92%","14,776 de 16,061 estudiantes","purple"],["Docentes - KIRA","93%","984 de 1058 docentes","blue"],["Docentes - IHFB","95%","728 de 766 docentes","purple"]],
     asistenciaDiaria: [{day:"Lun",kira:86,ihfb:86},{day:"Mar",kira:89,ihfb:89},{day:"Mié",kira:87,ihfb:87},{day:"Jue",kira:91,ihfb:91},{day:"Vie",kira:88,ihfb:88}],
     observacionesPorBloque: [{block:"B1",value:174},{block:"B2",value:171},{block:"B3",value:176},{block:"B4",value:168},{block:"B5",value:170}],
-    formacionPorBloque: [{block:"B1",value:405},{block:"B2",value:393},{block:"B3",value:424},{block:"B4",value:379},{block:"B5",value:396}],
+    gestionOperativa: {
+      formacion: {
+        participantes: "958",
+        secciones: "36",
+        grupos: [
+          {name:"Grupo 1",value:183,percentage:99.7},
+          {name:"Grupo 2",value:196,percentage:100},
+          {name:"Grupo 3",value:192,percentage:96.5},
+          {name:"Grupo 4",value:198,percentage:98.5},
+          {name:"Grupo 5",value:189,percentage:94.5},
+        ],
+      },
+      observaciones: {
+        resumen: {directoresActivos:"859",observacionesRealizadas:"803",retroalimentacionesRealizadas:"745"},
+        bloques: [
+          {block:"B1",activeDirectors:174,observations:162,observationsTarget:870,observationsPercentage:19,feedback:151,feedbackTarget:870,feedbackPercentage:17},
+          {block:"B2",activeDirectors:171,observations:158,observationsTarget:855,observationsPercentage:18,feedback:146,feedbackTarget:855,feedbackPercentage:17},
+          {block:"B3",activeDirectors:176,observations:169,observationsTarget:880,observationsPercentage:19,feedback:158,feedbackTarget:880,feedbackPercentage:18},
+          {block:"B4",activeDirectors:168,observations:154,observationsTarget:840,observationsPercentage:18,feedback:141,feedbackTarget:840,feedbackPercentage:17},
+          {block:"B5",activeDirectors:170,observations:160,observationsTarget:850,observationsPercentage:19,feedback:149,feedbackTarget:850,feedbackPercentage:18},
+        ],
+      },
+    },
     centrosProyecto: [["B1","Fase 1","Activo",120],["B1","Fase 2","Activo",48],["B1","Fase 2","Pausa",4],["B1","Fase 2","Sustituto",6],["B2","Fase 1","Activo",108],["B2","Fase 2","Activo",57],["B2","Fase 2","Pausa",5],["B2","Fase 2","Sustituto",7],["B3","Fase 1","Activo",92],["B3","Fase 2","Activo",79],["B3","Fase 2","Pausa",4],["B3","Fase 2","Sustituto",5],["B4","Fase 1","Activo",85],["B4","Fase 2","Activo",78],["B4","Fase 2","Pausa",6],["B4","Fase 2","Sustituto",7],["B5","Fase 1","Activo",74],["B5","Fase 3","Activo",92],["B5","Fase 3","Pausa",5],["B5","Fase 3","Sustituto",6]],
-    gestionOperativa: { directoresActivos:"859",observaciones:"803",realimentaciones:"745",ticketsSinAcceso:"99",ticketsN2:"36",directoresFormados:"1997",bloques:"5" },
   },
   aprendizaje: {
     estadoLxp: [
@@ -188,6 +274,33 @@ gestionCalidad: {
     ],
   },
   evaluacion: {
+    comparativasNiveles: {
+      matematica: {
+        promedio:50, variacion:-2.7,
+        junio:[15.9,25.4,19,14.9,24.8],
+        julio:[22,22.7,21.4,15.1,18.8],
+      },
+      lengua: {
+        promedio:49.7, variacion:-2.9,
+        junio:[18,19.1,19.3,20.1,23.5],
+        julio:[23.7,21.5,17.6,18.6,18.6],
+      },
+    },
+    portalResultados: {
+      etiqueta:"Actualización del portal",
+      entrada:"Entrada en funcionamiento del portal 10 de agosto",
+      incidencias:"43 reportes de incidencias de ingreso o falta de datos, hasta el 13 de agosto",
+      barrera:"Para fase 1 solo se contempló ingreso a directores y docentes, no hay acceso para usuarios “administradores”, esto se dará en fase 2 de desarrollo",
+    },
+    aplicacionCml: {
+      etiqueta:"Aplicación CML",
+      programados:"Programados 55 centros (No aplicación y baja participación)",
+      aplicaciones:[
+        "Aplicación en 31 centros 12 de agosto, 1 pendiente por finalizar. 14 CE aplicación con Starlink",
+        "24 centros en aplicación 13 de agosto. 10 CE aplicación con Starlink",
+      ],
+      barrera:"El contrato con SOTE se ha vencido, aplicaciones están por fuera de contrato",
+    },
     pruebas: {
         cml: {
           title: "Prueba CML",

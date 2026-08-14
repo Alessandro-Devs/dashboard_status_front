@@ -1,38 +1,12 @@
 "use client";
 
 import BarreraCard from "./BarreraCard";
+import { dashboardDatabase } from "@/data/dashboardDatabase";
 
-const mathJune = [
-  { label: "15.9%", value: 15.9, color: "#e5252a" },
-  { label: "25.4%", value: 25.4, color: "#f05b0b" },
-  { label: "19%", value: 19, color: "#f2a312" },
-  { label: "14.9%", value: 14.9, color: "#19a97a" },
-  { label: "24.8%", value: 24.8, color: "#0c7f73" },
-];
+const comparison = dashboardDatabase.evaluacion.comparativasNiveles;
 
-const mathJuly = [
-  { label: "22%", value: 22, color: "#e5252a" },
-  { label: "22.7%", value: 22.7, color: "#f05b0b" },
-  { label: "21.4%", value: 21.4, color: "#f2a312" },
-  { label: "15.1%", value: 15.1, color: "#19a97a" },
-  { label: "18.8%", value: 18.8, color: "#0c7f73" },
-];
-
-const languageJune = [
-  { label: "18%", value: 18, color: "#e5252a" },
-  { label: "19.1%", value: 19.1, color: "#f05b0b" },
-  { label: "19.3%", value: 19.3, color: "#f2a312" },
-  { label: "20.1%", value: 20.1, color: "#19a97a" },
-  { label: "23.5%", value: 23.5, color: "#0c7f73" },
-];
-
-const languageJuly = [
-  { label: "23.7%", value: 23.7, color: "#e5252a" },
-  { label: "21.5%", value: 21.5, color: "#f05b0b" },
-  { label: "17.6%", value: 17.6, color: "#f2a312" },
-  { label: "18.6%", value: 18.6, color: "#19a97a" },
-  { label: "18.6%", value: 18.6, color: "#0c7f73" },
-];
+const colors = ["#e5252a", "#f05b0b", "#f2a312", "#19a97a", "#0c7f73"];
+const toSegments = (values: number[]) => values.map((value, index) => ({ label: `${value}%`, value, color: colors[index] }));
 
 type Segment = { label: string; value: number; color: string };
 
@@ -40,12 +14,12 @@ export default function EvaluationComparison() {
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <AverageCard title="PROMEDIO MATEMÁTICA" value="50" variation="-2.7" />
-        <AverageCard title="PROMEDIO LENGUA" value="49.7" variation="-2.9" />
+        <AverageCard title="PROMEDIO MATEMÁTICA" value={String(comparison.matematica.promedio)} variation={String(comparison.matematica.variacion)} />
+        <AverageCard title="PROMEDIO LENGUA" value={String(comparison.lengua.promedio)} variation={String(comparison.lengua.variacion)} />
       </div>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <ComparisonCard title="Matemática - Comparativa por Niveles" june={mathJune} july={mathJuly} />
-        <ComparisonCard title="Lengua - Comparativa por Niveles" june={languageJune} july={languageJuly} />
+        <ComparisonCard title="Matemática - Comparativa por Niveles" june={toSegments(comparison.matematica.junio)} july={toSegments(comparison.matematica.julio)} />
+        <ComparisonCard title="Lengua - Comparativa por Niveles" june={toSegments(comparison.lengua.junio)} july={toSegments(comparison.lengua.julio)} />
       </div>
       <BarreraCard />
     </section>
