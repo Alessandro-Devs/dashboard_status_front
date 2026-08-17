@@ -15,7 +15,7 @@ const observationBlocks:BlockData[]=operationalData.observaciones.bloques;
 const observationSummary=operationalData.observaciones.resumen;
 
 export default function OperationalManagementPage() {
-  const [mainTab,setMainTab]=useState<MainTab>("formacion");
+  const [mainTab,setMainTab]=useState<MainTab>("observaciones");
 
   return <main className="min-h-screen bg-[#f4f7fb] px-4 py-5 text-[#223b53] sm:px-6"><div className="mx-auto max-w-[1280px]">
     <div className="flex items-start justify-between gap-4"><div><h1 className="text-[18px] font-semibold tracking-[.04em] text-[#27435c]">GESTIÓN OPERATIVA</h1><p className="mt-1 text-[10px] text-[#8ea1b5]">Seguimiento de observaciones y formación de directores</p></div><BackToSchoolSection className="rounded-lg border border-[#d8e0e8] bg-white px-4 py-2 text-[10px] text-[#667b90] transition hover:bg-[#f8fafc]">← Volver</BackToSchoolSection></div>

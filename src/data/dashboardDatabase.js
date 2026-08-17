@@ -386,81 +386,67 @@ gestionCalidad: {
     porcentaje: 16.1,
   },
 
-  tutoriaVirtual: {
-    bloques1y2: [
+  tutoriaVirtual: [
+  {
+    title: "Clase regular",
+    percentage: 86,
+    accent: "blue",
+    rows: [
       {
-        tipo: "Clase regular",
-        bloque1: 1565,
-        bloque2: 1205,
-        total: 2770,
-        cumplimiento: {
-          bloque1: {
-            realizados: 1565,
-            universo: 1866,
-            porcentaje: 84,
-          },
-          bloque2: {
-            realizados: 1205,
-            universo: 1488,
-            porcentaje: 81,
-          },
-        },
+        block: "B1",
+        invited: 1866,
+        attended: 1565,
+        percentage: 84,
       },
       {
-        tipo: "Refuerzo",
-        bloque1: 149,
-        bloque2: 349,
-        total: 498,
-        cumplimiento: {
-          realizados: 498,
-          universo: 735,
-          porcentaje: 67,
-        },
+        block: "B2",
+        invited: 1488,
+        attended: 1205,
+        percentage: 81,
       },
       {
-        tipo: "Remediación",
-        bloque1: 822,
-        bloque2: 0,
-        total: 822,
-        cumplimiento: {
-          realizados: 822,
-          universo: 1134,
-          porcentaje: 73,
-        },
+        block: "G3, G4 y G5",
+        invited: 4719,
+        attended: 4151,
+        percentage: 88,
       },
     ],
-
-    resumenBloques1y2: {
-      bloque1: 1974,
-      bloque2: 1547,
-      total: 3521,
-    },
-
-    grupos345: [
-      {
-        tipo: "Clase regular",
-        total: 4151,
-        cumplimiento: {
-          realizados: 4151,
-          universo: 4719,
-          porcentaje: 88,
-        },
-      },
-      {
-        tipo: "Remediación",
-        total: 4028,
-        cumplimiento: {
-          realizados: 4028,
-          universo: 4855,
-          porcentaje: 83,
-        },
-      },
-    ],
-
-    resumenGrupos345: {
-      total: 5201,
-    },
   },
+
+  {
+    title: "Refuerzo",
+    percentage: 67,
+    accent: "purple",
+    rows: [
+      {
+        block: "B1 y B2",
+        invited: 735,
+        attended: 498,
+        percentage: 67,
+      },
+    ],
+  },
+
+  {
+    title: "Remediación",
+    percentage: 81,
+    accent: "orange",
+    rows: [
+      {
+        block: "B1 y B2",
+        invited: 1134,
+        attended: 822,
+        percentage: 73,
+      },
+      {
+        block: "G3, G4 y G5",
+        invited: 4855,
+        attended: 4028,
+        percentage: 83,
+      },
+    ],
+  },
+],
 },
 };
 

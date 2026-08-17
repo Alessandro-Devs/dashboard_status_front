@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
@@ -19,6 +19,7 @@ export default function AuditReportHeader() {
   const state = useAuditFilters();
   const [, setNavigating] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   const section = !hydrated
     ? "Gestión de Calidad"
@@ -39,8 +40,16 @@ export default function AuditReportHeader() {
   const navigate = (item:string) => {
     const view = viewBySection[item];
     setNavigating(true);
-    window.dispatchEvent(new CustomEvent("dashboard:navigate", { detail: { id: view } }));
     state.setActiveSection(item);
+
+    // Las vistas de detalle no contienen las secciones del landing. Al navegar
+    // desde una de ellas, primero volvemos al landing en la sección solicitada.
+    if (pathname !== "/") {
+      router.push(`/#${view}`);
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent("dashboard:navigate", { detail: { id: view } }));
     window.history.replaceState(null, "", `/#${view}`);
     requestAnimationFrame(() => {
       const target = document.getElementById(view);
