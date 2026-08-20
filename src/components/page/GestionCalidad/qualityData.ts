@@ -1,4 +1,5 @@
 import { dashboardDatabase } from "@/data/dashboardDatabase";
+import { sortDescendingByNumber } from "@/lib/sortByPercentage";
 
 export type Finding = {
   title: string;
@@ -8,7 +9,7 @@ export type Finding = {
 };
 
 export const qualityData = dashboardDatabase.gestionCalidad;
-export const auditedByGroup = qualityData.auditadosPorGrupo;
-export const complianceByGroup = qualityData.cumplimientoPorGrupo;
-export const complianceByProcess = qualityData.cumplimientoPorProceso;
-export const criticalFindings: Finding[] = qualityData.hallazgosCriticos;
+export const auditedByGroup = sortDescendingByNumber(qualityData.auditadosPorGrupo, (item) => item.auditados);
+export const complianceByGroup = sortDescendingByNumber(qualityData.cumplimientoPorGrupo, (item) => item.value);
+export const complianceByProcess = sortDescendingByNumber(qualityData.cumplimientoPorProceso, (item) => item.value);
+export const criticalFindings: Finding[] = sortDescendingByNumber(qualityData.hallazgosCriticos, (item) => item.impact);

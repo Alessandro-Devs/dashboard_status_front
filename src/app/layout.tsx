@@ -4,6 +4,7 @@ import AuditReportHeader from "@/components/layout/AuditReportHeader";
 import GlobalFooter from "@/components/layout/GlobalFooter";
 import MobileHeaderShell from "@/components/layout/MobileHeaderShell";
 import { AuditFiltersProvider } from "@/stores/AuditFiltersContext";
+import { DashboardDataProvider } from "@/stores/DashboardDataContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,15 +17,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <AuditFiltersProvider>
-          <MobileHeaderShell>
+          <DashboardDataProvider>
+            <MobileHeaderShell>
+              <Suspense fallback={null}>
+                <AuditReportHeader />
+              </Suspense>
+            </MobileHeaderShell>
+            {children}
             <Suspense fallback={null}>
-              <AuditReportHeader />
+              <GlobalFooter />
             </Suspense>
-          </MobileHeaderShell>
-          {children}
-          <Suspense fallback={null}>
-            <GlobalFooter />
-          </Suspense>
+          </DashboardDataProvider>
         </AuditFiltersProvider>
       </body>
     </html>
