@@ -2,6 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 import EvaluationComparison from "./EvaluationComparison";
+import EvaluationResultsOverview from "./EvaluationResultsOverview";
 
 export default function EvaluationProgress({ onBack }: { onBack: () => void }) {
   return (
@@ -11,7 +12,8 @@ export default function EvaluationProgress({ onBack }: { onBack: () => void }) {
           <ChevronLeft className="h-3.5 w-3.5" />
           Volver a Evaluación
         </button>
-        <EvaluationComparison />
+        <EvaluationResultsOverview />
+        <div className="mt-5"><EvaluationComparison /></div>
       </div>
     </main>
   );

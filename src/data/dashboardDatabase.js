@@ -62,6 +62,40 @@ export const dashboardDatabase = {
     estadoLxp: [],
   },
   evaluacion: {
+    pruebas: {
+      cml: { titulo: "Prueba CML", centrosEscolares: { aplicados: "720", pendientes: "32", universo: "752", porcentaje: 95.7 }, matricula: { aplicados: "193,875", pendientes: "32,126", universo: "226,001", porcentaje: 85.8 } },
+      progreso: { titulo: "", centrosEscolares: { aplicados: "", pendientes: "", universo: "", porcentaje: null }, matricula: { aplicados: "", pendientes: "", universo: "", porcentaje: null } },
+    },
+    seguimientoAplicacionCml: {
+      etiqueta: "Aplicación CML",
+      programados: "Programados 55 centros (No aplicación y baja participación)",
+      aplicaciones: ["Aplicación en 31 centros 12 de agosto, 1 pendiente por finalizar. 14 CE aplicación con Starlink", "24 centros en aplicación 13 de agosto. 10 CE aplicación con Starlink"],
+      barrera: "El contrato con SOTE se ha vencido, aplicaciones están por fuera de contrato",
+    },
+    detallePorBloque: {
+      centrosEscolares: [],
+      matricula: [],
+    },
+    actualizacionPortalResultados: { etiqueta:"Actualización del portal",entrada:"Entrada en funcionamiento del portal 10 de agosto",incidencias:"43 reportes de incidencias de ingreso o falta de datos, hasta el 13 de agosto",barrera:"Para fase 1 solo se contempló ingreso a directores y docentes, no hay acceso para usuarios administradores; esto se dará en fase 2 de desarrollo" },
+    comparativasPorMateria: {
+      lengua: { promedio:49.7,variacionRespectoJunio:-2.9,porcentajesJunio:[18,19.1,19.3,20.1,23.5],porcentajesJulio:[23.7,21.5,17.6,18.6,18.6] },
+      matematica: { promedio:50,variacionRespectoJunio:-2.7,porcentajesJunio:[15.9,25.4,19,14.9,24.8],porcentajesJulio:[22,22.7,21.4,15.1,18.8] },
+    },
+    // Configuración y datos de la vista "Avance · Resultados · Progreso".
+    // Las etapas y los niveles pueden aumentarse o reducirse libremente.
+    vistaResultados: {
+      materiasDisponibles: [],
+      materiaSeleccionadaPorDefecto: "",
+      composicionDelUniverso: {},
+      trayectoriaDeResultados: {
+        nivelesDeDesempeno: [],
+        resumenPorNivel: [],
+        etapas: [],
+        distribucionPorcentualDeLosFlujos: {},
+        lecturaPrincipal: "",
+        descripcionLectura: "",
+      },
+    },
     comparativasNiveles: {
       matematica: {
         promedio: 0,
@@ -88,7 +122,7 @@ export const dashboardDatabase = {
       aplicaciones: [],
       barrera: "",
     },
-    pruebas: {
+    datosAnterioresPruebas: {
       cml: {
         title: "",
         schoolPercentage: 0,

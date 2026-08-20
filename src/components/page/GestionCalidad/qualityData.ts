@@ -8,8 +8,18 @@ export type Finding = {
   impact: number;
 };
 
+type AuditedGroup = { name: string; auditados: number; total: number };
+type Compliance = { name: string; value: number };
+
 export const qualityData = dashboardDatabase.gestionCalidad;
-export const auditedByGroup = sortDescendingByNumber(qualityData.auditadosPorGrupo, (item) => item.auditados);
-export const complianceByGroup = sortDescendingByNumber(qualityData.cumplimientoPorGrupo, (item) => item.value);
-export const complianceByProcess = sortDescendingByNumber(qualityData.cumplimientoPorProceso, (item) => item.value);
-export const criticalFindings: Finding[] = sortDescendingByNumber(qualityData.hallazgosCriticos, (item) => item.impact);
+
+// La API sincroniza dashboardDatabase después de cargar este módulo. Estas
+// colecciones deben calcularse bajo demanda para no conservar copias vacías.
+export const getAuditedByGroup = () =>
+  sortDescendingByNumber(qualityData.auditadosPorGrupo as AuditedGroup[], (item) => item.auditados);
+export const getComplianceByGroup = () =>
+  sortDescendingByNumber(qualityData.cumplimientoPorGrupo as Compliance[], (item) => item.value);
+export const getComplianceByProcess = () =>
+  sortDescendingByNumber(qualityData.cumplimientoPorProceso as Compliance[], (item) => item.value);
+export const getCriticalFindings = (): Finding[] =>
+  qualityData.hallazgosCriticos as Finding[];

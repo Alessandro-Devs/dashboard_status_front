@@ -10,8 +10,14 @@ type PeriodFilterProps =
 export default function PeriodFilter(props: PeriodFilterProps) {
   const date = "date" in props ? props.date : props.endDate;
   const [open, setOpen] = useState(false);
-  const [draftDate, setDraftDate] = useState(date);
   const ref = useRef<HTMLDivElement>(null);
+
+  const selectDate = (selectedDate: string) => {
+    if (!selectedDate) return;
+    if ("date" in props) props.onApply(selectedDate);
+    else props.onApply(selectedDate, selectedDate);
+    setOpen(false);
+  };
 
   useEffect(() => {
     const close = (event: MouseEvent) => { if (!ref.current?.contains(event.target as Node)) setOpen(false); };
@@ -21,11 +27,10 @@ export default function PeriodFilter(props: PeriodFilterProps) {
 
   return <div ref={ref} className="relative ml-auto shrink-0">
     <label className="mb-1 block text-[8px] font-semibold uppercase tracking-wide text-[#b8cada]">Fecha de corte</label>
-    <button type="button" aria-expanded={open} onClick={() => { setDraftDate(date); setOpen((value) => !value); }} className="flex h-[29px] w-[152px] items-center gap-2 rounded-sm border border-[#496176] bg-[#152f44] px-2.5 text-[9px] font-medium text-white"><CalendarDays size={12} className="text-[#9fb4c5]" /><span className="flex-1 truncate text-left">{formatDate(date)}</span><ChevronDown size={11} className={`transition ${open ? "rotate-180" : ""}`} /></button>
+    <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="flex h-[29px] w-[152px] items-center gap-2 rounded-sm border border-[#496176] bg-[#152f44] px-2.5 text-[9px] font-medium text-white"><CalendarDays size={12} className="text-[#9fb4c5]" /><span className="flex-1 truncate text-left">{formatDate(date)}</span><ChevronDown size={11} className={`transition ${open ? "rotate-180" : ""}`} /></button>
     {open && <div className="absolute right-0 top-[42px] z-50 w-[230px] rounded-md border border-[#d8e0e9] bg-white p-3 text-[#50657a] shadow-[0_10px_25px_rgba(0,0,0,.18)]">
       <p className="mb-3 text-[8px] font-semibold uppercase tracking-wide text-[#7d91a8]">Consultar fecha</p>
-      <DateField label="Fecha de corte" value={draftDate} onChange={setDraftDate} />
-      <button type="button" onClick={() => { if ("date" in props) props.onApply(draftDate); else props.onApply(draftDate, draftDate); setOpen(false); }} className="mt-3 h-[29px] w-full rounded-sm bg-[#17263a] text-[8px] font-semibold text-white hover:bg-[#0d1b2d]">Consultar datos</button>
+      <DateField label="Fecha de corte" value={date} onChange={selectDate} />
     </div>}
   </div>;
 }

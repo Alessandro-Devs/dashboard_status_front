@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { blockData, enrollmentData, type BlockItem } from "./evaluationData";
+import { getBlockData, getEnrollmentData, type BlockItem } from "./evaluationData";
 
 type DetailMode = "centros" | "matricula";
 export default function BlockDetailModal({title,onClose}:{title:string;onClose:()=>void}) {
   const [mode,setMode]=useState<DetailMode>("centros");
-  const data=mode==="centros"?blockData:enrollmentData;
+  const data=mode==="centros"?getBlockData():getEnrollmentData();
   const totals=useMemo(()=>data.reduce((sum,item)=>({universe:sum.universe+item.universe,applied:sum.applied+item.applied,pending:sum.pending+item.pending}),{universe:0,applied:0,pending:0}),[data]);
-  const percentage=Math.round((totals.applied/totals.universe)*100);
+  const percentage=totals.universe?Math.round((totals.applied/totals.universe)*100):0;
 
   useEffect(()=>{const previous=document.body.style.overflow;document.body.style.overflow="hidden";const escape=(event:KeyboardEvent)=>{if(event.key==="Escape")onClose();};document.addEventListener("keydown",escape);return()=>{document.body.style.overflow=previous;document.removeEventListener("keydown",escape);};},[onClose]);
 

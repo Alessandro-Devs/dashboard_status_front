@@ -1,11 +1,11 @@
 import { BookOpen, School, TrendingUp, Users } from "lucide-react";
 
-type Props = { title:string;accent:"blue"|"purple";schoolPercentage:number;schoolUniverse:string;schoolApplied:string;schoolPending:string;enrollmentPercentage:number;enrollmentUniverse:string;enrollmentApplied:string;enrollmentPending:string };
+type Props = { title:string;accent:"blue"|"purple";schoolPercentage:number;schoolUniverse:string;schoolApplied:string;schoolPending:string;enrollmentPercentage:number;enrollmentUniverse:string;enrollmentApplied:string;enrollmentPending:string;onDetail?:()=>void };
 
 export default function TestCard(props: Props) {
   const blue = props.accent === "blue";
   return <section className={`overflow-hidden rounded-lg border border-[#d8e0e8] border-t-2 ${blue?"border-t-[#1671d3]":"border-t-[#7446ef]"} bg-white`}>
-    <div className="flex items-center border-b px-4 py-3"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#edf4fb]">{blue?<BookOpen className="h-4 w-4 text-[#1771d3]"/>:<TrendingUp className="h-4 w-4 text-[#7544f4]"/>}</span><div className="ml-3"><h3 className="text-[13px] font-semibold text-[#223c52]">{props.title}</h3><p className="mt-1 text-[7px] text-[#8d9fb1]">Avance de aplicación</p></div></div>
+    <div className="flex items-center border-b px-4 py-3"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#edf4fb]">{blue?<BookOpen className="h-4 w-4 text-[#1771d3]"/>:<TrendingUp className="h-4 w-4 text-[#7544f4]"/>}</span><div className="ml-3"><h3 className="text-[13px] font-semibold text-[#223c52]">{props.title}</h3><p className="mt-1 text-[7px] text-[#8d9fb1]">Avance de aplicación</p></div>{props.onDetail&&<button type="button" onClick={props.onDetail} className="ml-auto rounded-md border border-[#b8d2ee] bg-white px-3 py-2 text-[8px] font-medium text-[#176fc8]">Ver detalle por bloque</button>}</div>
     <div className="grid gap-3 p-4 md:grid-cols-2"><Panel title="Centros escolares" icon={<School className="h-4 w-4"/>} percentage={props.schoolPercentage} applied={props.schoolApplied} pending={props.schoolPending} universe={props.schoolUniverse} blue={blue}/><Panel title="Matrícula" icon={<Users className="h-4 w-4"/>} percentage={props.enrollmentPercentage} applied={props.enrollmentApplied} pending={props.enrollmentPending} universe={props.enrollmentUniverse} blue={blue}/></div>
   </section>;
 }

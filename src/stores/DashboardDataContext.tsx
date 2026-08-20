@@ -1,12 +1,16 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { dashboardSections, getAvailableDashboardSections, type DashboardSection } from "@/lib/dashboardSections";
-import { ApiError, apiFetch } from "@/services/api";
+import { apiFetch } from "@/services/api";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 
-type DashboardResponse = { snapshot: { date: string }; data: unknown };
+type DashboardResponse = {
+  snapshot: { date: string } | null;
+  data: unknown | null;
+  message?: string;
+};
 type DashboardDataState = { hasData: boolean; snapshotDate: string | null; resolvedDate: string | null; error: string | null };
 type DashboardContextState = DashboardDataState & { isLoading: boolean; availableSections: DashboardSection[] };
 
@@ -50,36 +54,46 @@ function synchronize(target: unknown, source: unknown): unknown {
 }
 
 export function DashboardDataProvider({ children }: { children: ReactNode }) {
-  const { startDate, endDate } = useAuditFilters();
+  const { startDate, endDate, setPeriod } = useAuditFilters();
   const [state, setState] = useState<DashboardDataState>({ hasData: false, snapshotDate: null, resolvedDate: null, error: null });
+  const resolvedDateRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (startDate !== endDate) {
       return;
     }
+    if (resolvedDateRef.current === endDate) {
+      return;
+    }
+
+    const isInitialLoad = resolvedDateRef.current === null;
+    const path = isInitialLoad ? "/dashboard" : `/dashboard?date=${encodeURIComponent(endDate)}`;
     let active = true;
-    apiFetch<DashboardResponse>(`/dashboard?date=${encodeURIComponent(endDate)}`)
+    apiFetch<DashboardResponse>(path)
       .then((response) => {
         if (!active) return;
-        if (!isObject(response.data)) {
+        if (!response.snapshot || !isObject(response.data)) {
+          resolvedDateRef.current = endDate;
           setState({ hasData: false, snapshotDate: null, resolvedDate: endDate, error: null });
           return;
         }
+        const resolvedDate = response.snapshot.date;
         synchronize(dashboardDatabase, response.data);
-        setState({ hasData: true, snapshotDate: response.snapshot.date, resolvedDate: endDate, error: null });
+        resolvedDateRef.current = resolvedDate;
+        setState({ hasData: true, snapshotDate: resolvedDate, resolvedDate, error: null });
+        if (isInitialLoad && resolvedDate !== endDate) {
+          setPeriod(resolvedDate, resolvedDate);
+        }
       })
       .catch((error: unknown) => {
         if (!active) return;
-        if (error instanceof ApiError && error.status === 404) {
-          setState({ hasData: false, snapshotDate: null, resolvedDate: endDate, error: null });
-          return;
-        }
         const message = error instanceof Error ? error.message : "Error desconocido al consultar la API.";
         console.error("No fue posible cargar la instantánea del dashboard", error);
+        resolvedDateRef.current = endDate;
         setState({ hasData: false, snapshotDate: null, resolvedDate: endDate, error: message });
       });
     return () => { active = false; };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, setPeriod]);
 
   const value = useMemo(
     () => ({

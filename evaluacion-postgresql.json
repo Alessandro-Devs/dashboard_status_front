@@ -1,0 +1,87 @@
+{
+  "evaluacion": {
+    "pruebas": {
+      "cml": {
+        "titulo": "Prueba CML",
+        "centrosEscolares": { "aplicados": "720", "pendientes": "32", "universo": "752", "porcentaje": 95.7 },
+        "matricula": { "aplicados": "193,875", "pendientes": "32,126", "universo": "226,001", "porcentaje": 85.8 }
+      },
+      "progreso": {
+        "titulo": "Prueba Progreso",
+        "centrosEscolares": { "aplicados": "574", "pendientes": "180", "universo": "", "porcentaje": 76 },
+        "matricula": { "aplicados": "9,638", "pendientes": "4,522", "universo": "", "porcentaje": 68 }
+      }
+    },
+    "seguimientoAplicacionCml": {
+      "etiqueta": "Aplicación CML",
+      "programados": "Programados 55 centros (No aplicación y baja participación)",
+      "aplicaciones": [
+        "Aplicación en 31 centros 12 de agosto, 1 pendiente por finalizar. 14 CE aplicación con Starlink",
+        "24 centros en aplicación 13 de agosto. 10 CE aplicación con Starlink"
+      ],
+      "barrera": "El contrato con SOTE se ha vencido, aplicaciones están por fuera de contrato"
+    },
+    "detallePorBloque": {
+      "centrosEscolares": [
+        { "bloque": "B1", "aplicados": 136, "pendientes": 14, "universo": 150, "porcentaje": 91 },
+        { "bloque": "B2", "aplicados": 139, "pendientes": 21, "universo": 160, "porcentaje": 87 },
+        { "bloque": "B3", "aplicados": 127, "pendientes": 23, "universo": 150, "porcentaje": 85 },
+        { "bloque": "B4", "aplicados": 111, "pendientes": 33, "universo": 144, "porcentaje": 77 },
+        { "bloque": "B5", "aplicados": 99, "pendientes": 51, "universo": 150, "porcentaje": 66 }
+      ],
+      "matricula": [
+        { "bloque": "B1", "aplicados": 2450, "pendientes": 390, "universo": 2840, "porcentaje": 86 },
+        { "bloque": "B2", "aplicados": 2398, "pendientes": 562, "universo": 2960, "porcentaje": 81 },
+        { "bloque": "B3", "aplicados": 2179, "pendientes": 631, "universo": 2810, "porcentaje": 78 },
+        { "bloque": "B4", "aplicados": 1985, "pendientes": 755, "universo": 2740, "porcentaje": 72 },
+        { "bloque": "B5", "aplicados": 1830, "pendientes": 980, "universo": 2810, "porcentaje": 65 }
+      ]
+    },
+    "actualizacionPortalResultados": {
+      "etiqueta": "Actualización del portal",
+      "entrada": "Entrada en funcionamiento del portal 10 de agosto",
+      "incidencias": "43 reportes de incidencias de ingreso o falta de datos, hasta el 13 de agosto",
+      "barrera": "Para fase 1 solo se contempló ingreso a directores y docentes, no hay acceso para usuarios administradores; esto se dará en fase 2 de desarrollo"
+    },
+    "comparativasPorMateria": {
+      "lengua": { "promedio": 49.7, "variacionRespectoJunio": -2.9, "porcentajesJunio": [18, 19.1, 19.3, 20.1, 23.5], "porcentajesJulio": [23.7, 21.5, 17.6, 18.6, 18.6] },
+      "matematica": { "promedio": 50, "variacionRespectoJunio": -2.7, "porcentajesJunio": [15.9, 25.4, 19, 14.9, 24.8], "porcentajesJulio": [22, 22.7, 21.4, 15.1, 18.8] }
+    },
+    "vistaResultados": {
+      "materiasDisponibles": ["Lengua", "Matemática"],
+      "materiaSeleccionadaPorDefecto": "Matemática",
+      "composicionDelUniverso": {
+        "Lengua": [
+          { "estado": "Se mantienen", "centrosEscolares": 272, "porcentajeDelTotal": 73.1, "variacionRespectoEtapaAnterior": -1 },
+          { "estado": "Mejoran / suben", "centrosEscolares": 61, "porcentajeDelTotal": 16.4, "variacionRespectoEtapaAnterior": 1 },
+          { "estado": "Bajan", "centrosEscolares": 39, "porcentajeDelTotal": 10.5, "variacionRespectoEtapaAnterior": 0 }
+        ],
+        "Matemática": [
+          { "estado": "Se mantienen", "centrosEscolares": 267, "porcentajeDelTotal": 71.8, "variacionRespectoEtapaAnterior": -1 },
+          { "estado": "Mejoran / suben", "centrosEscolares": 82, "porcentajeDelTotal": 22, "variacionRespectoEtapaAnterior": 1 },
+          { "estado": "Bajan", "centrosEscolares": 23, "porcentajeDelTotal": 6.2, "variacionRespectoEtapaAnterior": 0 }
+        ]
+      },
+      "trayectoriaDeResultados": {
+        "nivelesDeDesempeno": [
+          { "id": "excelente", "nombre": "Excelente", "colorHexadecimal": "#16a34a" },
+          { "id": "bueno", "nombre": "Bueno", "colorHexadecimal": "#65a30d" },
+          { "id": "medio", "nombre": "Medio", "colorHexadecimal": "#eab308" },
+          { "id": "bajo", "nombre": "Bajo", "colorHexadecimal": "#f97316" },
+          { "id": "critico", "nombre": "Crítico", "colorHexadecimal": "#dc2626" }
+        ],
+        "resumenPorNivel": [
+          { "idNivel": "excelente", "centrosEscolares": 126, "porcentajeDelTotal": 17 },
+          { "idNivel": "bueno", "centrosEscolares": 247, "porcentajeDelTotal": 33 },
+          { "idNivel": "medio", "centrosEscolares": 222, "porcentajeDelTotal": 29 },
+          { "idNivel": "bajo", "centrosEscolares": 105, "porcentajeDelTotal": 14 },
+          { "idNivel": "critico", "centrosEscolares": 54, "porcentajeDelTotal": 7 }
+        ],
+        "etapas": [],
+        "distribucionPorcentualDeLosFlujos": {},
+        "lecturaPrincipal": "",
+        "descripcionLectura": ""
+      }
+    }
+  }
+}

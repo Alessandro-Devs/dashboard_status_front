@@ -2,9 +2,11 @@
 
 import { AlertTriangle } from "lucide-react";
 import { DashboardCard, SectionHeader } from "./DashboardUI";
-import { criticalFindings } from "./qualityData";
+import { getCriticalFindings } from "./qualityData";
 
 export default function FindingsDiagnosis() {
+  const criticalFindings = getCriticalFindings();
+
   return (
     <>
       <div className="mt-7">
