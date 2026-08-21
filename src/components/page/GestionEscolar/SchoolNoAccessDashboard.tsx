@@ -169,15 +169,13 @@ function TeacherNoAccessPanel() {
   const summary = Array.isArray(noAccess?.resumen) ? noAccess.resumen as NoAccessSummaryItem[] : [];
   const teacherDefaultDate = teacherHistory.at(-1)?.fecha ?? "";
   const classDefaultDate = classHistory.at(-1)?.fecha ?? "";
-  const [selectedTeacherDate, setSelectedTeacherDate] = useState(teacherDefaultDate);
-  const [selectedClassDate, setSelectedClassDate] = useState(classDefaultDate);
+  const [selectedDate, setSelectedDate] = useState(teacherDefaultDate || classDefaultDate);
   const applyAugust20Fix = snapshotDate === "2026-08-20";
-  const effectiveTeacherDate = applyAugust20Fix ? (selectedTeacherDate || teacherDefaultDate) : selectedTeacherDate;
-  const effectiveClassDate = applyAugust20Fix ? (selectedClassDate || classDefaultDate) : selectedClassDate;
+  const effectiveDate = selectedDate || (applyAugust20Fix ? teacherDefaultDate || classDefaultDate : "");
 
   const teacherKpis = summary.map(buildStyledCard);
-  const selectedTeacherValue = teacherHistory.find((item) => item.fecha === effectiveTeacherDate)?.valor.toString() ?? teacherHistory.at(-1)?.valor.toString() ?? "0";
-  const selectedClassValue = classHistory.find((item) => item.fecha === effectiveClassDate)?.valor.toString() ?? classHistory.at(-1)?.valor.toString() ?? "0";
+  const selectedTeacherValue = teacherHistory.find((item) => item.fecha === effectiveDate)?.valor.toString() ?? teacherHistory.at(-1)?.valor.toString() ?? "0";
+  const selectedClassValue = classHistory.find((item) => item.fecha === effectiveDate)?.valor.toString() ?? classHistory.at(-1)?.valor.toString() ?? "0";
 
   const teacherCard = teacherKpis.find((item) => normalizeSummaryTitle(item.title).includes("docente")) ?? (applyAugust20Fix && teacherHistory.length > 0 ? createHistoryCard("teacher", selectedTeacherValue) : null);
   const classCard = teacherKpis.find((item) => normalizeSummaryTitle(item.title).includes("clase")) ?? (applyAugust20Fix && classHistory.length > 0 ? createHistoryCard("class", selectedClassValue) : null);
@@ -192,10 +190,10 @@ function TeacherNoAccessPanel() {
     </div>
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {applyAugust20Fix ? <>
-        {teacherCard && <TeacherKpiCard key={teacherCard.title} {...teacherCard} value={selectedTeacherValue} dateOptions={teacherHistory} selectedDate={effectiveTeacherDate} onDateChange={setSelectedTeacherDate} />}
-        {classCard && <TeacherKpiCard key={classCard.title} {...classCard} value={selectedClassValue} dateOptions={classHistory} selectedDate={effectiveClassDate} onDateChange={setSelectedClassDate} />}
+        {teacherCard && <TeacherKpiCard key={teacherCard.title} {...teacherCard} value={selectedTeacherValue} dateOptions={teacherHistory} selectedDate={effectiveDate} onDateChange={setSelectedDate} />}
+        {classCard && <TeacherKpiCard key={classCard.title} {...classCard} value={selectedClassValue} dateOptions={classHistory} selectedDate={effectiveDate} onDateChange={setSelectedDate} />}
         {otherCards.map((item) => <TeacherKpiCard key={item.title} {...item} />)}
-      </> : teacherKpis.map((item) => { const isTeachers = item.title === "DOCENTES NO ACCESOS"; const isClasses = item.title === "NÚMERO DE CLASES"; return <TeacherKpiCard key={item.title} {...item} value={isTeachers ? selectedTeacherValue : isClasses ? selectedClassValue : item.value} dateOptions={isTeachers ? teacherHistory : isClasses ? classHistory : undefined} selectedDate={isTeachers ? effectiveTeacherDate : isClasses ? effectiveClassDate : undefined} onDateChange={isTeachers ? setSelectedTeacherDate : isClasses ? setSelectedClassDate : undefined} />; })}
+      </> : teacherKpis.map((item) => { const isTeachers = item.title === "DOCENTES NO ACCESOS"; const isClasses = item.title === "NÚMERO DE CLASES"; return <TeacherKpiCard key={item.title} {...item} value={isTeachers ? selectedTeacherValue : isClasses ? selectedClassValue : item.value} dateOptions={isTeachers ? teacherHistory : isClasses ? classHistory : undefined} selectedDate={isTeachers || isClasses ? effectiveDate : undefined} onDateChange={isTeachers || isClasses ? setSelectedDate : undefined} />; })}
     </div>
   </div>;
 }
