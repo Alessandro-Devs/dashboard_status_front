@@ -7,7 +7,9 @@ import { parsePercentageValue, sortDescendingByNumber } from "@/lib/sortByPercen
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import AttendanceChart from "./AttendanceChart";
 
-const cards = dashboardDatabase.gestionEscolar.asistenciaTarjetas;
+type AttendanceCard = [title: string, value: string, subtitle: string, accent: string];
+
+const cards = dashboardDatabase.gestionEscolar.asistenciaTarjetas as AttendanceCard[];
 
 export default function AttendanceSection() {
   const [type, setType] = useState<"students" | "teachers">("students");
