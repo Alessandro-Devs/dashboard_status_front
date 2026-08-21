@@ -95,12 +95,6 @@ main :is(
     max-width: 100%;
   }
 
-  .recharts-responsive-container,
-  .recharts-wrapper,
-  .recharts-surface {
-    max-width: 100%;
-  }
-
   main article,
   main section,
   main [class*="grid"] {
