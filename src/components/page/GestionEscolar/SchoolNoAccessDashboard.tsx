@@ -205,20 +205,19 @@ function formatShortDate(value: string) { const [, month, day] = value.split("-"
 function formatChartDayLabel(value: string) {
   const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (isoMatch) {
-    const [, , month, day] = isoMatch;
-    const months: Record<string, string> = { "01": "Ene", "02": "Feb", "03": "Mar", "04": "Abr", "05": "May", "06": "Jun", "07": "Jul", "08": "Ago", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dic" };
-    return `${day} ${months[month]}`;
+    const [, year, month, day] = isoMatch;
+    const weekdays = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    const weekday = weekdays[new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay()];
+    return `${weekday} ${Number(day)}`;
   }
 
   const longDateMatch = value.match(/^([A-Za-zÁÉÍÓÚáéíóúñÑ]+),\s*(\d{1,2})\s+de\s+([A-Za-zÁÉÍÓÚáéíóúñÑ]+)(?:\s+de\s+\d{4})?$/i);
   if (longDateMatch) {
-    const [, weekday, day, month] = longDateMatch;
-    const shortWeekday = weekday.slice(0, 3);
-    const shortMonth = month.slice(0, 3);
-    return `${shortWeekday} ${day} ${shortMonth}`;
+    const [, weekday, day] = longDateMatch;
+    return `${weekday.toLowerCase()} ${Number(day)}`;
   }
 
   return value;
 }
 
-function PlatformEvolutionChart({ data, platform, label, color, preserveAugust13Design }: { data: Array<{ day: string; ihfb?: number; kira?: number }>; platform: "ihfb" | "kira"; label: string; color: string; preserveAugust13Design?: boolean }) { return <div className="rounded-xl border border-[#e5eaf0] bg-[#fbfcfe] p-3"><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-[#526176]"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />{label}</div><div className="h-[285px]"><ResponsiveContainer width="100%" height="100%"><LineChart data={data} margin={preserveAugust13Design ? { top: 15, right: 14, bottom: 5, left: 0 } : { top: 15, right: 14, bottom: 26, left: 0 }}><CartesianGrid vertical={false} stroke="#e7ecf2" strokeDasharray="3 3" /><XAxis dataKey="day" tickFormatter={preserveAugust13Design ? undefined : formatChartDayLabel} axisLine={false} tickLine={false} interval={preserveAugust13Design ? undefined : 0} minTickGap={preserveAugust13Design ? undefined : 0} height={preserveAugust13Design ? undefined : 42} angle={preserveAugust13Design ? undefined : -35} textAnchor={preserveAugust13Design ? undefined : "end"} tick={{ fill: "#56667b", fontSize: 9 }} /><YAxis domain={[0, 4000]} ticks={[0, 1000, 2000, 3000, 4000]} axisLine={false} tickLine={false} width={38} tick={{ fill: "#748397", fontSize: 9 }} /><Tooltip labelFormatter={preserveAugust13Design ? undefined : (value) => String(value)} formatter={(value) => [Number(value).toLocaleString(), label]} /><Line type="monotone" dataKey={platform} name={label} stroke={color} strokeWidth={3} dot={{ r: 3, fill: color, strokeWidth: 0 }} activeDot={{ r: 5 }} /></LineChart></ResponsiveContainer></div></div>; }
+function PlatformEvolutionChart({ data, platform, label, color, preserveAugust13Design }: { data: Array<{ day: string; ihfb?: number; kira?: number }>; platform: "ihfb" | "kira"; label: string; color: string; preserveAugust13Design?: boolean }) { return <div className="rounded-xl border border-[#e5eaf0] bg-[#fbfcfe] p-3"><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-[#526176]"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />{label}</div><div className="h-[285px]"><ResponsiveContainer width="100%" height="100%"><LineChart data={data} margin={preserveAugust13Design ? { top: 15, right: 14, bottom: 5, left: 0 } : { top: 15, right: 14, bottom: 26, left: 0 }}><CartesianGrid vertical={false} stroke="#e7ecf2" strokeDasharray="3 3" /><XAxis dataKey="day" tickFormatter={formatChartDayLabel} axisLine={false} tickLine={false} interval={preserveAugust13Design ? undefined : 0} minTickGap={preserveAugust13Design ? undefined : 0} height={preserveAugust13Design ? undefined : 42} angle={preserveAugust13Design ? undefined : -35} textAnchor={preserveAugust13Design ? undefined : "end"} tick={{ fill: "#56667b", fontSize: 9 }} /><YAxis domain={[0, 4000]} ticks={[0, 1000, 2000, 3000, 4000]} axisLine={false} tickLine={false} width={38} tick={{ fill: "#748397", fontSize: 9 }} /><Tooltip labelFormatter={preserveAugust13Design ? undefined : (value) => String(value)} formatter={(value) => [Number(value).toLocaleString(), label]} /><Line type="monotone" dataKey={platform} name={label} stroke={color} strokeWidth={3} dot={{ r: 3, fill: color, strokeWidth: 0 }} activeDot={{ r: 5 }} /></LineChart></ResponsiveContainer></div></div>; }

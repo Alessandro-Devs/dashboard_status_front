@@ -26,6 +26,7 @@ body {
   color: var(--foreground);
   font-family: var(--app-font-family);
   zoom: 1.25;
+  overflow-x: hidden;
 }
 
 button,
@@ -84,6 +85,54 @@ main :is(
 }
 
 @media (max-width: 639px) {
+  body {
+    zoom: 1;
+  }
+
+  main,
+  main > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .recharts-responsive-container,
+  .recharts-wrapper,
+  .recharts-surface {
+    max-width: 100%;
+  }
+
+  main article,
+  main section,
+  main [class*="grid"] {
+    min-width: 0;
+  }
+
+  main button,
+  main a {
+    touch-action: manipulation;
+  }
+
+  main div:has(> button[aria-pressed]) {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  main div:has(> button[aria-pressed]) > button {
+    min-width: 68px;
+    min-height: 36px;
+    flex: 0 0 auto;
+  }
+
+  main .recharts-cartesian-axis-tick-value {
+    font-size: 8px;
+  }
+
+  main .recharts-tooltip-wrapper {
+    max-width: calc(100vw - 32px);
+  }
+
   .mobile-header {
     position: sticky;
     top: 0;
