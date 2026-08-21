@@ -4,6 +4,10 @@ export type ResumenComposicion = { estado:string;centrosEscolares:number|null;po
 export type NivelDesempeno = { id:string;nombre:string;colorHexadecimal:string };
 export type EtapaTrayectoria = { nombre:string;centrosPorNivel:Record<string,number> };
 export type PruebaEvaluacion = { titulo:string;centrosEscolares:{aplicados:string;pendientes:string;universo:string;porcentaje:number|null};matricula:{aplicados:string;pendientes:string;universo:string;porcentaje:number|null} };
+export type DetalleBloqueItem = { bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number };
+export type DetalleBloque = { centrosEscolares:DetalleBloqueItem[];matricula:DetalleBloqueItem[] };
+export type DetallePorPrueba = Partial<Record<"cml" | "progreso", DetalleBloque>>;
+export type DistribucionNivelPorBloque = { bloque:string;nivel1:number|null;nivel2:number|null;nivel3:number|null;nivel4:number|null;nivel5:number|null };
 type VistaResultados = {
   materiasDisponibles:string[];
   materiaSeleccionadaPorDefecto:string;
@@ -14,9 +18,10 @@ type VistaResultados = {
 type EvaluacionNueva = {
   pruebas?:Record<string,PruebaEvaluacion>;
   seguimientoAplicacionCml?:{etiqueta:string;programados:string;aplicaciones:string[];barrera:string};
-  detallePorBloque?:{centrosEscolares:Array<{bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number}>;matricula:Array<{bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number}>};
+  detallePorBloque?:DetalleBloque | DetallePorPrueba;
   actualizacionPortalResultados?:{etiqueta:string;entrada:string;incidencias:string;barrera:string};
   comparativasPorMateria?:Record<string,{promedio:number|null;variacionRespectoJunio:number|null;porcentajesJunio:number[];porcentajesJulio:number[]}>;
+  distribucionPorBloqueMateriaNiveles?:Record<string,DistribucionNivelPorBloque[]>;
   vistaResultados?:VistaResultados;
 };
 

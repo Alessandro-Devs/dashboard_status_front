@@ -22,20 +22,38 @@
       "barrera": "El contrato con SOTE se ha vencido, aplicaciones están por fuera de contrato"
     },
     "detallePorBloque": {
-      "centrosEscolares": [
-        { "bloque": "B1", "aplicados": 136, "pendientes": 14, "universo": 150, "porcentaje": 91 },
-        { "bloque": "B2", "aplicados": 139, "pendientes": 21, "universo": 160, "porcentaje": 87 },
-        { "bloque": "B3", "aplicados": 127, "pendientes": 23, "universo": 150, "porcentaje": 85 },
-        { "bloque": "B4", "aplicados": 111, "pendientes": 33, "universo": 144, "porcentaje": 77 },
-        { "bloque": "B5", "aplicados": 99, "pendientes": 51, "universo": 150, "porcentaje": 66 }
-      ],
-      "matricula": [
-        { "bloque": "B1", "aplicados": 2450, "pendientes": 390, "universo": 2840, "porcentaje": 86 },
-        { "bloque": "B2", "aplicados": 2398, "pendientes": 562, "universo": 2960, "porcentaje": 81 },
-        { "bloque": "B3", "aplicados": 2179, "pendientes": 631, "universo": 2810, "porcentaje": 78 },
-        { "bloque": "B4", "aplicados": 1985, "pendientes": 755, "universo": 2740, "porcentaje": 72 },
-        { "bloque": "B5", "aplicados": 1830, "pendientes": 980, "universo": 2810, "porcentaje": 65 }
-      ]
+      "cml": {
+        "centrosEscolares": [
+          { "bloque": "B1", "aplicados": 136, "pendientes": 14, "universo": 150, "porcentaje": 91 },
+          { "bloque": "B2", "aplicados": 139, "pendientes": 21, "universo": 160, "porcentaje": 87 },
+          { "bloque": "B3", "aplicados": 127, "pendientes": 23, "universo": 150, "porcentaje": 85 },
+          { "bloque": "B4", "aplicados": 111, "pendientes": 33, "universo": 144, "porcentaje": 77 },
+          { "bloque": "B5", "aplicados": 99, "pendientes": 51, "universo": 150, "porcentaje": 66 }
+        ],
+        "matricula": [
+          { "bloque": "B1", "aplicados": 2450, "pendientes": 390, "universo": 2840, "porcentaje": 86 },
+          { "bloque": "B2", "aplicados": 2398, "pendientes": 562, "universo": 2960, "porcentaje": 81 },
+          { "bloque": "B3", "aplicados": 2179, "pendientes": 631, "universo": 2810, "porcentaje": 78 },
+          { "bloque": "B4", "aplicados": 1985, "pendientes": 755, "universo": 2740, "porcentaje": 72 },
+          { "bloque": "B5", "aplicados": 1830, "pendientes": 980, "universo": 2810, "porcentaje": 65 }
+        ]
+      },
+      "progreso": {
+        "centrosEscolares": [
+          { "bloque": "B1", "aplicados": 122, "pendientes": 28, "universo": 150, "porcentaje": 81 },
+          { "bloque": "B2", "aplicados": 118, "pendientes": 42, "universo": 160, "porcentaje": 74 },
+          { "bloque": "B3", "aplicados": 115, "pendientes": 35, "universo": 150, "porcentaje": 77 },
+          { "bloque": "B4", "aplicados": 110, "pendientes": 34, "universo": 144, "porcentaje": 76 },
+          { "bloque": "B5", "aplicados": 109, "pendientes": 41, "universo": 150, "porcentaje": 73 }
+        ],
+        "matricula": [
+          { "bloque": "B1", "aplicados": 1980, "pendientes": 860, "universo": 2840, "porcentaje": 70 },
+          { "bloque": "B2", "aplicados": 1915, "pendientes": 1045, "universo": 2960, "porcentaje": 65 },
+          { "bloque": "B3", "aplicados": 1882, "pendientes": 928, "universo": 2810, "porcentaje": 67 },
+          { "bloque": "B4", "aplicados": 1965, "pendientes": 775, "universo": 2740, "porcentaje": 72 },
+          { "bloque": "B5", "aplicados": 1896, "pendientes": 914, "universo": 2810, "porcentaje": 67 }
+        ]
+      }
     },
     "actualizacionPortalResultados": {
       "etiqueta": "Actualización del portal",
@@ -46,6 +64,20 @@
     "comparativasPorMateria": {
       "lengua": { "promedio": 49.7, "variacionRespectoJunio": -2.9, "porcentajesJunio": [18, 19.1, 19.3, 20.1, 23.5], "porcentajesJulio": [23.7, 21.5, 17.6, 18.6, 18.6] },
       "matematica": { "promedio": 50, "variacionRespectoJunio": -2.7, "porcentajesJunio": [15.9, 25.4, 19, 14.9, 24.8], "porcentajesJulio": [22, 22.7, 21.4, 15.1, 18.8] }
+    },
+    "distribucionPorBloqueMateriaNiveles": {
+      "lengua": [
+        { "bloque": "B3", "nivel1": null, "nivel2": 24.7, "nivel3": 5.2, "nivel4": 70.1, "nivel5": null },
+        { "bloque": "B4", "nivel1": 0.5, "nivel2": 12.5, "nivel3": 12.5, "nivel4": 73.4, "nivel5": 1 },
+        { "bloque": "B5", "nivel1": null, "nivel2": 16, "nivel3": 14.4, "nivel4": 69.6, "nivel5": null },
+        { "bloque": "Control", "nivel1": null, "nivel2": 15.5, "nivel3": 8.5, "nivel4": 75.4, "nivel5": null }
+      ],
+      "matematica": [
+        { "bloque": "B3", "nivel1": null, "nivel2": 25.3, "nivel3": 7.2, "nivel4": 67, "nivel5": 0.5 },
+        { "bloque": "B4", "nivel1": null, "nivel2": 17.2, "nivel3": 12, "nivel4": 69.8, "nivel5": 1 },
+        { "bloque": "B5", "nivel1": null, "nivel2": 12.9, "nivel3": 12.9, "nivel4": 73.7, "nivel5": 0.5 },
+        { "bloque": "Control", "nivel1": null, "nivel2": 25.4, "nivel3": 11.3, "nivel4": 62.7, "nivel5": 0.7 }
+      ]
     },
     "vistaResultados": {
       "materiasDisponibles": ["Lengua", "Matemática"],
