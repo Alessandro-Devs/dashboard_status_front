@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardList, Headphones, PhoneCall, ShieldAlert, Users } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardList, Headphones, icons as lucideIcons, PhoneCall, ShieldAlert, Users, type LucideIcon } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { useDashboardData } from "@/stores/DashboardDataContext";
@@ -12,7 +12,7 @@ type NoAccessHistoryItem = {
 type NoAccessAction = {
     title: string;
     description: string;
-    icon: keyof typeof icons;
+    icon: string;
 };
 type NoAccessSummaryItem = {
     title: string;
@@ -139,7 +139,7 @@ export default function SchoolNoAccessDashboard() {
     const limitations = Array.isArray(noAccess.limitaciones) ? noAccess.limitaciones : [];
     const actions = (Array.isArray(noAccess.acciones) ? noAccess.acciones : []).map((action) => ({
         ...(action as NoAccessAction),
-        icon: icons[(action as NoAccessAction).icon] ?? Users,
+        icon: (lucideIcons as Record<string, LucideIcon>)[(action as NoAccessAction).icon] ?? icons[(action as NoAccessAction).icon as keyof typeof icons] ?? Users,
     }));
     return <section className="bg-[#f7f9fc] px-4 py-8 text-[#14213d] sm:px-6"><div className="mx-auto w-full max-w-[1020px]">
     <TeacherNoAccessPanel />
@@ -150,8 +150,8 @@ export default function SchoolNoAccessDashboard() {
           <PlatformEvolutionChart data={noAccessData} platform="kira" label="KIRA" color="#a68af4" preserveAugust13Design={preserveAugust13Design}/>
         </div>
       </article>
-      <div className="space-y-5"><article className="rounded-[16px] border border-[#e0e7ef] bg-white p-5"><p className="text-[10px] font-semibold uppercase text-[#8c98a9]">Plan operativo</p><h2 className="mt-2 text-[17px] font-semibold">Principales acciones</h2><div className="mt-5 space-y-3">{actions.map((action) => { const Icon = action.icon; return <div key={action.title} className="flex gap-3 rounded-[11px] bg-[#f8fafc] p-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#edf3ff]"><Icon className="h-4 w-4"/></span><div><p className="text-[12px] font-semibold">{action.title}</p><p className="mt-1 text-[10px] text-[#8491a3]">{action.description}</p></div></div>; })}</div></article>
-      <article className="rounded-[16px] border border-[#f0dfdf] bg-white p-5"><div className="flex gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fff1f1]"><AlertTriangle className="h-4 w-4 text-[#db5656]"/></span><div><p className="text-[10px] font-semibold uppercase text-[#aa7d7d]">Riesgos operativos</p><h2 className="mt-1 text-[17px] font-semibold">Limitaciones</h2></div></div><div className="mt-5 space-y-3">{limitations.map((item, index) => <div key={item} className="flex items-start gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#fff1f1] text-[10px]">{index + 1}</span><p className="text-[11px] leading-5">{item}</p></div>)}</div></article></div>
+      <div className="space-y-5"><article className="rounded-[16px] border border-[#e0e7ef] bg-white p-5"><p className="text-[10px] font-semibold uppercase text-[#8c98a9]">Plan operativo</p><h2 className="mt-2 text-[17px] font-semibold">Principales acciones</h2><div className="mt-5 space-y-3">{actions.map((action, index) => { const Icon = action.icon; return <div key={`${action.title}-${index}`} className="flex gap-3 rounded-[11px] bg-[#f8fafc] p-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#edf3ff]"><Icon className="h-4 w-4"/></span><div><p className="text-[12px] font-semibold">{action.title}</p><p className="mt-1 text-[10px] text-[#8491a3]">{action.description}</p></div></div>; })}</div></article>
+      <article className="rounded-[16px] border border-[#f0dfdf] bg-white p-5"><div className="flex gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fff1f1]"><AlertTriangle className="h-4 w-4 text-[#db5656]"/></span><div><p className="text-[10px] font-semibold uppercase text-[#aa7d7d]">Riesgos operativos</p><h2 className="mt-1 text-[17px] font-semibold">Limitaciones</h2></div></div><div className="mt-5 space-y-3">{limitations.map((item, index) => <div key={`${item}-${index}`} className="flex items-start gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#fff1f1] text-[10px]">{index + 1}</span><p className="text-[11px] leading-5">{item}</p></div>)}</div></article></div>
     </div>
   </div></section>;
 }
@@ -171,22 +171,20 @@ function TeacherNoAccessPanel() {
     const teacherKpis = summary.map(buildStyledCard);
     const selectedTeacherValue = teacherHistory.find((item) => item.fecha === effectiveTeacherDate)?.valor.toString() ?? teacherHistory.at(-1)?.valor.toString() ?? "0";
     const selectedClassValue = classHistory.find((item) => item.fecha === effectiveClassDate)?.valor.toString() ?? classHistory.at(-1)?.valor.toString() ?? "0";
-    const teacherCard = teacherKpis.find((item) => normalizeSummaryTitle(item.title).includes("docente")) ?? (applyAugust20Fix && teacherHistory.length > 0 ? createHistoryCard("teacher", selectedTeacherValue) : null);
-    const classCard = teacherKpis.find((item) => normalizeSummaryTitle(item.title).includes("clase")) ?? (applyAugust20Fix && classHistory.length > 0 ? createHistoryCard("class", selectedClassValue) : null);
-    const otherCards = applyAugust20Fix
-        ? teacherKpis.filter((item) => !normalizeSummaryTitle(item.title).includes("docente") && !normalizeSummaryTitle(item.title).includes("clase"))
-        : teacherKpis;
+    const teacherCard = teacherKpis.find((item) => normalizeSummaryTitle(item.title).includes("docente")) ?? (teacherHistory.length > 0 ? createHistoryCard("teacher", selectedTeacherValue) : null);
+    const classCard = teacherKpis.find((item) => normalizeSummaryTitle(item.title).includes("clase")) ?? (classHistory.length > 0 ? createHistoryCard("class", selectedClassValue) : null);
+    const otherCards = teacherKpis.filter((item) => !normalizeSummaryTitle(item.title).includes("docente") && !normalizeSummaryTitle(item.title).includes("clase"));
     return <div>
     <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
       <h2 className="text-[28px] font-semibold tracking-tight text-[#22304d]">NO ACCESOS</h2>
       <Link href="/gestion-escolar/gestion-operativa" className="rounded-md border border-[#d9e0ea] bg-white px-4 py-2 text-[11px] font-medium text-[#475467] shadow-sm transition hover:border-[#2f6fec] hover:text-[#2f6fec]">Gestión operativa</Link>
     </div>
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {applyAugust20Fix ? <>
+      <>
         {teacherCard && <TeacherKpiCard key={teacherCard.title} {...teacherCard} value={selectedTeacherValue} dateOptions={teacherHistory} selectedDate={effectiveTeacherDate} onDateChange={setSelectedTeacherDate}/>}
         {classCard && <TeacherKpiCard key={classCard.title} {...classCard} value={selectedClassValue} dateOptions={classHistory} selectedDate={effectiveClassDate} onDateChange={setSelectedClassDate}/>}
         {otherCards.map((item) => <TeacherKpiCard key={item.title} {...item}/>)}
-      </> : teacherKpis.map((item) => { const isTeachers = item.title === "DOCENTES NO ACCESOS"; const isClasses = item.title === "NÚMERO DE CLASES"; return <TeacherKpiCard key={item.title} {...item} value={isTeachers ? selectedTeacherValue : isClasses ? selectedClassValue : item.value} dateOptions={isTeachers ? teacherHistory : isClasses ? classHistory : undefined} selectedDate={isTeachers ? effectiveTeacherDate : isClasses ? effectiveClassDate : undefined} onDateChange={isTeachers ? setSelectedTeacherDate : isClasses ? setSelectedClassDate : undefined}/>; })}
+      </>
     </div>
   </div>;
 }

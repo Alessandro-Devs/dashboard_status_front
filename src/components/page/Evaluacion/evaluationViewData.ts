@@ -6,7 +6,7 @@ export type EtapaTrayectoria = { nombre:string;centrosPorNivel:Record<string,num
 export type PruebaEvaluacion = { titulo:string;centrosEscolares:{aplicados:string;pendientes:string;universo:string;porcentaje:number|null};matricula:{aplicados:string;pendientes:string;universo:string;porcentaje:number|null} };
 export type DetalleBloqueItem = { bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number };
 export type DetalleBloque = { centrosEscolares:DetalleBloqueItem[];matricula:DetalleBloqueItem[] };
-export type DetallePorPrueba = Partial<Record<"cml" | "progreso", DetalleBloque>>;
+export type DetallePorPrueba = Partial<Record<"cml" | "progreso" | "fundamentos", DetalleBloque>>;
 export type DistribucionNivelPorBloque = {
   bloque: string;
   universo: number | null;

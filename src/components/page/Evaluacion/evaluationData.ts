@@ -1,4 +1,4 @@
-export type TestType = "cml" | "progreso";
+export type TestType = "cml" | "progreso" | "fundamentos";
 export type BlockItem = { block:string;universe:number;applied:number;pending:number;percentage:number };
 import { getEvaluacion, type DetalleBloque } from "./evaluationViewData";
 const sanitizeBlockItems = (items:Array<{bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number}> = []):BlockItem[] =>

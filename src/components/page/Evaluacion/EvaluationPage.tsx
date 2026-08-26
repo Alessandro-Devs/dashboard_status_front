@@ -11,7 +11,8 @@ export default function EvaluationPage() {
     const [selected, setSelected] = useState<TestType | null>(null);
     const evaluacion = getEvaluacion();
     const pruebas = evaluacion.pruebas ?? {};
-    const tarjetas = (["cml", "progreso"] as const).flatMap((id) => {
+    const orderedIds: TestType[] = ["cml", "progreso", "fundamentos"];
+    const tarjetas = orderedIds.flatMap((id) => {
         const prueba = pruebas[id];
         const tieneResumen = Boolean(prueba?.centrosEscolares?.porcentaje !== null || prueba?.matricula?.porcentaje !== null) ||
             [prueba?.centrosEscolares?.aplicados, prueba?.centrosEscolares?.universo, prueba?.matricula?.aplicados, prueba?.matricula?.universo].some(tieneTexto);
@@ -32,6 +33,6 @@ export default function EvaluationPage() {
         <BarreraAplicacionCard />
       </div>
     </div>
-    {selected && <BlockDetailModal testType={selected} title={selected === "cml" ? "PRUEBA CML" : "PRUEBA PROGRESO"} onClose={() => setSelected(null)}/>}
+    {selected && <BlockDetailModal testType={selected} title={`PRUEBA ${selected === "cml" ? "CML" : selected === "progreso" ? "PROGRESO" : "FUNDAMENTOS"}`} onClose={() => setSelected(null)}/>}
   </main>;
 }
