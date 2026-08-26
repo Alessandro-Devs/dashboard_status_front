@@ -11,6 +11,7 @@ const levels = [
     { key: "nivel4percent", dataKey: "nivel4data", color: "#19a97a", label: "Bueno" },
     { key: "nivel5percent", dataKey: "nivel5data", color: "#0c7f73", label: "Excelente" },
 ] as const;
+type LevelKey = (typeof levels)[number]["key"];
 function normalizeSegment(value: number | null) {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
@@ -113,6 +114,19 @@ function SubjectFilter({ options, selected, onChange }: {
     </div>
   </div>;
 }
+function SelectFilter({ label, value, onChange, options }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: Array<{ value: string; label: string }>;
+}) {
+    return <label className="flex items-center justify-between gap-3 rounded-[9px] border border-[#dce3ea] bg-white px-3 py-2">
+      <span className="text-[10px] font-semibold text-[#60778c]">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded border border-[#d9e2eb] bg-white px-2 py-1.5 text-[10px] font-semibold text-[#334b60] outline-none">
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </label>;
+}
 function Average({ title, value, variation }: {
     title: string;
     value: number;
@@ -124,11 +138,23 @@ function SubjectColumn({ materia, rows }: {
     materia: string;
     rows: DistribucionNivelPorBloque[];
 }) {
+    const [criticalSortDirection, setCriticalSortDirection] = useState<"desc" | "asc">("desc");
+    const [selectedLevel, setSelectedLevel] = useState<LevelKey>("nivel1percent");
+    const visibleRows = [...rows]
+        .sort((a, b) => {
+            const difference = normalizeSegment(b[selectedLevel]) - normalizeSegment(a[selectedLevel]);
+            return criticalSortDirection === "desc" ? difference : -difference;
+        });
     return <article className="flex flex-col gap-3 rounded-[10px] border border-[#dce4ec] bg-white p-4">
       <h3 className="text-[14px] font-semibold uppercase text-[#334b60]">{formatMateriaLabel(materia)}</h3>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <SelectFilter label="Ordenar de" value={criticalSortDirection} onChange={(value) => setCriticalSortDirection(value as "desc" | "asc")} options={[{ value: "desc", label: "Mayor a menor" }, { value: "asc", label: "Menor a mayor" }]}/>
+        <SelectFilter label="Estado" value={selectedLevel} onChange={(value) => setSelectedLevel(value as LevelKey)} options={levels.map((level) => ({ value: level.key, label: level.label }))}/>
+      </div>
       <Legend />
       <div className="flex flex-col gap-3">
-        {rows.map((row) => <Comparison key={`${materia}-${row.bloque}`} block={row.bloque} items={[{ materia, row }]}/>) }
+        {visibleRows.map((row) => <Comparison key={`${materia}-${row.bloque}`} block={row.bloque} items={[{ materia, row }]}/>) }
+        {visibleRows.length === 0 && <p className="rounded-lg border border-dashed border-[#cbd6e0] px-4 py-5 text-center text-[10px] text-[#71869a]">No hay bloques para el estado seleccionado.</p>}
       </div>
     </article>;
 }
@@ -143,7 +169,7 @@ function Comparison({ block, items }: {
     <div className="border-t border-[#e9eef3] pt-2">
       <h4 className="text-[13px] font-semibold text-[#334b60] sm:text-[14px]">{block}</h4>
     </div>
-    <div>
+    <div className="rounded-[7px] border bg-[#fbfcfd] p-3">
       <div className="mt-4 space-y-3">
         {items.map((item) => <Row key={`${block}-${item.materia}`} row={item.row}/>)}
       </div>
