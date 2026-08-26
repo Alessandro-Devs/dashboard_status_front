@@ -1,15 +1,27 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import AdministrationAside from "@/components/layout/AdministrationAside";
 
+const subscribeToSession = () => () => undefined;
+const hasActiveSession = () => {
+  if (typeof window === "undefined") return false;
+  const storedUser = window.localStorage.getItem("dashboard:user");
+  if (!storedUser) return false;
+  try {
+    const user = JSON.parse(storedUser) as { updatedPassword?: boolean };
+    const lastActivity = Number(window.localStorage.getItem("dashboard:lastActivity")) || Date.now();
+    return user.updatedPassword === false && Date.now() - lastActivity < 15 * 60 * 1000;
+  } catch { return false; }
+};
+
 export default function AdministrationLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(false);
   const [asideOpen, setAsideOpen] = useState(false);
+  const authorized = useSyncExternalStore(subscribeToSession, hasActiveSession, () => false);
 
   useEffect(() => {
     const inactivityLimit = 15 * 60 * 1000;
@@ -42,7 +54,6 @@ export default function AdministrationLayout({ children }: { children: ReactNode
       return;
     }
 
-    setAuthorized(true);
     let timer: number;
     const updateActivity = () => {
       window.localStorage.setItem(activityKey, String(Date.now()));

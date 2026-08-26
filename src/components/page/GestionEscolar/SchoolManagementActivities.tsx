@@ -7,7 +7,7 @@ type ProgressItem = {
     value: number;
     percentage: number;
 };
-const activityData = dashboardDatabase.gestionEscolar.actividades;
+const activityData = dashboardDatabase.gestionEscolar.actividades as { observacion: ProgressItem[]; formacion: ProgressItem[]; horariosG12: ProgressItem[]; horariosG345: ProgressItem[] };
 const observationData: ProgressItem[] = sortDescendingByNumber(activityData.observacion, (item) => item.percentage);
 const trainingData: ProgressItem[] = sortDescendingByNumber(activityData.formacion, (item) => item.percentage);
 const scheduleG12: ProgressItem[] = sortDescendingByNumber(activityData.horariosG12, (item) => item.percentage);

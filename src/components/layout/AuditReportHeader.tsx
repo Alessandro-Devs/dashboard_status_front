@@ -51,7 +51,7 @@ export default function AuditReportHeader() {
     : pathname.startsWith("/gestion-escolar")
       ? "Gestión Escolar"
       : state.activeSection;
-  const section = navItems.includes(rawSection) ? rawSection : fallbackSection;
+  const section = (navItems.includes(rawSection as (typeof navItems)[number]) ? rawSection : fallbackSection) as (typeof navItems)[number];
   const school = section === "Gestión Escolar";
   const learning = section === "Aprendizaje";
   const evaluation = section === "Evaluación";

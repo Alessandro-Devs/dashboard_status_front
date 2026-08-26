@@ -10,7 +10,6 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  type TooltipProps,
 } from "recharts";
 import {
   getBlockData,
@@ -323,7 +322,9 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) {
+type ChartPayloadEntry = { dataKey?: string | number; value?: number | string };
+
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: ChartPayloadEntry[]; label?: string | number }) {
   if (!active || !payload?.length) return null;
 
   const applied = payload.find((entry) => entry.dataKey === "applied")?.value;
@@ -353,20 +354,24 @@ function BarValueLabel({
   value,
   fill,
 }: {
-  x?: number;
-  y?: number;
-  width?: number;
-  value?: string | number;
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+  value?: unknown;
   fill: string;
 }) {
-  if (typeof x !== "number" || typeof y !== "number" || typeof width !== "number" || value == null) {
+  if (x == null || y == null || width == null || value == null) {
     return null;
   }
 
+  const numericX = Number(x);
+  const numericY = Number(y);
+  const numericWidth = Number(width);
+
   return (
     <text
-      x={x + width / 2}
-      y={y - 6}
+      x={numericX + numericWidth / 2}
+      y={numericY - 6}
       fill={fill}
       textAnchor="middle"
       fontSize={11}

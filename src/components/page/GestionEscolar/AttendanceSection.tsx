@@ -5,7 +5,8 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { parsePercentageValue, sortDescendingByNumber } from "@/lib/sortByPercentage";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import AttendanceChart from "./AttendanceChart";
-const cards = dashboardDatabase.gestionEscolar.asistenciaTarjetas;
+type AttendanceCard = [string, string, string, string];
+const cards = dashboardDatabase.gestionEscolar.asistenciaTarjetas as AttendanceCard[];
 export default function AttendanceSection() {
     const [type, setType] = useState<"students" | "teachers">("students");
     const { startDate, endDate, platforms } = useAuditFilters();
