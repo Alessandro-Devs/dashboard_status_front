@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GitBranch } from "lucide-react";
+import { CalendarRange, GitBranch } from "lucide-react";
 import { ResponsiveContainer, Sankey, Tooltip, type SankeyNodeProps, type TooltipContentProps } from "recharts";
 import { useDashboardData } from "@/stores/DashboardDataContext";
 import { getEvaluacion, tieneNumero, tieneTexto, type NivelDesempeno } from "./evaluationViewData";
@@ -38,6 +38,11 @@ type SeparateSankey = {
   transiciones: SeparateSankeyTransition[];
 };
 
+export const monthOptions = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
 function toFlowNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
@@ -49,6 +54,8 @@ function toFlowNumber(value: unknown) {
 
 export default function EvaluationSankeyView() {
   useDashboardData();
+  const [startMonth, setStartMonth] = useState(0);
+  const [endMonth, setEndMonth] = useState(11);
 
   const evaluacion = getEvaluacion() as Record<string, unknown>;
   const explicitSankeys = resolveSeparateSankeys(evaluacion.sankeysSeparados);
@@ -97,23 +104,38 @@ export default function EvaluationSankeyView() {
   const trayectoria = vista?.trayectoriaDeResultados;
   const niveles = trayectoria?.nivelesDeDesempeno ?? [];
   const etapas = trayectoria?.etapas ?? [];
+  const etapasFiltradas = etapas.filter((etapa) => {
+    const monthIndex = getMonthIndex(etapa.nombre);
+    return monthIndex === null || (monthIndex >= startMonth && monthIndex <= endMonth);
+  });
   const resumen = trayectoria?.resumenPorNivel ?? [];
-  const sankey = crearSankey(niveles, etapas, trayectoria?.distribucionPorcentualDeLosFlujos);
-  const hasSankey = niveles.length > 0 && etapas.length > 1;
+  const sankey = crearSankey(niveles, etapasFiltradas, trayectoria?.distribucionPorcentualDeLosFlujos);
+  const hasSankey = niveles.length > 0 && etapasFiltradas.length > 1;
   const hasSummary = resumen.length > 0;
   const hasReading = tieneTexto(trayectoria?.lecturaPrincipal) || tieneTexto(trayectoria?.descripcionLectura);
+  const updateStartMonth = (value: number) => {
+    setStartMonth(value);
+    if (value > endMonth) setEndMonth(value);
+  };
+  const updateEndMonth = (value: number) => {
+    setEndMonth(value);
+    if (value < startMonth) setStartMonth(value);
+  };
 
-  if (!hasSankey && !hasSummary && !hasReading) {
+  if (!hasSankey && !hasSummary && !hasReading) return null;
+  /*
     return (
       <article className="rounded-lg border border-dashed border-[#cbd6e0] bg-white px-5 py-8 text-center">
-        <p className="text-[12px] font-semibold text-[#526a80]">Sin sankeys de progreso</p>
-        <p className="mt-2 text-[10px] text-[#8b9daf]">No se encontraron datasets de sankey en la BD para la vista de Progreso.</p>
+        <MonthRangeFilter startMonth={startMonth} endMonth={endMonth} onStartChange={updateStartMonth} onEndChange={updateEndMonth} />
+        <p className="text-[12px] font-semibold text-[#526a80]">Sin datos disponibles</p>
+        <p className="mt-2 text-[10px] text-[#8b9daf]">No hay información disponible para mostrar en esta vista.</p>
       </article>
     );
-  }
+  */
 
   return (
     <section className="space-y-4">
+      <MonthRangeFilter startMonth={startMonth} endMonth={endMonth} onStartChange={updateStartMonth} onEndChange={updateEndMonth} />
       {hasSankey && (
         <section className="overflow-hidden rounded-xl border bg-white">
           <header className="flex flex-wrap justify-between gap-3 border-b px-4 py-3">
@@ -171,6 +193,56 @@ export default function EvaluationSankeyView() {
       )}
     </section>
   );
+}
+
+export function MonthRangeFilter({ startMonth, endMonth, onStartChange, onEndChange }: {
+  startMonth: number | null;
+  endMonth: number | null;
+  onStartChange: (value: number) => void;
+  onEndChange: (value: number) => void;
+}) {
+  const [pendingMonth, setPendingMonth] = useState<number | null>(null);
+  const chooseMonth = (monthIndex: number) => {
+    if (pendingMonth === null) {
+      onStartChange(monthIndex);
+      onEndChange(monthIndex);
+      setPendingMonth(monthIndex);
+      return;
+    }
+    onStartChange(Math.min(pendingMonth, monthIndex));
+    onEndChange(Math.max(pendingMonth, monthIndex));
+    setPendingMonth(null);
+  };
+
+  return <div className="relative mx-auto mb-3 w-full max-w-2xl rounded-lg border border-[#dce4ec] bg-white p-2.5 shadow-[0_4px_12px_rgba(35,52,70,0.04)]">
+    <div className="mb-6 flex items-center gap-2">
+      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#eaf4ff] text-[#176fc8]"><CalendarRange className="h-3 w-3" /></span>
+      <div>
+        <p className="text-[9px] font-semibold uppercase tracking-[0.03em] text-[#334b60]">Rango de meses</p>
+      </div>
+    </div>
+    <div className="mb-6 flex flex-wrap items-center gap-1 text-[7px] sm:absolute sm:right-2.5 sm:top-2.5 sm:mb-0 sm:justify-end">
+      <span className="rounded-full bg-[#eaf4ff] px-3 py-1.5 font-semibold text-[#176fc8]">Inicio: {startMonth === null ? "Sin seleccionar" : monthOptions[startMonth]}</span>
+      <span className="text-[#a0afbc]">→</span>
+      <span className="rounded-full bg-[#eaf4ff] px-3 py-1.5 font-semibold text-[#176fc8]">Fin: {endMonth === null ? "Sin seleccionar" : monthOptions[endMonth]}</span>
+    </div>
+    <div className="overflow-x-auto pb-1 sm:overflow-x-visible">
+      <div className="relative min-w-[680px] px-2 sm:min-w-0 sm:px-4">
+        <div className="absolute left-2 right-2 top-[7px] h-1 rounded-full bg-[#e6edf3] sm:left-4 sm:right-4" />
+        <div className="absolute top-[7px] h-1 rounded-full bg-[#9bc9ed]" style={startMonth !== null && endMonth !== null ? { left: `${(startMonth / 11) * 100}%`, right: `${((11 - endMonth) / 11) * 100}%` } : { display: "none" }} />
+        <div className="relative flex justify-between">
+          {monthOptions.map((month, index) => {
+            const selected = startMonth !== null && endMonth !== null && index >= startMonth && index <= endMonth;
+            const edge = index === startMonth || index === endMonth;
+            return <button key={month} type="button" title={`Seleccionar ${month} como punto del rango`} aria-pressed={edge} onClick={() => chooseMonth(index)} className="group flex min-w-[38px] flex-col items-center gap-1.5 text-[7px] text-[#71869a]">
+              <span className={`z-10 h-[15px] w-[15px] rounded-full border-3 border-white transition ${edge ? "bg-[#176fc8] ring-2 ring-[#176fc8]/30" : selected ? "bg-[#73b5e5]" : "bg-[#cbd8e2]"}`} />
+              <span className={`${edge ? "font-bold text-[#176fc8]" : "group-hover:text-[#176fc8]"}`}>{month.slice(0, 3)}</span>
+            </button>;
+          })}
+        </div>
+      </div>
+    </div>
+  </div>;
 }
 
 function MergedSankeyView({ sankeys }: { sankeys: SeparateSankey[] }) {
@@ -265,7 +337,7 @@ function DirectSankeyCard({ dataset }: { dataset: SankeyDataset }) {
 
 function resolveSeparateSankeys(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return [] as SeparateSankey[];
-  return Object.values(value).filter((item): item is SeparateSankey => isSeparateSankey(item));
+  return Object.values(value).filter((item): item is SeparateSankey => isSeparateSankey(item) && item.transiciones.some(hasPositiveFlow));
 }
 
 function isSeparateSankey(value: unknown): value is SeparateSankey {
@@ -351,7 +423,7 @@ function findSankeyDatasets(root: Record<string, unknown>) {
     if (!value || typeof value !== "object" || seen.has(value)) return;
     seen.add(value);
 
-    if (isSankeyRecord(value)) {
+    if (isSankeyRecord(value) && value.links.some((link) => link.value > 0)) {
       results.push({
         title: formatPathTitle(path[path.length - 1] ?? "Sankey"),
         nodes: value.nodes,
@@ -399,6 +471,12 @@ function formatPathTitle(value: string) {
   const normalized = value.replace(/[_-]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").trim();
   if (!normalized) return "Sankey";
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function getMonthIndex(value: string) {
+  const normalized = value.trim().toLowerCase();
+  const index = monthOptions.findIndex((month) => month.toLowerCase() === normalized);
+  return index >= 0 ? index : null;
 }
 
 function crearSankey(

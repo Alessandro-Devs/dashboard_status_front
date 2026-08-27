@@ -41,3 +41,9 @@ type EvaluacionNueva = {
 export const getEvaluacion = () => dashboardDatabase.evaluacion as unknown as EvaluacionNueva;
 export const tieneTexto = (value:unknown):value is string => typeof value === "string" && value.trim().length > 0;
 export const tieneNumero = (value:unknown):value is number => typeof value === "number" && Number.isFinite(value);
+export const normalizeMateria = (value: string) => {
+  const normalized = value.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (normalized === "matematica") return "Matemática";
+  if (normalized === "lengua") return "Lengua";
+  return value.trim();
+};

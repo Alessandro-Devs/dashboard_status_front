@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import BarreraCard from "./BarreraCard";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
-import { getEvaluacion, tieneNumero, type DistribucionNivelPorBloque } from "./evaluationViewData";
+import { getEvaluacion, normalizeMateria, tieneNumero, type DistribucionNivelPorBloque } from "./evaluationViewData";
 const levels = [
     { key: "nivel1percent", dataKey: "nivel1data", color: "#e5252a", label: "Crítico" },
     { key: "nivel2percent", dataKey: "nivel2data", color: "#f05b0b", label: "Bajo" },
@@ -29,7 +29,12 @@ export default function EvaluationComparisonByBlockLevels() {
     const [subjects, setSubjects] = useState<string[]>([]);
     const evaluacion = getEvaluacion();
     const averages = evaluacion.comparativasPorMateria ?? {};
-    const distributions = evaluacion.distribucionPorBloqueMateriaNiveles ?? {};
+    const rawDistributions = evaluacion.distribucionPorBloqueMateriaNiveles ?? {};
+    const distributions = Object.entries(rawDistributions).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
+        const normalizedSubject = normalizeMateria(subject);
+        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...rows];
+        return result;
+    }, {});
     const availableSubjects = Object.keys(distributions).map((subject) => ({
         id: subject.toLowerCase(),
         label: formatMateriaLabel(subject),
@@ -38,7 +43,9 @@ export default function EvaluationComparisonByBlockLevels() {
     const validSubjectIds = new Set(availableSubjects.map((item) => item.id));
     const activeSubjects = subjects.filter((subject) => validSubjectIds.has(subject));
     const selectedSubjects = new Set(activeSubjects);
-    const filteredAverageEntries = Object.entries(averages).filter(([materia]) => selectedSubjects.size === 0 || selectedSubjects.has(materia.toLowerCase()));
+    const filteredAverageEntries = Object.entries(averages)
+        .filter(([materia]) => selectedSubjects.size === 0 || selectedSubjects.has(materia.toLowerCase()))
+        .sort(([left], [right]) => subjectOrder(left) - subjectOrder(right));
     const promedios = filteredAverageEntries.filter(([, item]) => tieneNumero(item.promedio));
     const availableBlocks = Array.from(new Map(Object.values(distributions)
         .flatMap((rows) => rows)
@@ -53,6 +60,7 @@ export default function EvaluationComparisonByBlockLevels() {
     }, [availableBlocks, blocks, setBlocks]);
     const selectedBlocks = new Set(blocks);
     const comparativasPorMateria = Object.entries(distributions)
+        .sort(([left], [right]) => subjectOrder(left) - subjectOrder(right))
         .filter(([materia]) => selectedSubjects.size === 0 || selectedSubjects.has(materia.toLowerCase()))
         .map(([materia, rows]) => ({
             materia,
@@ -213,4 +221,10 @@ function formatValue(value: number | null) {
 }
 function formatMateriaLabel(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+function subjectOrder(value: string) {
+    const normalized = value.toLowerCase();
+    if (normalized === "matematica" || normalized === "matemática") return 0;
+    if (normalized === "lengua") return 1;
+    return 2;
 }

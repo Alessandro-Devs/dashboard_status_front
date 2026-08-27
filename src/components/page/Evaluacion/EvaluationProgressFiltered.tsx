@@ -1,6 +1,6 @@
 "use client";
 import EvaluationComparisonByBlockLevels from "./EvaluationComparisonByBlockLevels";
-import EvaluationSankeyView from "./EvaluationSankeyView";
+import EvaluationProgressMonthlyBars from "./EvaluationProgressMonthlyBars";
 type EvaluationFilter = "cml" | "progreso";
 export default function EvaluationProgressFiltered({ activeFilter, onChange }: {
     activeFilter: EvaluationFilter;
@@ -20,7 +20,7 @@ export default function EvaluationProgressFiltered({ activeFilter, onChange }: {
       </div>
     </div>
     <div className="mt-4">
-      {activeFilter === "cml" ? <EvaluationComparisonByBlockLevels /> : <EvaluationSankeyView />}
+      {activeFilter === "cml" ? <EvaluationComparisonByBlockLevels /> : <EvaluationProgressMonthlyBars />}
     </div>
   </section>;
 }
