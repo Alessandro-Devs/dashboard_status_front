@@ -29,7 +29,7 @@ function loadMonthlyData(): MonthlyData[] {
       const values = [1, 2, 3, 4, 5].map((level, index) => numberValue(raw[`nivel${level}percent`]) || (universe > 0 ? Math.round((data[index] / universe) * 1000) / 10 : 0));
       return { block: String(raw.bloque ?? ""), materia: normalizeMateria(String(raw.materia ?? "")), subgrupo: String(raw.subgrupo ?? ""), universe, values, data, averageMath: raw.promedioMatematica == null ? null : numberValue(raw.promedioMatematica), averageLanguage: raw.promedioLengua == null ? null : numberValue(raw.promedioLengua) };
     }).filter((block) => block.block && block.materia && hasMonthlyBlockData(block)) };
-  }).filter((item) => item.blocks.length > 0);
+  });
 }
 
 export default function EvaluationProgressMonthlyBars() {
@@ -46,8 +46,13 @@ export default function EvaluationProgressMonthlyBars() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (!subjects.includes(selectedSubject)) setSelectedSubject(subjects.find((subject) => subject.toLowerCase() === "matemática" || subject.toLowerCase() === "matematica") ?? subjects[0] ?? ""); }, [subjects, selectedSubject]);
   const activeSubgroup = subgroups.includes(selectedSubgroup) ? selectedSubgroup : "";
+  const julyIndex = monthlyData.findIndex((item) => item.month.toLowerCase() === "julio" && item.blocks.length > 0);
+  const firstAvailable = monthlyData.findIndex((item) => item.blocks.length > 0);
+  const defaultMonth = julyIndex >= 0 ? julyIndex : firstAvailable;
+  const effectiveStartMonth = startMonth ?? (endMonth === null ? defaultMonth : null);
+  const effectiveEndMonth = endMonth ?? (startMonth === null ? defaultMonth : null);
   if (!monthlyData.some((item) => item.blocks.length > 0)) return null;
-  const visibleMonths = startMonth !== null && endMonth !== null ? monthlyData.slice(startMonth, endMonth + 1).map((item) => {
+  const visibleMonths = effectiveStartMonth !== null && effectiveEndMonth !== null && effectiveStartMonth >= 0 && effectiveEndMonth >= 0 ? monthlyData.slice(effectiveStartMonth, effectiveEndMonth + 1).map((item) => {
     const matchingBlocks = item.blocks.filter((block) => block.block === activeBlock && block.materia === activeSubject);
     const visibleBlocks = activeSubgroup === "" ? aggregateBlocks(matchingBlocks) : matchingBlocks.filter((block) => block.subgrupo === activeSubgroup);
     return { ...item, blocks: visibleBlocks };
