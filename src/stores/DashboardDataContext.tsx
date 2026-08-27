@@ -105,6 +105,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     const path = isInitialLoad ? "/dashboard" : `/dashboard?date=${encodeURIComponent(endDate)}`;
     let active = true;
     let showingCachedData = false;
+    const controller = new AbortController();
 
     const cached = readCachedDashboard(isInitialLoad ? "latest" : endDate);
     if (cached?.snapshot && isObject(cached.data)) {
@@ -119,7 +120,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    apiFetch<DashboardResponse>(path)
+    apiFetch<DashboardResponse>(path, { signal: controller.signal })
       .then((response) => {
         if (!active) return;
         if (!response.snapshot || !isObject(response.data)) {
@@ -144,7 +145,10 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
         resolvedDateRef.current = endDate;
         setState({ hasData: false, snapshotDate: null, resolvedDate: endDate, error: message });
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [startDate, endDate, setPeriod]);
 
   const value = useMemo(() => {
