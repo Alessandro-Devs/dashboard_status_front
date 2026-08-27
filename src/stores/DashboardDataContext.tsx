@@ -37,6 +37,16 @@ function cacheDashboard(response: DashboardResponse, includeLatest: boolean) {
   }
 }
 
+function clearDashboardCache() {
+  try {
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith(CACHE_PREFIX))
+      .forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // El dashboard continúa funcionando si el almacenamiento local no está disponible.
+  }
+}
+
 const DashboardDataContext = createContext<DashboardContextState | null>(null);
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -107,6 +117,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     let showingCachedData = false;
     const controller = new AbortController();
 
+    if (isInitialLoad) clearDashboardCache();
     const cached = readCachedDashboard(isInitialLoad ? "latest" : endDate);
     if (cached?.snapshot && isObject(cached.data)) {
       const cachedDate = cached.snapshot.date;
