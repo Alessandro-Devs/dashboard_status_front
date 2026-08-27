@@ -228,7 +228,7 @@ function Row({ row }: {
 }
 function formatValue(value: number | null) {
     if (value == null || !Number.isFinite(value)) return "-";
-    return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+    return Number.isInteger(value) ? value.toLocaleString("es-SV") : value.toFixed(1);
 }
 function formatMateriaLabel(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();

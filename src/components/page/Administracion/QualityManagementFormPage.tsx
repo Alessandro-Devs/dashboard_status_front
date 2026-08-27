@@ -22,6 +22,7 @@ const emptyValues = (value: JsonValue): JsonValue => {
 const fallbackQualityData: JsonValue = {
   kpis: { auditados: 0, universo: 0, cobertura: 0, cumplimiento: 0, hallazgos: 0, hallazgosMayor: 0, hallazgosMenor: 0, observaciones: 0, grupos: 0 },
   auditadosPorGrupo: [],
+  coberturaPorGrupo: [],
   cumplimientoPorGrupo: [],
   cumplimientoPorProceso: [],
   hallazgosCriticos: [],
@@ -30,6 +31,7 @@ const fallbackQualityData: JsonValue = {
 const labels: Record<string, string> = {
   kpis: "Estado de las auditorías",
   auditadosPorGrupo: "Centros escolares auditados por grupo",
+  coberturaPorGrupo: "Cobertura acumulada",
   cumplimientoPorGrupo: "Cumplimiento global por grupo",
   cumplimientoPorProceso: "Cumplimiento promedio por proceso",
   hallazgosCriticos: "Diagnóstico de hallazgos",
@@ -52,10 +54,11 @@ const labels: Record<string, string> = {
 };
 
 const humanize = (key: string) => labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
-const sectionOrder = ["kpis", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
+const sectionOrder = ["kpis", "coberturaPorGrupo", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
 const sectionDescriptions: Record<string, string> = {
   kpis: "Todos los bloques · indicadores principales del módulo.",
   auditadosPorGrupo: "Auditados respecto al universo de cada grupo.",
+  coberturaPorGrupo: "Cobertura acumulada por grupo y ronda de auditoría.",
   cumplimientoPorGrupo: "Porcentaje promedio de cumplimiento.",
   cumplimientoPorProceso: "Comparación de los procesos evaluados.",
   hallazgosCriticos: "Hallazgos críticos identificados en los centros auditados.",
@@ -76,6 +79,7 @@ const withFindingTitleDefaults = (value: JsonValue): JsonValue => {
 const templateFor = (fieldKey: string, current?: JsonValue): JsonValue => {
   if (current !== undefined) return clone(current);
   if (fieldKey === "auditadosPorGrupo") return { name: "", auditados: 0, total: 0 };
+  if (fieldKey === "coberturaPorGrupo") return { grupo: "", ronda: 0, auditados: 0, total: 0, porcentaje: 0 };
   if (fieldKey === "cumplimientoPorGrupo" || fieldKey === "cumplimientoPorProceso") return { name: "", value: 0 };
   if (fieldKey === "hallazgosCriticos") return { title: "", process: "", description: "", impact: 0 };
   return "";
