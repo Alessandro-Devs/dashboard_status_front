@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import AuditReportHeader from "@/components/layout/AuditReportHeader";
-import GlobalFooter from "@/components/layout/GlobalFooter";
-import MobileHeaderShell from "@/components/layout/MobileHeaderShell";
-import { AuditFiltersProvider } from "@/stores/AuditFiltersContext";
-import { DashboardDataProvider } from "@/stores/DashboardDataContext";
+import RouteShell from "@/Router/RouteShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,19 +12,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
-        <AuditFiltersProvider>
-          <DashboardDataProvider>
-            <MobileHeaderShell>
-              <Suspense fallback={null}>
-                <AuditReportHeader />
-              </Suspense>
-            </MobileHeaderShell>
-            {children}
-            <Suspense fallback={null}>
-              <GlobalFooter />
-            </Suspense>
-          </DashboardDataProvider>
-        </AuditFiltersProvider>
+        <Suspense fallback={null}>
+          <RouteShell>{children}</RouteShell>
+        </Suspense>
       </body>
     </html>
   );

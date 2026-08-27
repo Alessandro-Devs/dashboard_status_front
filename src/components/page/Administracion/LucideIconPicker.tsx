@@ -1,0 +1,17 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { icons, Search, X, type LucideIcon } from "lucide-react";
+
+const iconEntries = Object.entries(icons as Record<string, LucideIcon>).filter(([name]) => !name.endsWith("Icon"));
+
+export default function LucideIconPicker({ value, onChange }: { value: string; onChange: (name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selectedName = value && value in icons ? value : value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+  const SelectedIcon = (icons as Record<string, LucideIcon>)[selectedName];
+  const filtered = useMemo(() => { const term = query.trim().toLowerCase(); return term ? iconEntries.filter(([name]) => name.toLowerCase().includes(term)) : iconEntries; }, [query]);
+  return <><label className="block text-[10px] font-semibold text-[#5d7285]">Icono<button type="button" onClick={() => setOpen(true)} className="mt-0.5 flex h-[34px] w-full items-center gap-2 rounded-md border border-[#d8e4ee] bg-white px-2 text-left text-[11px] font-medium text-[#405c73] transition hover:border-[#8db9d9]">{SelectedIcon ? <SelectedIcon size={15} className="text-[#176fc8]"/> : <span className="flex h-4 w-4 items-center justify-center rounded bg-[#eef4f8] text-[9px]">?</span>}<span className="truncate">{value || "Seleccionar icono"}</span></button></label>
+    {open && <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[#102c42]/50 p-4 backdrop-blur-[2px]" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}><section role="dialog" aria-modal="true" aria-labelledby="icon-picker-title" className="flex h-[68vh] max-h-[560px] min-h-[420px] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-white/70 bg-white shadow-[0_24px_70px_rgba(15,40,60,.28)]"><header className="flex shrink-0 items-center justify-between border-b border-[#e2eaf0] px-4 py-3"><div><h2 id="icon-picker-title" className="text-sm font-bold text-[#213b52]">Seleccionar icono</h2><p className="mt-0.5 text-[9px] text-[#8295a5]">{filtered.length.toLocaleString("es-SV")} iconos disponibles</p></div><button type="button" onClick={() => setOpen(false)} className="rounded-lg p-1.5 text-[#8295a5] hover:bg-[#eef4f8]" aria-label="Cerrar selector"><X size={17}/></button></header><div className="shrink-0 border-b border-[#e2eaf0] p-3"><label className="flex h-8 items-center gap-2 rounded-lg border border-[#d5e2eb] bg-[#f8fafc] px-3 text-[#8295a5]"><Search size={14}/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre..." className="min-w-0 flex-1 bg-transparent text-[11px] text-[#294b68] outline-none"/></label></div><div className="grid min-h-0 flex-1 grid-cols-4 content-start gap-1.5 overflow-y-auto p-3 sm:grid-cols-5">{filtered.map(([name, Icon]) => <button key={name} type="button" title={name} onClick={() => { onChange(name); setOpen(false); setQuery(""); }} className={`flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border p-1.5 transition ${selectedName === name ? "border-[#176fc8] bg-[#eaf4ff] text-[#176fc8]" : "border-[#e1e9ef] text-[#526b80] hover:border-[#9bc1dd] hover:bg-[#f5f9fc]"}`}><Icon size={18}/><span className="w-full truncate text-center text-[7px]">{name}</span></button>)}</div>{filtered.length === 0 && <p className="flex flex-1 items-center justify-center text-[11px] text-[#8295a5]">No se encontraron iconos.</p>}</section></div>}
+  </>;
+}

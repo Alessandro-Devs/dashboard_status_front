@@ -14,13 +14,6 @@
   --font-mono: "Courier New", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -369,7 +362,7 @@ main :is(
 }
 
 [aria-labelledby="block-detail-title"] p,
-[aria-labelledby="block-detail-title"] span,
+[aria-labelledby="block-detail-title"] span:not(.block-detail-metric-value):not(.block-detail-metric-percent),
 [aria-labelledby="block-detail-title"] i,
 [aria-labelledby="block-detail-title"] button {
   font-size: max(11px, 0.72rem) !important;

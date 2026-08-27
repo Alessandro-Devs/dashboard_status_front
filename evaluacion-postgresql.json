@@ -2,12 +2,12 @@
   "evaluacion": {
     "pruebas": {
       "cml": {
-        "titulo": "Prueba CML",
+        "titulo": "CML",
         "centrosEscolares": { "aplicados": "720", "pendientes": "32", "universo": "752", "porcentaje": 95.7 },
         "matricula": { "aplicados": "193,875", "pendientes": "32,126", "universo": "226,001", "porcentaje": 85.8 }
       },
       "progreso": {
-        "titulo": "Prueba Progreso",
+        "titulo": "Progreso",
         "centrosEscolares": { "aplicados": "574", "pendientes": "180", "universo": "", "porcentaje": 76 },
         "matricula": { "aplicados": "9,638", "pendientes": "4,522", "universo": "", "porcentaje": 68 }
       }

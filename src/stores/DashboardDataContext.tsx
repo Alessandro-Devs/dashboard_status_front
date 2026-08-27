@@ -14,6 +14,29 @@ type DashboardResponse = {
 type DashboardDataState = { hasData: boolean; snapshotDate: string | null; resolvedDate: string | null; error: string | null };
 type DashboardContextState = DashboardDataState & { isLoading: boolean; availableSections: DashboardSection[] };
 
+const CACHE_PREFIX = "dashboard:data:";
+function readCachedDashboard(key: string): DashboardResponse | null {
+  try {
+    const value = localStorage.getItem(`${CACHE_PREFIX}${key}`);
+    if (!value) return null;
+    const parsed = JSON.parse(value) as DashboardResponse;
+    return parsed.snapshot?.date && isObject(parsed.data) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheDashboard(response: DashboardResponse, includeLatest: boolean) {
+  try {
+    if (!response.snapshot || !isObject(response.data)) return;
+    const serialized = JSON.stringify(response);
+    localStorage.setItem(`${CACHE_PREFIX}${response.snapshot.date}`, serialized);
+    if (includeLatest) localStorage.setItem(`${CACHE_PREFIX}latest`, serialized);
+  } catch {
+    // La API sigue funcionando si el navegador no permite almacenamiento local.
+  }
+}
+
 const DashboardDataContext = createContext<DashboardContextState | null>(null);
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -43,7 +66,19 @@ function synchronize(target: unknown, source: unknown): unknown {
       Object.entries(source).map(([key, value]) => [key, synchronize(target[key], value)]),
     );
     if (!canSynchronizeObject(target, source)) return next;
-    for (const key of Object.keys(target)) if (!(key in source)) delete target[key];
+    for (const key of Object.keys(target)) {
+      if (key in source) continue;
+      if (target === dashboardDatabase) {
+        // Vaciar la sección conservando su referencia compartida. Así deja de
+        // mostrarse en esta fecha y puede repoblarse al cambiar de periodo.
+        const current = target[key];
+        if (Array.isArray(current)) current.splice(0, current.length);
+        else if (isObject(current)) synchronize(current, {});
+        else delete target[key];
+      } else {
+        delete target[key];
+      }
+    }
     for (const [key, value] of Object.entries(next)) target[key] = value;
     return target;
   }
@@ -69,6 +104,21 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     const isInitialLoad = resolvedDateRef.current === null;
     const path = isInitialLoad ? "/dashboard" : `/dashboard?date=${encodeURIComponent(endDate)}`;
     let active = true;
+    let showingCachedData = false;
+
+    const cached = readCachedDashboard(isInitialLoad ? "latest" : endDate);
+    if (cached?.snapshot && isObject(cached.data)) {
+      const cachedDate = cached.snapshot.date;
+      synchronize(dashboardDatabase, cached.data);
+      showingCachedData = true;
+      setState({ hasData: true, snapshotDate: cachedDate, resolvedDate: cachedDate, error: null });
+
+      if (isInitialLoad && cachedDate !== endDate) {
+        resolvedDateRef.current = "__cached__";
+        setPeriod(cachedDate, cachedDate);
+      }
+    }
+
     apiFetch<DashboardResponse>(path)
       .then((response) => {
         if (!active) return;
@@ -78,6 +128,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
           return;
         }
         const resolvedDate = response.snapshot.date;
+        cacheDashboard(response, isInitialLoad);
         synchronize(dashboardDatabase, response.data);
         resolvedDateRef.current = resolvedDate;
         setState({ hasData: true, snapshotDate: resolvedDate, resolvedDate, error: null });
@@ -87,6 +138,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       })
       .catch((error: unknown) => {
         if (!active) return;
+        if (showingCachedData) return;
         const message = error instanceof Error ? error.message : "Error desconocido al consultar la API.";
         console.error("No fue posible cargar la instantánea del dashboard", error);
         resolvedDateRef.current = endDate;
@@ -95,17 +147,21 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     return () => { active = false; };
   }, [startDate, endDate, setPeriod]);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const isCurrentDate = startDate === endDate && state.resolvedDate === endDate;
+    const hasCurrentData = isCurrentDate && state.hasData && state.snapshotDate === endDate;
+
+    return {
       ...state,
       isLoading: startDate === endDate && state.resolvedDate !== endDate,
-      hasData: startDate === endDate && state.hasData && state.snapshotDate === endDate && state.resolvedDate === endDate,
-      availableSections: startDate === endDate && state.resolvedDate === endDate
-        ? getAvailableDashboardSections()
+      hasData: hasCurrentData,
+      availableSections: isCurrentDate
+        ? hasCurrentData
+          ? getAvailableDashboardSections()
+          : []
         : dashboardSections,
-    }),
-    [endDate, startDate, state],
-  );
+    };
+  }, [endDate, startDate, state]);
 
   return <DashboardDataContext.Provider value={value}>{children}</DashboardDataContext.Provider>;
 }
