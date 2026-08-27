@@ -10,7 +10,8 @@ const sanitizeBlockItems = (items:Array<{bloque:string;aplicados:number;pendient
       pending: Number.isFinite(item.pendientes) ? item.pendientes : 0,
       universe: Number.isFinite(item.universo) ? item.universo : 0,
       percentage: Number.isFinite(item.porcentaje) ? item.porcentaje : 0,
-    }));
+    }))
+    .filter((item) => item.applied > 0 || item.pending > 0 || item.universe > 0 || item.percentage > 0);
 
 function isDetalleBloque(value: unknown): value is DetalleBloque {
   return typeof value === "object" && value !== null && "centrosEscolares" in value && "matricula" in value;
@@ -25,8 +26,7 @@ function resolveDetallePorPrueba(testType: TestType): DetalleBloque | undefined 
 }
 
 export const hasBlockDetail = (testType: TestType): boolean => {
-  const detalle = resolveDetallePorPrueba(testType);
-  return Boolean((detalle?.centrosEscolares?.length ?? 0) || (detalle?.matricula?.length ?? 0));
+  return Boolean(getBlockData(testType).length || getEnrollmentData(testType).length);
 };
 
 export const getBlockData = (testType: TestType):BlockItem[] => sanitizeBlockItems(resolveDetallePorPrueba(testType)?.centrosEscolares);

@@ -14,6 +14,9 @@ type MonthlyData = { month: string; blocks: MonthlyBlock[] };
 
 function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value); }
 function numberValue(value: unknown) { const numeric = typeof value === "number" ? value : Number(value); return Number.isFinite(numeric) ? numeric : 0; }
+function hasMonthlyBlockData(block: MonthlyBlock) {
+  return block.universe > 0 || block.values.some((value) => value > 0) || block.data.some((value) => value > 0) || (block.averageMath ?? 0) > 0 || (block.averageLanguage ?? 0) > 0;
+}
 function loadMonthlyData(): MonthlyData[] {
   const source = (getEvaluacion() as unknown as Record<string, unknown>).resultadosPorMes;
   if (!isRecord(source)) return [];
@@ -25,8 +28,8 @@ function loadMonthlyData(): MonthlyData[] {
       const data = [1, 2, 3, 4, 5].map((level) => numberValue(raw[`nivel${level}data`]));
       const values = [1, 2, 3, 4, 5].map((level, index) => numberValue(raw[`nivel${level}percent`]) || (universe > 0 ? Math.round((data[index] / universe) * 1000) / 10 : 0));
       return { block: String(raw.bloque ?? ""), materia: normalizeMateria(String(raw.materia ?? "")), subgrupo: String(raw.subgrupo ?? ""), universe, values, data, averageMath: raw.promedioMatematica == null ? null : numberValue(raw.promedioMatematica), averageLanguage: raw.promedioLengua == null ? null : numberValue(raw.promedioLengua) };
-    }).filter((block) => block.block && block.materia) };
-  });
+    }).filter((block) => block.block && block.materia && hasMonthlyBlockData(block)) };
+  }).filter((item) => item.blocks.length > 0);
 }
 
 export default function EvaluationProgressMonthlyBars() {

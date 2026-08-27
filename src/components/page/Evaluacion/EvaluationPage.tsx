@@ -6,7 +6,11 @@ import BarreraAplicacionCard from "./BarreraAplicacionCard";
 import BlockDetailModal from "./BlockDetailModal";
 import TestCard from "./TestCard";
 import { hasBlockDetail, type TestType } from "./evaluationData";
-import { getEvaluacion, tieneTexto } from "./evaluationViewData";
+import { getEvaluacion, tieneNumero, tieneTexto, type PruebaEvaluacion } from "./evaluationViewData";
+const hasMetricData = (metric?: PruebaEvaluacion["centrosEscolares"]) => Boolean(metric && (
+    (tieneNumero(metric.porcentaje) && metric.porcentaje > 0) ||
+    [metric.aplicados, metric.pendientes, metric.universo].some(tieneTexto)
+));
 export default function EvaluationPage() {
     const [selected, setSelected] = useState<TestType | null>(null);
     const evaluacion = getEvaluacion();
@@ -14,8 +18,7 @@ export default function EvaluationPage() {
     const orderedIds: TestType[] = ["cml", "progreso", "fundamentos"];
     const tarjetas = orderedIds.flatMap((id) => {
         const prueba = pruebas[id];
-        const tieneResumen = Boolean(prueba?.centrosEscolares?.porcentaje !== null || prueba?.matricula?.porcentaje !== null) ||
-            [prueba?.centrosEscolares?.aplicados, prueba?.centrosEscolares?.universo, prueba?.matricula?.aplicados, prueba?.matricula?.universo].some(tieneTexto);
+        const tieneResumen = hasMetricData(prueba?.centrosEscolares) || hasMetricData(prueba?.matricula);
         return prueba && tieneTexto(prueba.titulo) && tieneResumen ? [{ id, prueba }] : [];
     });
     return <main className="flex-1 bg-[#f5f8fc] text-[#17324a]">

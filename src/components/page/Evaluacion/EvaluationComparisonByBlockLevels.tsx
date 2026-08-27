@@ -23,6 +23,9 @@ function segments(row: DistribucionNivelPorBloque) {
         label: level.label,
     }));
 }
+function hasDistributionData(row: DistribucionNivelPorBloque) {
+    return normalizeSegment(row.universo) > 0 || segments(row).some((item) => normalizeSegment(item.value) > 0 || normalizeSegment(item.data) > 0);
+}
 export default function EvaluationComparisonByBlockLevels() {
     useDashboardData();
     const { blocks, setBlocks } = useAuditFilters();
@@ -32,7 +35,7 @@ export default function EvaluationComparisonByBlockLevels() {
     const rawDistributions = evaluacion.distribucionPorBloqueMateriaNiveles ?? {};
     const distributions = Object.entries(rawDistributions).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
         const normalizedSubject = normalizeMateria(subject);
-        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...rows];
+        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...rows.filter(hasDistributionData)];
         return result;
     }, {});
     const availableSubjects = Object.keys(distributions).map((subject) => ({
@@ -46,7 +49,7 @@ export default function EvaluationComparisonByBlockLevels() {
     const filteredAverageEntries = Object.entries(averages)
         .filter(([materia]) => selectedSubjects.size === 0 || selectedSubjects.has(materia.toLowerCase()))
         .sort(([left], [right]) => subjectOrder(left) - subjectOrder(right));
-    const promedios = filteredAverageEntries.filter(([, item]) => tieneNumero(item.promedio));
+    const promedios = filteredAverageEntries.filter(([, item]) => tieneNumero(item.promedio) && item.promedio > 0);
     const availableBlocks = Array.from(new Map(Object.values(distributions)
         .flatMap((rows) => rows)
         .map((row) => [row.bloque.toLowerCase(), row.bloque])).entries()).map(([id, label]) => ({ id, label }));

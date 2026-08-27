@@ -15,7 +15,6 @@ type DashboardDataState = { hasData: boolean; snapshotDate: string | null; resol
 type DashboardContextState = DashboardDataState & { isLoading: boolean; availableSections: DashboardSection[] };
 
 const CACHE_PREFIX = "dashboard:data:";
-
 function readCachedDashboard(key: string): DashboardResponse | null {
   try {
     const value = localStorage.getItem(`${CACHE_PREFIX}${key}`);
@@ -148,17 +147,21 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     return () => { active = false; };
   }, [startDate, endDate, setPeriod]);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const isCurrentDate = startDate === endDate && state.resolvedDate === endDate;
+    const hasCurrentData = isCurrentDate && state.hasData && state.snapshotDate === endDate;
+
+    return {
       ...state,
       isLoading: startDate === endDate && state.resolvedDate !== endDate,
-      hasData: startDate === endDate && state.hasData && state.snapshotDate === endDate && state.resolvedDate === endDate,
-      availableSections: startDate === endDate && state.resolvedDate === endDate
-        ? getAvailableDashboardSections()
+      hasData: hasCurrentData,
+      availableSections: isCurrentDate
+        ? hasCurrentData
+          ? getAvailableDashboardSections()
+          : []
         : dashboardSections,
-    }),
-    [endDate, startDate, state],
-  );
+    };
+  }, [endDate, startDate, state]);
 
   return <DashboardDataContext.Provider value={value}>{children}</DashboardDataContext.Provider>;
 }

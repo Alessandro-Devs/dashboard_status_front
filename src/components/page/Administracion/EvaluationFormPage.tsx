@@ -74,13 +74,42 @@ const calculateMonthlyPercentages = (value: JsonValue): JsonValue => {
     return calculated;
   }) : blocks]));
 };
+const parseAmount = (value: JsonValue) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/[^\d.-]/g, "");
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+const formatCalculatedPending = (source: JsonValue, pending: number): JsonValue => typeof source === "number" ? pending : String(pending);
+const emptyCalculatedPending = (source: JsonValue): JsonValue => typeof source === "number" || source === null ? null : "";
+const calculateApplicationPercentages = (value: JsonValue): JsonValue => {
+  if (Array.isArray(value)) return value.map(calculateApplicationPercentages);
+  if (!isObject(value)) return value;
+
+  const calculated = Object.fromEntries(Object.entries(value).map(([key, child]) => [key, calculateApplicationPercentages(child)]));
+  if (!("universo" in calculated) || !("aplicados" in calculated) || !("pendientes" in calculated) || !("porcentaje" in calculated)) return calculated;
+
+  const universe = parseAmount(calculated.universo);
+  const applied = parseAmount(calculated.aplicados);
+  if (universe === null || applied === null || universe <= 0) return { ...calculated, pendientes: emptyCalculatedPending(calculated.pendientes), porcentaje: null };
+
+  const pending = Math.max(universe - applied, 0);
+  return {
+    ...calculated,
+    pendientes: formatCalculatedPending(calculated.pendientes, pending),
+    porcentaje: Math.round((applied / universe) * 1000) / 10,
+  };
+};
 
 function Primitive({ label, value, onChange }: { label: string; value: string | number | null; onChange: (value: JsonValue) => void }) {
   const numeric = typeof value === "number" || value === null;
-  const calculated = /porcentaje$/i.test(label.trim());
+  const percentage = /porcentaje$/i.test(label.trim());
+  const calculated = percentage || /^pendientes$/i.test(label.trim());
   const multiline = !numeric && /descripción|barrera|incidencia/i.test(label);
   const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none transition focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
-  return <label className="block min-w-0 text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} className={style}/> : <div className="relative"><input type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} readOnly={calculated} value={value ?? ""} placeholder={value === null ? "Sin dato" : undefined} onChange={(e) => onChange(numeric ? (e.target.value === "" ? null : Number(e.target.value)) : e.target.value)} className={`${style} ${calculated ? "cursor-default bg-[#f3f7fa] pr-6 text-[#547086]" : ""}`}/>{calculated && <span className="pointer-events-none absolute bottom-1.5 right-2 text-[10px] font-medium text-[#8297a8]">%</span>}</div>}</label>;
+  return <label className="block min-w-0 text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} className={style}/> : <div className="relative"><input type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} readOnly={calculated} value={value ?? ""} placeholder={value === null ? "Sin dato" : undefined} onChange={(e) => onChange(numeric ? (e.target.value === "" ? null : Number(e.target.value)) : e.target.value)} className={`${style} ${calculated ? "cursor-default bg-[#f3f7fa] text-[#547086]" : ""} ${percentage ? "pr-6" : ""}`}/>{percentage && <span className="pointer-events-none absolute bottom-1.5 right-2 text-[10px] font-medium text-[#8297a8]">%</span>}</div>}</label>;
 }
 
 function ArrayEditor({ label, values, onChange, depth, template }: { label: string; values: JsonValue[]; onChange: (value: JsonValue) => void; depth: number; template?: JsonValue }) {
@@ -173,6 +202,10 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
   }, [recordId]);
   if (!isObject(data)) return null;
   const updateSection = (key: string, updated: JsonValue) => {
+    if (key === "pruebas" || key === "detallePorBloque") {
+      setData({ ...data, [key]: calculateApplicationPercentages(updated) });
+      return;
+    }
     if (key === "resultadosPorMes") {
       setData({ ...data, [key]: calculateMonthlyPercentages(updated) });
       return;

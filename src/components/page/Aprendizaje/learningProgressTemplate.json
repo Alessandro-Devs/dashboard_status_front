@@ -1,0 +1,96 @@
+{
+  "estadoLxp": [],
+  "resumenAvance": [
+    {
+      "title": "Autoría",
+      "value": 96,
+      "description": "Avance promedio"
+    },
+    {
+      "title": "Producción / edición",
+      "value": 59,
+      "description": "Avance promedio"
+    },
+    {
+      "title": "Publicación",
+      "value": 39,
+      "description": "Avance promedio"
+    }
+  ],
+  "lineasAplicativo": [
+    {
+      "name": "IHFB",
+      "items": [
+        {
+          "label": "Autoría",
+          "value": 100,
+          "classes": "101-160"
+        },
+        {
+          "label": "Producción / edición",
+          "value": 58,
+          "classes": "110-139"
+        },
+        {
+          "label": "Publicación",
+          "value": 38,
+          "classes": "110-129"
+        }
+      ]
+    },
+    {
+      "name": "Kira",
+      "items": [
+        {
+          "label": "Autoría",
+          "value": 96,
+          "classes": "101-160"
+        },
+        {
+          "label": "Producción / edición",
+          "value": 63,
+          "classes": "101-138"
+        },
+        {
+          "label": "Publicación",
+          "value": 44,
+          "classes": "101-127"
+        }
+      ]
+    },
+    {
+      "name": "xAI",
+      "items": [
+        {
+          "label": "Autoría",
+          "value": 92,
+          "classes": "101-160"
+        },
+        {
+          "label": "Producción / edición",
+          "value": 57,
+          "classes": "101-135"
+        },
+        {
+          "label": "Publicación",
+          "value": 36,
+          "classes": "101-122"
+        }
+      ]
+    }
+  ],
+  "barreras": [
+    {
+      "title": "Tiempos de revisión",
+      "description": "Los tiempos de revisión se traslapan con otros flujos de contenido."
+    },
+    {
+      "title": "Equipo compartido",
+      "description": "Equipo compartido con xAI, lo que limita la capacidad de producción simultánea."
+    },
+    {
+      "title": "Alto tiempo de producción",
+      "description": "Alto tiempo de producción por clase y necesidad de optimizar el flujo de creación de contenido."
+    }
+  ]
+}

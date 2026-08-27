@@ -216,6 +216,10 @@ export const dashboardDatabase = {
       totalDocentes: "0",
       porcentaje: 0,
     },
+    acompanamientos: {
+      realizados: "0",
+      estado: "En seguimiento",
+    },
     tutoriaVirtual: [],
   },
 };
