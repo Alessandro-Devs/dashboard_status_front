@@ -14,7 +14,7 @@ const hasActiveSession = () => {
   try {
     const user = JSON.parse(storedUser) as { updatedPassword?: boolean };
     const lastActivity = Number(window.localStorage.getItem("dashboard:lastActivity")) || Date.now();
-    return user.updatedPassword === false && Date.now() - lastActivity < 15 * 60 * 1000;
+    return user.updatedPassword === false && Date.now() - lastActivity < 60 * 60 * 1000;
   } catch { return false; }
 };
 
@@ -24,7 +24,7 @@ export default function AdministrationLayout({ children }: { children: ReactNode
   const authorized = useSyncExternalStore(subscribeToSession, hasActiveSession, () => false);
 
   useEffect(() => {
-    const inactivityLimit = 15 * 60 * 1000;
+    const inactivityLimit = 60 * 60 * 1000;
     const activityKey = "dashboard:lastActivity";
     const storedUser = window.localStorage.getItem("dashboard:user");
 

@@ -31,9 +31,17 @@ export default function EvaluationComparisonByBlockLevels() {
     const { blocks, setBlocks } = useAuditFilters();
     const [subjects, setSubjects] = useState<string[]>([]);
     const evaluacion = getEvaluacion();
-    const averages = evaluacion.comparativasPorMateria ?? {};
     const rawDistributions = evaluacion.distribucionPorBloqueMateriaNiveles ?? {};
-    const distributions = Object.entries(rawDistributions).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
+    const distributionAverages = (rawDistributions as unknown as { resumen?: { promedioLengua?: number | null; promedioMatematica?: number | null } }).resumen ?? {};
+    const generalAverages = evaluacion.promediosGenerales?.cml;
+    const averages = {
+        ...(evaluacion.comparativasPorMateria ?? {}),
+        ...(tieneNumero(distributionAverages.promedioLengua) ? { lengua: { promedio: distributionAverages.promedioLengua, variacionRespectoJunio: null } } : {}),
+        ...(tieneNumero(distributionAverages.promedioMatematica) ? { matematica: { promedio: distributionAverages.promedioMatematica, variacionRespectoJunio: null } } : {}),
+        ...(tieneNumero(generalAverages?.lengua) && generalAverages.lengua > 0 ? { lengua: { promedio: generalAverages.lengua, variacionRespectoJunio: null } } : {}),
+        ...(tieneNumero(generalAverages?.matematica) && generalAverages.matematica > 0 ? { matematica: { promedio: generalAverages.matematica, variacionRespectoJunio: null } } : {}),
+    };
+    const distributions = Object.entries(rawDistributions).filter(([, rows]) => Array.isArray(rows)).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
         const normalizedSubject = normalizeMateria(subject);
         result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...rows.filter(hasDistributionData)];
         return result;

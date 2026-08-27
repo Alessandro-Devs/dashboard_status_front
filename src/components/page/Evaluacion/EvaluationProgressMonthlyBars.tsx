@@ -53,6 +53,13 @@ export default function EvaluationProgressMonthlyBars() {
     return { ...item, blocks: visibleBlocks };
   }).filter((item) => item.blocks.length > 0) : [];
   const averages = visibleMonths.flatMap((item) => item.blocks);
+  const generalAverages = getEvaluacion().promediosGenerales?.progreso;
+  const generalMath = numberValue(generalAverages?.matematica);
+  const generalLanguage = numberValue(generalAverages?.lengua);
+  if (generalMath > 0 || generalLanguage > 0) {
+    const base = averages[0];
+    if (base) averages.splice(0, averages.length, { ...base, averageMath: generalMath > 0 ? generalMath : base.averageMath, averageLanguage: generalLanguage > 0 ? generalLanguage : base.averageLanguage });
+  }
   return <section className="space-y-4"><MonthRangeFilter startMonth={startMonth} endMonth={endMonth} onStartChange={(value) => { setStartMonth(value); if (endMonth !== null && value > endMonth) setEndMonth(value); }} onEndChange={(value) => { setEndMonth(value); if (startMonth !== null && value < startMonth) setStartMonth(value); }} /><FilterPanel blocks={blocks} subjects={subjects} subgroups={subgroups} selectedBlock={selectedBlock} selectedSubject={selectedSubject} selectedSubgroup={selectedSubgroup} onBlockChange={(value) => { setSelectedBlock(value); setSelectedSubgroup(""); }} onSubjectChange={(value) => { setSelectedSubject(value); setSelectedSubgroup(""); }} onSubgroupChange={setSelectedSubgroup} /><div className="grid grid-cols-1 gap-3 md:grid-cols-2"><Average title="PROMEDIO MATEMÁTICA" value={average(averages.map((item) => item.averageMath))} /><Average title="PROMEDIO LENGUA" value={average(averages.map((item) => item.averageLanguage))} /></div><article className="rounded-xl border border-[#dce4ec] bg-white p-4"><div className="mb-4"><h3 className="text-[13px] font-semibold uppercase text-[#334b60]">Resultados por mes</h3><p className="mt-1 text-[9px] text-[#8a9daf]"></p></div>{visibleMonths.length > 0 ? <div className="space-y-3">{visibleMonths.map((item) => <MonthlyMonth key={item.month} month={item.month} blocks={item.blocks} />)}</div> : <div className="rounded-lg border border-dashed border-[#cbd6e0] bg-[#fbfcfd] px-5 py-8 text-center"><p className="text-[11px] font-semibold text-[#526a80]">Selecciona un mes para comenzar</p><p className="mt-1.5 text-[9px] text-[#8b9daf]">Elige un punto de inicio y uno de fin para consultar los resultados.</p></div>}</article></section>;
 }
 function average(values: Array<number | null>) { const valid = values.filter((value): value is number => value !== null && value > 0); return valid.length ? Math.round((valid.reduce((sum, value) => sum + value, 0) / valid.length) * 100) / 100 : null; }

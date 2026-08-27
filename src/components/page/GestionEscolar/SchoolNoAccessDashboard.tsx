@@ -57,24 +57,24 @@ function normalizeRowShape(item: unknown): EvolutionRow | null {
     const day = normalizeDayLabel(row.day ?? row.fecha ?? row.date ?? row.dia ?? row.label);
     if (!day)
         return null;
-    const ihfb = normalizeNumericValue(row.ihfb ?? row.IHFB);
-    const kira = normalizeNumericValue(row.kira ?? row.KIRA);
+    const ihfb = normalizeNumericValue(row.ihfb ?? row.IHFB ?? row.ihfbValor ?? row.valorIhfb ?? row.noAccesosIhfb);
+    const kira = normalizeNumericValue(row.kira ?? row.KIRA ?? row.kiraValor ?? row.valorKira ?? row.noAccesosKira);
     if (ihfb === undefined && kira === undefined)
         return null;
     return { day, ihfb, kira };
 }
 function normalizeSeriesShape(source: Record<string, unknown>) {
     const rows = new Map<string, EvolutionRow>();
+    const labels = source.labels ?? source.dias ?? source.fechas ?? source.fechasCorte;
+    const labelList = Array.isArray(labels) ? labels : [];
     for (const platform of ["ihfb", "kira"] as const satisfies PlatformKey[]) {
         const rawPoints = source[platform] ?? source[platform.toUpperCase()];
         if (!Array.isArray(rawPoints))
             continue;
-        for (const point of rawPoints) {
-            if (typeof point !== "object" || point === null || Array.isArray(point))
-                continue;
-            const rowPoint = point as Record<string, unknown>;
-            const day = normalizeDayLabel(rowPoint.day ?? rowPoint.fecha ?? rowPoint.date ?? rowPoint.dia ?? rowPoint.label);
-            const value = normalizeNumericValue(rowPoint.value ?? rowPoint.valor ?? rowPoint[platform] ?? rowPoint[platform.toUpperCase()]);
+        for (const [index, point] of rawPoints.entries()) {
+            const rowPoint = typeof point === "object" && point !== null && !Array.isArray(point) ? point as Record<string, unknown> : null;
+            const day = normalizeDayLabel(rowPoint?.day ?? rowPoint?.fecha ?? rowPoint?.date ?? rowPoint?.dia ?? rowPoint?.label ?? labelList[index] ?? String(index + 1));
+            const value = normalizeNumericValue(rowPoint ? rowPoint.value ?? rowPoint.valor ?? rowPoint[platform] ?? rowPoint[platform.toUpperCase()] : point);
             if (!day || value === undefined)
                 continue;
             const row = rows.get(day) ?? { day };

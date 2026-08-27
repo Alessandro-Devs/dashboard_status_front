@@ -15,7 +15,9 @@ const sectionDescriptions: Record<string, string> = {
   distribucionPorBloqueMateriaNiveles: "Resultados de Lengua y Matemática por nivel de desempeño.",
 };
 sections.resultadosPorMes = "Resultados por mes";
+sections.promediosGenerales = "Promedios generales por prueba";
 sectionDescriptions.resultadosPorMes = "Resultados mensuales de Matemática y Lengua por nivel de desempeño.";
+sectionDescriptions.promediosGenerales = "Promedios generales de Lenguaje y Matemática para CML y Progreso.";
 const sectionStyles: Record<string, { accent: string; icon: typeof ClipboardCheck }> = {
   pruebas: { accent: "bg-[#eaf4ff] text-[#176fc8]", icon: ClipboardCheck },
   detallePorBloque: { accent: "bg-[#edf8f3] text-[#25845e]", icon: Layers3 },
@@ -23,7 +25,8 @@ const sectionStyles: Record<string, { accent: string; icon: typeof ClipboardChec
   distribucionPorBloqueMateriaNiveles: { accent: "bg-[#f2efff] text-[#7457bd]", icon: BarChart3 },
 };
 sectionStyles.resultadosPorMes = { accent: "bg-[#edf8f3] text-[#25845e]", icon: BarChart3 };
-const labels: Record<string, string> = { cml: "CML", progreso: "Progreso", fundamentos: "Fundamentos", matricula: "Matrícula", centrosEscolares: "Centros escolares", titulo: "Título", universo: "Universo", aplicados: "Aplicados", pendientes: "Pendientes", porcentaje: "Porcentaje", materiaSeleccionadaPorDefecto: "Materia seleccionada por defecto", materiasDisponibles: "Materias disponibles", composicionDelUniverso: "Composición del universo", trayectoriaDeResultados: "Trayectoria de resultados", etapas: "Etapas", resumenPorNivel: "Resumen por nivel", lecturaPrincipal: "Lectura principal", descripcionLectura: "Descripción de la lectura", nivelesDeDesempeno: "Niveles de desempeño", distribucionPorcentualDeLosFlujos: "Distribución porcentual de los flujos", porcentajesJulio: "Porcentajes de julio", porcentajesJunio: "Porcentajes de junio", variacionRespectoJunio: "Variación respecto a junio", programados: "Programados", aplicaciones: "Aplicaciones", barrera: "Barrera", etiqueta: "Etiqueta", entrada: "Entrada", incidencias: "Incidencias", lengua: "Lengua", matematica: "Matemática", bloque: "Bloque", materia: "Materia", subgrupo: "Subgrupo", transiciones: "Transiciones", totalCe: "Total CE", valores: "Valores", de: "De", hacia: "Hacia", rango: "Rango", nombre: "Nombre", nivel: "Nivel", estatus: "Estatus", promedio: "Promedio" };
+sectionStyles.promediosGenerales = { accent: "bg-[#eaf8ff] text-[#19749b]", icon: BarChart3 };
+const labels: Record<string, string> = { cml: "CML", progreso: "Progreso", fundamentos: "Fundamentos", resumen: "Resumen", matricula: "Matrícula", centrosEscolares: "Centros escolares", titulo: "Título", universo: "Universo", aplicados: "Aplicados", pendientes: "Pendientes", porcentaje: "Porcentaje", promedioLengua: "Promedio de Lenguaje", promedioMatematica: "Promedio de Matemática", materiaSeleccionadaPorDefecto: "Materia seleccionada por defecto", materiasDisponibles: "Materias disponibles", composicionDelUniverso: "Composición del universo", trayectoriaDeResultados: "Trayectoria de resultados", etapas: "Etapas", resumenPorNivel: "Resumen por nivel", lecturaPrincipal: "Lectura principal", descripcionLectura: "Descripción de la lectura", nivelesDeDesempeno: "Niveles de desempeño", distribucionPorcentualDeLosFlujos: "Distribución porcentual de los flujos", porcentajesJulio: "Porcentajes de julio", porcentajesJunio: "Porcentajes de junio", variacionRespectoJunio: "Variación respecto a junio", programados: "Programados", aplicaciones: "Aplicaciones", barrera: "Barrera", etiqueta: "Etiqueta", entrada: "Entrada", incidencias: "Incidencias", lengua: "Lengua", matematica: "Matemática", bloque: "Bloque", materia: "Materia", subgrupo: "Subgrupo", transiciones: "Transiciones", totalCe: "Total CE", valores: "Valores", de: "De", hacia: "Hacia", rango: "Rango", nombre: "Nombre", nivel: "Nivel", estatus: "Estatus", promedio: "Promedio" };
 const humanize = (key: string) => {
   const levelField = key.match(/^nivel(\d+)(data|percent)$/);
   if (levelField) return `Nivel ${levelField[1]} · ${levelField[2] === "data" ? "Cantidad" : "Porcentaje"}`;
@@ -58,6 +61,10 @@ const calculateDistributionPercentages = (value: JsonValue): JsonValue => {
     });
     return calculated;
   }) : rows]));
+};
+const ensureDistributionAverages = (value: JsonValue): JsonValue => {
+  if (!isObject(value)) return value;
+  return { resumen: { promedioLengua: 0, promedioMatematica: 0 }, ...value };
 };
 const calculateMonthlyPercentages = (value: JsonValue): JsonValue => {
   if (!isObject(value)) return value;
@@ -186,7 +193,8 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
           pruebas: evaluation.pruebas ?? clone(evaluationTemplate.pruebas) as JsonValue,
           detallePorBloque: evaluation.detallePorBloque ?? clone(evaluationTemplate.detallePorBloque) as JsonValue,
           nivelesDesempeno: evaluation.nivelesDesempeno ?? clone(evaluationTemplate.nivelesDesempeno) as JsonValue,
-          distribucionPorBloqueMateriaNiveles: evaluation.distribucionPorBloqueMateriaNiveles ?? clone(evaluationTemplate.distribucionPorBloqueMateriaNiveles) as JsonValue,
+          distribucionPorBloqueMateriaNiveles: ensureDistributionAverages(evaluation.distribucionPorBloqueMateriaNiveles ?? clone(evaluationTemplate.distribucionPorBloqueMateriaNiveles) as JsonValue),
+          promediosGenerales: evaluation.promediosGenerales ?? clone(evaluationTemplate.promediosGenerales) as JsonValue,
           resultadosPorMes: calculateMonthlyPercentages(evaluation.resultadosPorMes ?? clone(evaluationTemplate.resultadosPorMes) as JsonValue),
         });
         setHiddenData({
@@ -255,7 +263,8 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
         nivelesDesempeno: data.nivelesDesempeno,
         resultadosPorMes: data.resultadosPorMes,
         sankeysSeparados: hiddenData.sankeysSeparados,
-        comparativasPorMateria: hiddenData.comparativasPorMateria,
+        comparativasPorMateria: data.comparativasPorMateria ?? hiddenData.comparativasPorMateria,
+        promediosGenerales: data.promediosGenerales,
         seguimientoAplicacionCml: hiddenData.seguimientoAplicacionCml,
         actualizacionPortalResultados: hiddenData.actualizacionPortalResultados,
         distribucionPorBloqueMateriaNiveles: data.distribucionPorBloqueMateriaNiveles,

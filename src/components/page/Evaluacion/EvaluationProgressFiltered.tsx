@@ -10,7 +10,7 @@ const numberValue = (value: unknown) => {
 };
 function hasCmlResults() {
     const distributions = getEvaluacion().distribucionPorBloqueMateriaNiveles ?? {};
-    return Object.values(distributions).some((rows) => rows.some((row) => numberValue(row.universo) > 0 || [1, 2, 3, 4, 5].some((level) => numberValue(row[`nivel${level}data` as keyof typeof row]) > 0 || numberValue(row[`nivel${level}percent` as keyof typeof row]) > 0)));
+    return Object.values(distributions).filter(Array.isArray).some((rows) => rows.some((row) => numberValue(row.universo) > 0 || [1, 2, 3, 4, 5].some((level) => numberValue(row[`nivel${level}data` as keyof typeof row]) > 0 || numberValue(row[`nivel${level}percent` as keyof typeof row]) > 0)));
 }
 function hasProgressResults() {
     const source = (getEvaluacion() as unknown as Record<string, unknown>).resultadosPorMes;

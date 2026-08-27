@@ -7,9 +7,12 @@ export type PruebaEvaluacion = { titulo:string;centrosEscolares:{aplicados:strin
 export type DetalleBloqueItem = { bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number };
 export type DetalleBloque = { centrosEscolares:DetalleBloqueItem[];matricula:DetalleBloqueItem[] };
 export type DetallePorPrueba = Partial<Record<"cml" | "progreso" | "fundamentos", DetalleBloque>>;
+export type PromediosGenerales = Partial<Record<"cml" | "progreso", { lengua?: number | null; matematica?: number | null }>>;
 export type DistribucionNivelPorBloque = {
   bloque: string;
   universo: number | null;
+  promedioLengua?: number | null;
+  promedioMatematica?: number | null;
   nivel1percent: number | null;
   nivel1data: number | null;
   nivel2percent: number | null;
@@ -34,6 +37,7 @@ type EvaluacionNueva = {
   detallePorBloque?:DetalleBloque | DetallePorPrueba;
   actualizacionPortalResultados?:{etiqueta:string;entrada:string;incidencias:string;barrera:string};
   comparativasPorMateria?:Record<string,{promedio:number|null;variacionRespectoJunio:number|null;porcentajesJunio:number[];porcentajesJulio:number[]}>;
+  promediosGenerales?:PromediosGenerales;
   distribucionPorBloqueMateriaNiveles?:Record<string,DistribucionNivelPorBloque[]>;
   vistaResultados?:VistaResultados;
 };

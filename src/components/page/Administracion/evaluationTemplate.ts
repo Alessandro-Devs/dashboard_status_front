@@ -16,7 +16,11 @@ export const evaluationTemplate = {
     fundamentos: { matricula: [block("B1"), block("B2")], centrosEscolares: [block("B1"), block("B2")] },
   },
   nivelesDesempeno: [{ nivel: 1, rango: "0-35", nombre: "Crítico" }, { nivel: 2, rango: "36-45", nombre: "Bajo" }, { nivel: 3, rango: "46-55", nombre: "Medio" }, { nivel: 4, rango: "56-65", nombre: "Bueno" }, { nivel: 5, rango: "66-100", nombre: "Excelente" }],
-  distribucionPorBloqueMateriaNiveles: { lengua: ["B3", "B4", "B5", "Control"].map(distribution), matematica: ["B3", "B4", "B5", "Control"].map(distribution) },
+  distribucionPorBloqueMateriaNiveles: { resumen: { promedioLengua: 0, promedioMatematica: 0 }, lengua: ["B3", "B4", "B5", "Control"].map(distribution), matematica: ["B3", "B4", "B5", "Control"].map(distribution) },
+  promediosGenerales: {
+    cml: { lengua: 0, matematica: 0 },
+    progreso: { lengua: 0, matematica: 0 },
+  },
   resultadosPorMes: Object.fromEntries(months.map((month) => [month, [monthlyBlock()]])),
 };
 
