@@ -24,11 +24,12 @@ export default function AdministrationAside({ open, onClose }: { open: boolean; 
   }
 
   const normalizedRole = (user.role ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const canAccessEvaluation = normalizedRole === "evaluacion";
-  const canAccessSchoolManagement = normalizedRole === "gestion escolar";
-  const canAccessQualityManagement = normalizedRole === "gestion de calidad";
-  const canAccessTutoringAndTraining = normalizedRole === "tutoria y formacion";
-  const canAccessLearning = normalizedRole === "aprendizaje";
+  const isAdmin = normalizedRole === "admin";
+  const canAccessEvaluation = isAdmin || normalizedRole === "evaluacion";
+  const canAccessSchoolManagement = isAdmin || normalizedRole === "gestion escolar";
+  const canAccessQualityManagement = isAdmin || normalizedRole === "gestion de calidad";
+  const canAccessTutoringAndTraining = isAdmin || normalizedRole === "tutoria y formacion";
+  const canAccessLearning = isAdmin || normalizedRole === "aprendizaje";
 
   return <aside className={`fixed inset-y-0 left-0 z-[110] flex w-[280px] flex-col bg-[#071a29] px-5 py-7 text-white shadow-[8px_0_24px_rgba(7,26,41,.12)] transition-transform duration-300 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
     <div><div className="relative mb-4 flex items-center justify-start"><div className="flex h-11 min-w-[72px] items-center justify-center rounded-xl bg-[#176fc8] px-2 text-lg font-bold">Panel</div><button type="button" onClick={onClose} aria-label="Cerrar menú" className="absolute right-0 rounded-lg p-2 text-[#9bb0c1] hover:bg-white/10 hover:text-white lg:hidden"><X size={20} /></button></div><h1 className="text-left text-[20px] font-semibold leading-tight">Administración</h1></div>
