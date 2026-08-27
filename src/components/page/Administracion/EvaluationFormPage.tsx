@@ -71,8 +71,8 @@ const calculateMonthlyPercentages = (value: JsonValue): JsonValue => {
   return Object.fromEntries(Object.entries(value).map(([month, blocks]) => [month, Array.isArray(blocks) ? blocks.map((block) => {
     if (!isObject(block)) return block;
     const universe = typeof block.universo === "number" ? block.universo : Number(block.universo) || 0;
-    const calculated = { ...block };
-    Object.entries(block).forEach(([field, amount]) => {
+    const calculated: { [key: string]: JsonValue } = { promedioMatematica: 0, promedioLengua: 0, ...block };
+    Object.entries(calculated).forEach(([field, amount]) => {
       const match = field.match(/^nivel(\d+)data$/);
       if (!match) return;
       const numericAmount = typeof amount === "number" ? amount : Number(amount) || 0;
