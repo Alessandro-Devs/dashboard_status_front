@@ -6,6 +6,251 @@
   --app-font-family: "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
+section.mt-6 > h2.mb-4 {
+  display: none;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first-child > div.mb-4.flex.flex-wrap.items-center.justify-between.gap-4 > h2 {
+  font-size: 0;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first-child > div.mb-4.flex.flex-wrap.items-center.justify-between.gap-4 > h2::after {
+  content: "NO ACCESOS";
+  display: block;
+  font-size: 0.875rem;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] {
+  display: flex;
+  flex-direction: column;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first-child,
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > section.mt-6 {
+  display: contents;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first-child > div.mb-4.flex.flex-wrap.items-center.justify-between.gap-4 {
+  order: 1;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > section.mt-6 > div.grid.grid-cols-1.gap-4.md\:grid-cols-2 {
+  order: 2;
+  margin-bottom: 1.5rem;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first-child > div.grid.grid-cols-1.gap-4.lg\:grid-cols-2 {
+  order: 3;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > section.mt-6 > div.mt-6 {
+  order: 5 !important;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > section.mt-6 > article.mt-3 {
+  order: 6 !important;
+  margin-top: 0.75rem;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div[class*="xl:grid-cols"] {
+  order: 4 !important;
+  border-top: 0;
+  margin-top: 0.75rem;
+  display: contents;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div[class*="xl:grid-cols"] > article:first-child {
+  order: 4;
+  margin-top: 1.5rem;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div[class*="xl:grid-cols"] > div.space-y-5 {
+  order: 7;
+  margin-top: 1.5rem;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div[class*="xl:grid-cols"] > article:first-child h2 {
+  display: none;
+}
+
+section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div[class*="xl:grid-cols"] > article:first-child > div:first-child p {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: #526176;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 > div.mt-3 > div.h-\[280px\] {
+  height: 340px;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 > div.mt-3 > div.flex.flex-col.justify-center.gap-3.text-\[11px\] {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+section.mt-6 article:nth-of-type(2) > p:first-child::after {
+  content: "Número de clases semanal";
+  font-size: 0.625rem;
+}
+
+section.mt-6 article p[class*="mt-2"][class*="text-[#98a2b3]"] {
+  font-size: 0;
+}
+
+section.mt-6 article p[class*="mt-2"][class*="text-[#98a2b3]"]::after {
+  content: "Dato acumulado";
+  font-size: 0.5625rem;
+}
+
+@media (min-width: 768px) {
+  section[class*="bg-[#f7f9fc]"] div.mt-6.flex.flex-col.gap-4 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+section[class*="bg-[#f7f9fc]"] div[class*="xl:grid-cols-[1.45fr_.75fr]"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+section[class*="bg-[#f7f9fc]"] div.space-y-5 > article:first-child div.mt-5.space-y-3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+section[class*="bg-[#f7f9fc]"] div.h-\[245px\] {
+  height: 290px;
+}
+
+@media (min-width: 768px) {
+  section[class*="bg-[#f7f9fc]"] div.space-y-5 > article:first-child div.mt-5.space-y-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 > p {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: #526176;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 svg path {
+  stroke: none;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-default-tooltip {
+  border: 1px solid #d9e0ea !important;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.98) !important;
+  box-shadow: 0 8px 20px rgb(32 57 78 / 0.14);
+  padding: 9px 11px !important;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-tooltip-label {
+  margin-bottom: 4px;
+  color: #20394e;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-tooltip-item {
+  padding: 0 !important;
+  color: #526176 !important;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-pie-label-line {
+  stroke: #8a9aad;
+  stroke-width: 1.5;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-pie-label-text {
+  fill: #20394e;
+  font-size: 11px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 3px;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .flex.flex-col.justify-center.gap-2 {
+  align-self: center;
+  width: 100%;
+  max-width: 240px;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border-left: 1px solid #edf1f5;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .flex.flex-col.justify-center.gap-2 > div {
+  cursor: pointer;
+  min-height: 28px;
+  padding: 0.35rem 0.45rem;
+  border-radius: 6px;
+  background: #f8fafc;
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .flex.flex-col.justify-center.gap-2 > div:hover {
+  background: #eef5ff;
+  box-shadow: 0 2px 8px rgb(31 111 229 / 0.12);
+  transform: translateX(2px);
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-pie-sector:hover {
+  filter: brightness(1.12) drop-shadow(0 5px 5px rgb(32 57 78 / 0.28));
+  transform: scale(1.06);
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3 .recharts-pie-sector {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+section[class*="bg-[#f7f9fc]"] article.mt-3:has(.flex.flex-col.justify-center.gap-2 > div:nth-child(1):hover) .recharts-pie-sector:nth-child(1),
+section[class*="bg-[#f7f9fc]"] article.mt-3:has(.flex.flex-col.justify-center.gap-2 > div:nth-child(2):hover) .recharts-pie-sector:nth-child(2),
+section[class*="bg-[#f7f9fc]"] article.mt-3:has(.flex.flex-col.justify-center.gap-2 > div:nth-child(3):hover) .recharts-pie-sector:nth-child(3),
+section[class*="bg-[#f7f9fc]"] article.mt-3:has(.flex.flex-col.justify-center.gap-2 > div:nth-child(4):hover) .recharts-pie-sector:nth-child(4),
+section[class*="bg-[#f7f9fc]"] article.mt-3:has(.flex.flex-col.justify-center.gap-2 > div:nth-child(5):hover) .recharts-pie-sector:nth-child(5) {
+  filter: brightness(1.12) drop-shadow(0 5px 5px rgb(32 57 78 / 0.28));
+  transform: scale(1.06);
+}
+
+@media (max-width: 767px) {
+  section[class*="bg-[#f7f9fc]"] article.mt-3 .flex.flex-col.justify-center.gap-2 {
+    grid-column: 1 / -1;
+    max-width: none;
+    border-left: 0;
+    border-top: 1px solid #edf1f5;
+  }
+}
+
+/* Acciones secundarias del panel: solo resaltan al pasar el cursor. */
+aside > button {
+  order: 1;
+  background-color: transparent;
+}
+
+aside > button:hover,
+aside > div:last-child > button:hover {
+  background-color: rgb(255 255 255 / 0.15);
+}
+
+aside > div:last-child {
+  order: 2;
+}
+
+aside > div:last-child > button {
+  background-color: transparent;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

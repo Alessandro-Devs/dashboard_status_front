@@ -17,6 +17,7 @@ import {
   type BlockItem,
   type TestType,
 } from "./evaluationData";
+import { formatoMiles, numeroEvaluacion } from "./evaluationViewData";
 
 type DetailMode = "centros" | "matricula";
 
@@ -377,13 +378,13 @@ function BarValueLabel({
       fontSize={11}
       fontWeight={600}
     >
-      {formatShort(Number(value))}
+      {formatShort(numeroEvaluacion(value))}
     </text>
   );
 }
 
 function format(value: number) {
-  return new Intl.NumberFormat("es-SV").format(value);
+  return formatoMiles(value);
 }
 
 function formatShort(value: number) {
@@ -394,7 +395,7 @@ function formatShort(value: number) {
 }
 
 function formatLabelValue(value: unknown) {
-  return typeof value === "number" ? format(value) : "-";
+  return formatoMiles(value);
 }
 
 function getBlockRangeTitle(data: BlockItem[]) {

@@ -5,20 +5,25 @@ import EvaluationProgressMonthlyBars from "./EvaluationProgressMonthlyBars";
 import { getEvaluacion } from "./evaluationViewData";
 type EvaluationFilter = "cml" | "progreso";
 const numberValue = (value: unknown) => {
-    const numeric = typeof value === "number" ? value : Number(value);
+    const numeric = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
     return Number.isFinite(numeric) ? numeric : 0;
 };
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function hasLevelData(row: Record<string, unknown>) {
+    return numberValue(row.universo) > 0 || [1, 2, 3, 4, 5].some((level) => numberValue(row[`nivel${level}data`]) > 0 || numberValue(row[`nivel${level}percent`]) > 0);
+}
 function hasCmlResults() {
     const distributions = getEvaluacion().distribucionPorBloqueMateriaNiveles ?? {};
-    return Object.values(distributions).filter(Array.isArray).some((rows) => rows.some((row) => numberValue(row.universo) > 0 || [1, 2, 3, 4, 5].some((level) => numberValue(row[`nivel${level}data` as keyof typeof row]) > 0 || numberValue(row[`nivel${level}percent` as keyof typeof row]) > 0)));
+    return Object.values(distributions).some((rows) => Array.isArray(rows) && rows.some((row) => isRecord(row) && hasLevelData(row)));
 }
 function hasProgressResults() {
-    const source = (getEvaluacion() as unknown as Record<string, unknown>).resultadosPorMes;
-    if (typeof source !== "object" || source === null || Array.isArray(source)) return false;
+    const source = getEvaluacion().resultadosPorMes;
+    if (!isRecord(source)) return false;
     return Object.values(source).some((rows) => Array.isArray(rows) && rows.some((row) => {
-        if (typeof row !== "object" || row === null || Array.isArray(row)) return false;
-        const record = row as Record<string, unknown>;
-        return numberValue(record.universo) > 0 || numberValue(record.promedioMatematica) > 0 || numberValue(record.promedioLengua) > 0 || [1, 2, 3, 4, 5].some((level) => numberValue(record[`nivel${level}data`]) > 0 || numberValue(record[`nivel${level}percent`]) > 0);
+        if (!isRecord(row)) return false;
+        return hasLevelData(row) || numberValue(row.promedioMatematica) > 0 || numberValue(row.promedioLengua) > 0;
     }));
 }
 export default function EvaluationProgressFiltered({ activeFilter, onChange }: {

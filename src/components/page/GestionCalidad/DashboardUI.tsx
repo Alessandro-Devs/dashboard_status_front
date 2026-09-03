@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 export function SectionHeader({ title, subtitle, rightText }: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     rightText?: string;
 }) {
     return <div className="flex items-start justify-between gap-4"><div><h2 className="text-sm font-semibold tracking-[.04em] text-[#20394e]">{title}</h2><p className="mt-1 text-[8px] text-[#8da0b4]">{subtitle}</p></div>{rightText && <span className="mt-2 text-[8px] text-[#95a7bc]">{rightText}</span>}</div>;
@@ -11,11 +11,11 @@ export function DashboardCard({ children, className = "" }: {
     children: ReactNode;
     className?: string;
 }) {
-    return <section className={`rounded-lg border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)] ${className}`}>{children}</section>;
+    return <section className={`w-full min-w-0 rounded-lg border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)] ${className}`}>{children}</section>;
 }
 export function CardTitle({ title, subtitle, icon, rightText }: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     icon?: ReactNode;
     rightText?: string;
 }) {

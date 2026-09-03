@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, School, TrendingUp, Users } from "lucide-react";
+import { formatoMiles } from "./evaluationViewData";
 
 type Props = {
   title: string;
@@ -91,9 +92,9 @@ function Panel({
 }) {
   const color = blue ? "#1f70c7" : "#7544f4";
   const pendingPercentage = Number((100 - percentage).toFixed(2));
-  const displayedApplied = formatAmount(applied);
-  const displayedUniverse = formatAmount(universe);
-  const displayedPending = pending || calculatePending(applied, universe);
+  const formattedApplied = formatoMiles(applied);
+  const formattedPending = formatoMiles(pending);
+  const formattedUniverse = formatoMiles(universe);
 
   return (
     <div className="rounded-lg border border-[#dce3ea] p-4">
@@ -117,8 +118,8 @@ function Panel({
         <div className="flex-1">
           <p className="text-[7px] uppercase text-[#8194a6]">Aplicados</p>
           <p className="mt-1 text-2xl font-medium text-[#4b5563]">
-            <span style={{ color }}>{displayedApplied}</span>
-            <span className="ml-1 text-[14px] font-medium text-[#4b5563]">{`/${displayedUniverse}`}</span>
+            <span style={{ color }}>{formattedApplied}</span>
+            <span className="ml-1 text-[14px] font-medium text-[#4b5563]">{`/${formattedUniverse}`}</span>
             <span className="ml-1 text-[9px] font-medium uppercase tracking-[0.04em] text-[#4b5563]">universo</span>
           </p>
           <div className="mt-3 rounded-md bg-[#ffe1e1] px-3 py-2 text-[#ef3434]">
@@ -126,7 +127,7 @@ function Panel({
               <span>Pendiente</span>
             </div>
             <div className="mt-1 flex items-center justify-between gap-3 text-base font-semibold">
-              <span>{formatAmount(displayedPending)}</span>
+              <span>{formattedPending}</span>
               <span>{pendingPercentage}%</span>
             </div>
           </div>
@@ -134,20 +135,6 @@ function Panel({
       </div>
     </div>
   );
-}
-
-function calculatePending(applied: string, universe: string) {
-  const appliedValue = Number(String(applied ?? "").replace(/[,\s]/g, ""));
-  const universeValue = Number(String(universe ?? "").replace(/[,\s]/g, ""));
-  if (!Number.isFinite(appliedValue) || !Number.isFinite(universeValue)) return "0";
-  return Math.max(universeValue - appliedValue, 0).toLocaleString("es-SV");
-}
-
-function formatAmount(value: string) {
-  const text = String(value ?? "").trim();
-  if (!text) return "0";
-  const numericValue = Number(text.replace(/[,\s]/g, ""));
-  return Number.isFinite(numericValue) ? numericValue.toLocaleString("es-SV") : text;
 }
 
 function Ring({ percentage, color }: { percentage: number; color: string }) {

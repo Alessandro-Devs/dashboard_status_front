@@ -7,22 +7,23 @@ export type PruebaEvaluacion = { titulo:string;centrosEscolares:{aplicados:strin
 export type DetalleBloqueItem = { bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number };
 export type DetalleBloque = { centrosEscolares:DetalleBloqueItem[];matricula:DetalleBloqueItem[] };
 export type DetallePorPrueba = Partial<Record<"cml" | "progreso" | "fundamentos", DetalleBloque>>;
-export type PromediosGenerales = Partial<Record<"cml" | "progreso", { lengua?: number | null; matematica?: number | null }>>;
+export type PromediosGenerales = Partial<Record<"cml" | "progreso", { lengua?: number | string | null; matematica?: number | string | null }>>;
+type NumericValue = number | string | null;
 export type DistribucionNivelPorBloque = {
   bloque: string;
-  universo: number | null;
-  promedioLengua?: number | null;
-  promedioMatematica?: number | null;
-  nivel1percent: number | null;
-  nivel1data: number | null;
-  nivel2percent: number | null;
-  nivel2data: number | null;
-  nivel3percent: number | null;
-  nivel3data: number | null;
-  nivel4percent: number | null;
-  nivel4data: number | null;
-  nivel5percent: number | null;
-  nivel5data: number | null;
+  universo: NumericValue;
+  promedioLengua?: NumericValue;
+  promedioMatematica?: NumericValue;
+  nivel1percent: NumericValue;
+  nivel1data: NumericValue;
+  nivel2percent: NumericValue;
+  nivel2data: NumericValue;
+  nivel3percent: NumericValue;
+  nivel3data: NumericValue;
+  nivel4percent: NumericValue;
+  nivel4data: NumericValue;
+  nivel5percent: NumericValue;
+  nivel5data: NumericValue;
 };
 type VistaResultados = {
   materiasDisponibles:string[];
@@ -39,12 +40,27 @@ type EvaluacionNueva = {
   comparativasPorMateria?:Record<string,{promedio:number|null;variacionRespectoJunio:number|null;porcentajesJunio:number[];porcentajesJulio:number[]}>;
   promediosGenerales?:PromediosGenerales;
   distribucionPorBloqueMateriaNiveles?:Record<string,DistribucionNivelPorBloque[]>;
+  resultadosPorMes?:Record<string,unknown>;
   vistaResultados?:VistaResultados;
 };
 
 export const getEvaluacion = () => dashboardDatabase.evaluacion as unknown as EvaluacionNueva;
 export const tieneTexto = (value:unknown):value is string => typeof value === "string" && value.trim().length > 0;
 export const tieneNumero = (value:unknown):value is number => typeof value === "number" && Number.isFinite(value);
+export const numeroEvaluacion = (value:unknown) => {
+  const numeric = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+export const formatoMiles = (value:unknown) => {
+  if (value == null || value === "") return "-";
+  const numeric = numeroEvaluacion(value);
+  return numeric.toLocaleString("es-SV");
+};
+export const formatoNumero = (value:unknown) => {
+  if (value == null || value === "") return "-";
+  const numeric = numeroEvaluacion(value);
+  return Number.isInteger(numeric) ? numeric.toLocaleString("es-SV") : numeric.toFixed(1);
+};
 export const normalizeMateria = (value: string) => {
   const normalized = value.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   if (normalized === "matematica") return "Matemática";

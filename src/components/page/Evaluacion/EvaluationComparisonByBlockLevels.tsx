@@ -4,6 +4,7 @@ import BarreraCard from "./BarreraCard";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
 import { getEvaluacion, normalizeMateria, tieneNumero, type DistribucionNivelPorBloque } from "./evaluationViewData";
+
 const levels = [
     { key: "nivel1percent", dataKey: "nivel1data", color: "#e5252a", label: "Crítico" },
     { key: "nivel2percent", dataKey: "nivel2data", color: "#f05b0b", label: "Bajo" },
@@ -11,10 +12,26 @@ const levels = [
     { key: "nivel4percent", dataKey: "nivel4data", color: "#19a97a", label: "Bueno" },
     { key: "nivel5percent", dataKey: "nivel5data", color: "#0c7f73", label: "Excelente" },
 ] as const;
+
 type LevelKey = (typeof levels)[number]["key"];
-function normalizeSegment(value: number | null) {
-    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+
+function toNumber(value: unknown) {
+    const numeric = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+    return Number.isFinite(numeric) ? numeric : 0;
 }
+
+function normalizeSegment(value: unknown) {
+    return toNumber(value);
+}
+
+function clampPercent(value: unknown) {
+    return Math.min(Math.max(normalizeSegment(value), 0), 100);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function segments(row: DistribucionNivelPorBloque) {
     return levels.map((level) => ({
         value: normalizeSegment(row[level.key]),
@@ -23,27 +40,36 @@ function segments(row: DistribucionNivelPorBloque) {
         label: level.label,
     }));
 }
+
 function hasDistributionData(row: DistribucionNivelPorBloque) {
     return normalizeSegment(row.universo) > 0 || segments(row).some((item) => normalizeSegment(item.value) > 0 || normalizeSegment(item.data) > 0);
 }
+
+function distributionRows(value: unknown): DistribucionNivelPorBloque[] {
+    if (!Array.isArray(value)) return [];
+    return value.filter((item): item is DistribucionNivelPorBloque => isRecord(item) && typeof item.bloque === "string" && item.bloque.trim().length > 0);
+}
+
 export default function EvaluationComparisonByBlockLevels() {
     useDashboardData();
     const { blocks, setBlocks } = useAuditFilters();
     const [subjects, setSubjects] = useState<string[]>([]);
     const evaluacion = getEvaluacion();
     const rawDistributions = evaluacion.distribucionPorBloqueMateriaNiveles ?? {};
-    const distributionAverages = (rawDistributions as unknown as { resumen?: { promedioLengua?: number | null; promedioMatematica?: number | null } }).resumen ?? {};
+    const distributionAverages = (rawDistributions as unknown as { resumen?: { promedioLengua?: unknown; promedioMatematica?: unknown } }).resumen ?? {};
     const generalAverages = evaluacion.promediosGenerales?.cml;
+    const lenguaAverage = toNumber(generalAverages?.lengua) || toNumber(distributionAverages.promedioLengua);
+    const mathAverage = toNumber(generalAverages?.matematica) || toNumber(distributionAverages.promedioMatematica);
     const averages = {
         ...(evaluacion.comparativasPorMateria ?? {}),
-        ...(tieneNumero(distributionAverages.promedioLengua) ? { lengua: { promedio: distributionAverages.promedioLengua, variacionRespectoJunio: null } } : {}),
-        ...(tieneNumero(distributionAverages.promedioMatematica) ? { matematica: { promedio: distributionAverages.promedioMatematica, variacionRespectoJunio: null } } : {}),
-        ...(tieneNumero(generalAverages?.lengua) && generalAverages.lengua > 0 ? { lengua: { promedio: generalAverages.lengua, variacionRespectoJunio: null } } : {}),
-        ...(tieneNumero(generalAverages?.matematica) && generalAverages.matematica > 0 ? { matematica: { promedio: generalAverages.matematica, variacionRespectoJunio: null } } : {}),
+        ...(lenguaAverage > 0 ? { lengua: { promedio: lenguaAverage, variacionRespectoJunio: null } } : {}),
+        ...(mathAverage > 0 ? { matematica: { promedio: mathAverage, variacionRespectoJunio: null } } : {}),
     };
-    const distributions = Object.entries(rawDistributions).filter(([, rows]) => Array.isArray(rows)).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
+    const distributions = Object.entries(rawDistributions).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
+        const normalizedRows = distributionRows(rows).filter(hasDistributionData);
+        if (normalizedRows.length === 0) return result;
         const normalizedSubject = normalizeMateria(subject);
-        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...rows.filter(hasDistributionData)];
+        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...normalizedRows];
         return result;
     }, {});
     const availableSubjects = Object.keys(distributions).map((subject) => ({
@@ -96,43 +122,37 @@ export default function EvaluationComparisonByBlockLevels() {
     <BarreraCard />
   </section>;
 }
+
 function BlockFilter({ options, selected, onChange }: {
-    options: Array<{
-        id: string;
-        label: string;
-    }>;
+    options: Array<{ id: string; label: string }>;
     selected: string[];
     onChange: (value: string[]) => void;
 }) {
+    const currentValue = selected.find((item) => options.some((option) => option.id === item)) ?? "";
     return <div className="rounded-[9px] border border-[#dce3ea] bg-white p-4">
-    <div className="mt-3 flex flex-wrap gap-2">
-      {options.map((option) => {
-            const active = selected.includes(option.id);
-            return <button key={option.id} type="button" onClick={() => onChange(active ? selected.filter((item) => item !== option.id) : [option.id])} className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold transition ${active ? "border-[#176fc8] bg-[#eaf4ff] text-[#176fc8]" : "border-[#d9e2eb] bg-white text-[#60778c]"}`}>{option.label}</button>;
-        })}
-      {selected.length > 0 && <button type="button" onClick={() => onChange([])} className="text-[10px] font-semibold text-[#176fc8]">Limpiar filtro</button>}
-    </div>
+    <p className="text-[10px] font-semibold uppercase text-[#60778c]">Bloque</p>
+    <select value={currentValue} onChange={(event) => onChange(event.target.value ? [event.target.value] : [])} className="mt-2 h-9 w-full rounded-md border border-[#d9e2eb] bg-[#fbfcfd] px-3 text-[10px] font-semibold text-[#334b60] outline-none transition focus:border-[#176fc8] focus:ring-2 focus:ring-[#eaf4ff]">
+      <option value="">Todos los bloques</option>
+      {options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+    </select>
   </div>;
 }
+
 function SubjectFilter({ options, selected, onChange }: {
-    options: Array<{
-        id: string;
-        label: string;
-        value: string;
-    }>;
+    options: Array<{ id: string; label: string; value: string }>;
     selected: string[];
     onChange: (value: string[]) => void;
 }) {
+    const currentValue = selected.find((item) => options.some((option) => option.id === item)) ?? "";
     return <div className="rounded-[9px] border border-[#dce3ea] bg-white p-4">
-    <div className="mt-3 flex flex-wrap gap-2">
-      {options.map((option) => {
-            const active = selected.includes(option.id);
-            return <button key={option.id} type="button" onClick={() => onChange(active ? [] : [option.id])} className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold transition ${active ? "border-[#176fc8] bg-[#eaf4ff] text-[#176fc8]" : "border-[#d9e2eb] bg-white text-[#60778c]"}`}>{option.label}</button>;
-        })}
-      {selected.length > 0 && <button type="button" onClick={() => onChange([])} className="text-[10px] font-semibold text-[#176fc8]">Limpiar filtro</button>}
-    </div>
+    <p className="text-[10px] font-semibold uppercase text-[#60778c]">Materia</p>
+    <select value={currentValue} onChange={(event) => onChange(event.target.value ? [event.target.value] : [])} className="mt-2 h-9 w-full rounded-md border border-[#d9e2eb] bg-[#fbfcfd] px-3 text-[10px] font-semibold text-[#334b60] outline-none transition focus:border-[#176fc8] focus:ring-2 focus:ring-[#eaf4ff]">
+      <option value="">Todas las materias</option>
+      {options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+    </select>
   </div>;
 }
+
 function SelectFilter({ label, value, onChange, options }: {
     label: string;
     value: string;
@@ -146,13 +166,15 @@ function SelectFilter({ label, value, onChange, options }: {
       </select>
     </label>;
 }
+
 function Average({ title, value, variation }: {
     title: string;
     value: number;
     variation: number | null;
 }) {
-    return <article className="rounded-[9px] border border-[#dce3ea] bg-white p-5"><p className="text-[11px] font-semibold uppercase text-[#6b7f92]">{title}</p><div className="mt-3 flex items-center gap-2"><strong className="text-[25px] text-[#263d52]">{value}</strong><span className="rounded bg-[#fff0d7] px-2 py-1 text-[10px] font-semibold text-[#dd8d15]">Medio</span></div>{tieneNumero(variation) && <p className="mt-2 text-[10px] text-[#e04444]">↘ {variation} vs Junio</p>}</article>;
+    return <article className="rounded-[9px] border border-[#dce3ea] bg-white p-5"><p className="text-[11px] font-semibold uppercase text-[#6b7f92]">{title}</p><div className="mt-3 flex items-center gap-2"><strong className="text-[25px] text-[#263d52]">{formatValue(value)}</strong><span className="rounded bg-[#fff0d7] px-2 py-1 text-[10px] font-semibold text-[#dd8d15]">Medio</span></div>{tieneNumero(variation) && <p className="mt-2 text-[10px] text-[#e04444]">↘ {formatValue(variation)} vs Junio</p>}</article>;
 }
+
 function SubjectColumn({ materia, rows }: {
     materia: string;
     rows: DistribucionNivelPorBloque[];
@@ -172,17 +194,15 @@ function SubjectColumn({ materia, rows }: {
       </div>
       <Legend />
       <div className="flex flex-col gap-3">
-        {visibleRows.map((row) => <Comparison key={`${materia}-${row.bloque}`} block={row.bloque} items={[{ materia, row }]}/>) }
+        {visibleRows.map((row) => <Comparison key={`${materia}-${row.bloque}`} block={row.bloque} items={[{ materia, row }]}/>)}
         {visibleRows.length === 0 && <p className="rounded-lg border border-dashed border-[#cbd6e0] px-4 py-5 text-center text-[10px] text-[#71869a]">No hay bloques para el estado seleccionado.</p>}
       </div>
     </article>;
 }
+
 function Comparison({ block, items }: {
     block: string;
-    items: Array<{
-        materia: string;
-        row: DistribucionNivelPorBloque;
-    }>;
+    items: Array<{ materia: string; row: DistribucionNivelPorBloque }>;
 }) {
     return <div className="flex flex-col gap-2">
     <div className="border-t border-[#e9eef3] pt-2">
@@ -199,11 +219,13 @@ function Comparison({ block, items }: {
     </div>
   </div>;
 }
+
 function Legend() {
     return <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
     {levels.map((level) => <div key={level.key} className="flex shrink-0 snap-start items-center gap-1.5 rounded-full border border-[#dde6ee] bg-white px-2.5 py-1 text-[9px] text-[#5f7488]"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: level.color }}/>{level.label}</div>)}
   </div>;
 }
+
 function Row({ row }: {
     row: DistribucionNivelPorBloque;
 }) {
@@ -220,19 +242,24 @@ function Row({ row }: {
       </div>}
       <div className="overflow-hidden rounded-full bg-[#e9eef3]">
       <div className="flex h-[30px] w-full overflow-hidden rounded-full">
-        {rowSegments.map((item, index) => <div key={index} onMouseEnter={() => setHoveredSegment(item)} onMouseLeave={() => setHoveredSegment(null)} aria-label={`${item.label}: ${formatValue(item.data)} (${formatValue(item.value)}%)`} className="flex cursor-pointer items-center justify-center px-1 text-[8px] font-semibold text-white transition-opacity hover:opacity-85" style={{ width: `${item.value}%`, background: item.color }}>{item.value >= 8 ? `${item.value}%` : ""}</div>)}
+        {rowSegments.map((item, index) => <div key={index} onMouseEnter={() => setHoveredSegment(item)} onMouseLeave={() => setHoveredSegment(null)} aria-label={`${item.label}: ${formatValue(item.data)} (${formatValue(item.value)}%)`} className="flex cursor-pointer items-center justify-center px-1 text-[8px] font-semibold text-white transition-opacity hover:opacity-85" style={{ width: `${clampPercent(item.value)}%`, background: item.color }}>{item.value >= 8 ? `${formatValue(item.value)}%` : ""}</div>)}
       </div>
       </div>
     </div>
   </div>;
 }
-function formatValue(value: number | null) {
-    if (value == null || !Number.isFinite(value)) return "-";
-    return Number.isInteger(value) ? value.toLocaleString("es-SV") : value.toFixed(1);
+
+function formatValue(value: unknown) {
+    if (value == null) return "-";
+    const numeric = toNumber(value);
+    if (!Number.isFinite(numeric)) return "-";
+    return Number.isInteger(numeric) ? numeric.toLocaleString("es-SV") : numeric.toFixed(1);
 }
+
 function formatMateriaLabel(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
+
 function subjectOrder(value: string) {
     const normalized = value.toLowerCase();
     if (normalized === "matematica" || normalized === "matemática") return 0;

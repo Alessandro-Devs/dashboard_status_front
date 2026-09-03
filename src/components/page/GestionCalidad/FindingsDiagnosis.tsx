@@ -6,7 +6,7 @@ export default function FindingsDiagnosis() {
     const criticalFindings = getCriticalFindings();
     return (<>
       <div className="mt-7">
-        <SectionHeader title="DIAGNÓSTICO DE HALLAZGOS" subtitle="Hallazgos críticos identificados en los centros auditados"/>
+        <SectionHeader title="DIAGNÓSTICO DE HALLAZGOS"/>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-3">
         {criticalFindings.map((item) => (<DashboardCard key={item.title}>

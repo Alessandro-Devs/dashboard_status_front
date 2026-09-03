@@ -10,7 +10,7 @@ const trimesterOptions: Option[] = [{ id: "t1", label: "Trimestre 1" }, { id: "t
 const lineOptions: Option[] = [{ id: "ihfb", label: "IHFB" }, { id: "kira", label: "Kira" }, { id: "xai", label: "xAI" }];
 export default function LearningFilters() {
     const { trimesters, setTrimesters, learningLines, setLearningLines } = useAuditFilters();
-    return <div className="flex flex-wrap items-end gap-3"><MultiSelect label="TRIMESTRE" header="SELECCIONAR TRIMESTRE" options={trimesterOptions} selected={trimesters} setSelected={setTrimesters} width="w-[105px]"/><MultiSelect label="LÍNEA / APLICATIVO" header="SELECCIONAR LÍNEA / APLICATIVO" options={lineOptions} selected={learningLines} setSelected={setLearningLines} width="w-[110px]"/></div>;
+    return <div className="flex flex-wrap items-end gap-3"><MultiSelect label="TRIMESTRE" header="SELECCIONAR TRIMESTRE" options={trimesterOptions} selected={trimesters} setSelected={setTrimesters} width="w-[105px]"/><MultiSelect label="" header="" options={lineOptions} selected={learningLines} setSelected={setLearningLines} width="w-[110px]"/></div>;
 }
 function MultiSelect({ label, header, options, selected, setSelected, width }: {
     label: string;
