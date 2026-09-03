@@ -95,7 +95,11 @@ function DiagnosticsView({ onBack, onNext }: {
     onNext: () => void;
 }) {
     const rawDiagnostic = data.diagnosticos;
-    const toNumber = (value: string) => Number(value.replace(/[^\d.-]/g, ""));
+    const toNumber = (value: unknown) => {
+        if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+        const numeric = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
+        return Number.isFinite(numeric) ? numeric : 0;
+    };
     const pending = (toNumber(rawDiagnostic.totalDocentes) - toNumber(rawDiagnostic.docentesDiagnosticados)).toLocaleString("es-SV");
     const diagnostic = { ...rawDiagnostic, docentesDiagnosticados: formatQuantity(rawDiagnostic.docentesDiagnosticados), totalDocentes: formatQuantity(rawDiagnostic.totalDocentes) };
     return <section className="mt-6"><DiagnosticoSection diagnostic={diagnostic} pending={pending}/><Navigation onBack={onBack} back="Modelamientos" onNext={onNext} next="Ver Acompañamientos"/></section>;
