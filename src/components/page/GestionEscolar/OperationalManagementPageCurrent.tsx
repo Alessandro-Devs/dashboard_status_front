@@ -18,6 +18,7 @@ type FormationGroup = {
 };
 type BlockData = {
     block: string;
+    universoDocentes: number;
     activeDirectors: number;
     observations: number;
     observationsTarget: number;
@@ -37,6 +38,7 @@ type ObservationSummary = {
 type LegacyObservationBlock = {
     block?: string;
     label?: string;
+    universoDocentes?: string | number;
     activeDirectors?: number;
     observations?: number;
     observationsTarget?: number;
@@ -84,6 +86,7 @@ function normalizeBlock(item: LegacyObservationBlock): BlockData | null {
         return null;
     return {
         block,
+        universoDocentes: toNumber(item.universoDocentes),
         activeDirectors: toNumber(item.activeDirectors),
         observations: toNumber(item.observations),
         observationsTarget: toNumber(item.observationsTarget),
@@ -177,7 +180,8 @@ function TopMetric({ icon, title, value, percentage, description, color }: {
 }) { const config = { blue: { bg: "bg-[#eaf3ff]", text: "text-[#176dcc]", hex: "#176dcc" }, green: { bg: "bg-[#eaf8ef]", text: "text-[#168642]", hex: "#168642" }, purple: { bg: "bg-[#f2ecff]", text: "text-[#7b3ff2]", hex: "#7b3ff2" } }[color]; const numericPercentage = Number(percentage.replace("%", "")); const angle = Number.isFinite(numericPercentage) ? numericPercentage * 3.6 : 0; return <div className="min-h-[142px] rounded-[10px] border border-[#d9e1e8] bg-white p-4"><div className="flex items-center gap-3"><span className={`flex h-8 w-8 items-center justify-center rounded-[7px] ${config.bg} ${config.text}`}>{icon}</span><span className="text-[8px] font-semibold uppercase tracking-[.05em] text-[#60778d]">{title}</span></div><div className="mt-5 flex items-center justify-between gap-4"><p className={`text-[31px] font-medium leading-none ${config.text}`}>{value}</p><span className="relative flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full" style={{ background: `conic-gradient(${config.hex} 0deg ${angle}deg, #e9eff5 ${angle}deg 360deg)` }}><span className="flex h-[48px] w-[48px] items-center justify-center rounded-full bg-white text-[13px] font-semibold" style={{ color: config.hex }}>{percentage}</span></span></div><p className="mt-3 text-[8px] text-[#8fa1b5]">{description}</p></div>; }
 function BlockCard({ data }: {
     data: BlockData;
-}) { return <article className="rounded-[10px] border border-[#d9e1e8] bg-white p-4"><div className="flex items-start justify-between"><div><h3 className="text-[12px] font-semibold text-[#223c52]">{data.block}</h3><p className="mt-2 text-[7px] text-[#8fa1b5]">Seguimiento semanal</p></div><span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#edf5ff]"><BriefcaseBusiness className="h-4 w-4 text-[#176dcc]"/></span></div><div className="mt-4 flex min-h-[45px] items-center justify-between rounded-[7px] border border-[#dfe6ed] px-3"><span className="text-[7px] font-semibold uppercase tracking-[.04em] text-[#8297af]">DIRECTORES ACTIVOS</span><span className="text-[17px] font-medium text-[#126fd0]">{data.activeDirectors}</span></div><BlockProgress title="OBSERVACIONES REALIZADAS" value={data.observations} target={data.observationsTarget} percentage={data.observationsPercentage} color="#168642"/><BlockProgress title="RETROALIMENTACIONES" value={data.feedback} target={data.feedbackTarget} percentage={data.feedbackPercentage} color="#7b3ff2"/></article>; }
+    universe?: number;
+}) { const activeDirectorsTotal = data.universoDocentes; const activeDirectors = data.activeDirectors; const activeDirectorsPercentage = activeDirectorsTotal > 0 ? Number(((activeDirectors / activeDirectorsTotal) * 100).toFixed(2)) : 0; return <article className="rounded-[10px] border border-[#d9e1e8] bg-white p-4"><div className="flex items-start justify-between"><div><h3 className="text-[12px] font-semibold text-[#223c52]">{data.block}</h3><p className="mt-2 text-[7px] text-[#8fa1b5]">Seguimiento semanal</p></div><span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#edf5ff]"><BriefcaseBusiness className="h-4 w-4 text-[#176dcc]"/></span></div><div className="mt-4 rounded-[7px] border border-[#dfe6ed] px-3 py-3"><div className="flex items-end justify-between gap-3"><span className="text-[7px] font-semibold uppercase tracking-[.04em] text-[#8297af]">DIRECTORES ACTIVOS</span><span className="text-[11px] text-[#8297af]"><strong className="text-[18px] font-medium text-[#126fd0]">{activeDirectors}</strong> de {activeDirectorsTotal}</span></div><div className="mt-3 h-[5px] overflow-hidden rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-[#126fd0]" style={{ width: `${Math.min(activeDirectorsPercentage, 100)}%` }}/></div><div className="mt-2 flex items-center justify-between"><span className="text-[6px] text-[#8fa1b5]">Avance</span><span className="text-[6px] font-medium text-[#52687c]">{activeDirectorsPercentage}%</span></div></div><BlockProgress title="OBSERVACIONES REALIZADAS" value={data.observations} target={data.observationsTarget} percentage={data.observationsPercentage} color="#168642"/><BlockProgress title="RETROALIMENTACIONES" value={data.feedback} target={data.feedbackTarget} percentage={data.feedbackPercentage} color="#7b3ff2"/></article>; }
 function BlockProgress({ title, value, target, percentage, color }: {
     title: string;
     value: number;
