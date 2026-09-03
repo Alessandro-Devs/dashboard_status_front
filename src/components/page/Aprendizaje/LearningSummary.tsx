@@ -62,7 +62,7 @@ export function LearningProgressLineCards({ data = defaultProgressData }: { data
       return <div key={item.label} className="rounded-md border border-[#e1e8ef] bg-[#f8fbfe] px-3 py-3">
         <div className="flex items-start justify-between gap-3"><p className="text-[10px] font-semibold text-[#29445b]">{item.label}</p><strong className={`text-[20px] leading-none ${color}`}>{item.value}%</strong></div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e3ebf2]"><div className={`h-full rounded-full ${color}`} style={{ width: `${item.value}%`, backgroundColor: "currentColor" }}/></div>
-        <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[8px] text-[#8295a8]">Clases</span><span className="text-[10px] font-semibold text-[#526a80]">{lastClassValue(item.classes)}</span></div>
+        <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[8px] text-[#8295a8]">Clase alcanzada</span><span className="text-[10px] font-semibold text-[#526a80]">{lastClassValue(item.classes)}</span></div>
       </div>;
     })}</div>
   </article>)}</div>;
