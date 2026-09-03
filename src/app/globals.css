@@ -91,7 +91,7 @@ section[class*="bg-[#f7f9fc]"] article.mt-3 > div.mt-3 > div.flex.flex-col.justi
 }
 
 section.mt-6 article:nth-of-type(2) > p:first-child::after {
-  content: "Número de clases semanal";
+  content: "";
   font-size: 0.625rem;
 }
 
