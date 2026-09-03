@@ -67,9 +67,6 @@ const labels: Record<string, string> = {
 };
 
 const humanize = (key: string) => labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
-<<<<<<< Updated upstream
-const sectionOrder = ["kpis", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
-=======
 const examplePlaceholder = (label: string, numeric: boolean) => {
   if (numeric) return `Ej. ${label === "Ronda" ? "3" : ["Porcentaje", "Cobertura", "Cumplimiento"].some((item) => label.includes(item)) ? "85" : "100"}`;
   const examples: Record<string, string> = {
@@ -82,7 +79,6 @@ const examplePlaceholder = (label: string, numeric: boolean) => {
   return `Ej. ${examples[label] ?? humanize(label)}`;
 };
 const sectionOrder = ["kpis", "coberturaPorGrupo", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
->>>>>>> Stashed changes
 const sectionDescriptions: Record<string, string> = {
   kpis: "Todos los bloques · indicadores principales del módulo.",
   auditadosPorGrupo: "Auditados respecto al universo de cada grupo.",

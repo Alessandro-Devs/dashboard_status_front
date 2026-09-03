@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 export function SectionHeader({ title, subtitle, rightText }: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     rightText?: string;
 }) {
     return <div className="flex items-start justify-between gap-4"><div><h2 className="text-sm font-semibold tracking-[.04em] text-[#20394e]">{title}</h2><p className="mt-1 text-[8px] text-[#8da0b4]">{subtitle}</p></div>{rightText && <span className="mt-2 text-[8px] text-[#95a7bc]">{rightText}</span>}</div>;
@@ -15,7 +15,7 @@ export function DashboardCard({ children, className = "" }: {
 }
 export function CardTitle({ title, subtitle, icon, rightText }: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     icon?: ReactNode;
     rightText?: string;
 }) {

@@ -13,7 +13,7 @@ type BarrierItem = { title: string; description: string };
 type LearningFormData = { estadoLxp: unknown[]; resumenAvance: SummaryItem[]; lineasAplicativo: LearningLine[]; barreras: BarrierItem[] };
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
-const template = learningTemplate as LearningFormData;
+const template = learningTemplate as unknown as LearningFormData;
 const emptyTemplate: LearningFormData = {
   estadoLxp: [],
   resumenAvance: template.resumenAvance.map(() => ({ title: "", value: "", description: "" })),

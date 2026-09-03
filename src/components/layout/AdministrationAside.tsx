@@ -16,20 +16,12 @@ export default function AdministrationAside({ open, onClose }: { open: boolean; 
     try { return JSON.parse(storedUser) as StoredUser; } catch { window.localStorage.removeItem("dashboard:user"); return { name: "Usuario", role: "Usuario" }; }
   });
   const normalizedRole = (user.role ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-<<<<<<< Updated upstream
-  const canAccessEvaluation = normalizedRole === "evaluacion";
-  const canAccessSchoolManagement = normalizedRole === "gestion escolar";
-  const canAccessQualityManagement = normalizedRole === "gestion de calidad";
-  const canAccessTutoringAndTraining = normalizedRole === "tutoria y formacion";
-  const canAccessLearning = normalizedRole === "aprendizaje";
-=======
   const isAdmin = normalizedRole === "admin";
   const canAccess = (role: string) => isAdmin || normalizedRole === role;
   const navigate = (path: string) => { router.push(path); onClose(); };
   const itemClass = (active: boolean) => `flex h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-left text-[13px] font-medium text-white transition ${active ? "bg-white/10" : "bg-transparent hover:bg-white/[0.15]"}`;
   const secondaryClass = () => "flex h-11 w-full cursor-pointer items-center gap-3 rounded-lg bg-transparent px-3 text-left text-[13px] font-medium text-white transition hover:bg-white/[0.15]";
   const logout = () => { window.localStorage.removeItem("dashboard:user"); window.localStorage.removeItem("dashboard:lastActivity"); router.push("/login"); };
->>>>>>> Stashed changes
 
   return <aside className={`fixed inset-y-0 left-0 z-[110] flex w-[280px] flex-col bg-[#071a29] px-5 py-7 text-white shadow-[8px_0_24px_rgba(7,26,41,.12)] transition-transform duration-300 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
     <div><div className="relative mb-4 flex items-center justify-start"><div className="flex h-11 min-w-[72px] items-center justify-center rounded-xl bg-[#176fc8] px-2 text-lg font-bold">Panel</div><button type="button" onClick={onClose} aria-label="Cerrar menú" className="absolute right-0 rounded-lg p-2 text-[#9bb0c1] hover:bg-white/10 hover:text-white lg:hidden"><X size={20}/></button></div><h1 className="text-left text-[20px] font-semibold leading-tight">Administración</h1></div>

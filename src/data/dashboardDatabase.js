@@ -15,8 +15,6 @@ export const dashboardDatabase = {
       grupos: 0,
     },
     auditadosPorGrupo: [],
-<<<<<<< Updated upstream
-=======
     coberturaPorGrupo: [
       { grupo: "G1 F3", ronda: 3, auditados: 41, total: 184, porcentaje: 22.28 },
       { grupo: "G2 F2", ronda: 2, auditados: 36, total: 197, porcentaje: 18.27 },
@@ -24,7 +22,6 @@ export const dashboardDatabase = {
       { grupo: "G4 F1", ronda: 1, auditados: 54, total: 201, porcentaje: 26.87 },
       { grupo: "G5 F1", ronda: 1, auditados: 34, total: 200, porcentaje: 17 },
     ],
->>>>>>> Stashed changes
     cumplimientoPorGrupo: [],
     cumplimientoPorProceso: [],
     hallazgosCriticos: [],
@@ -73,8 +70,11 @@ export const dashboardDatabase = {
       observaciones: {
         resumen: {
           directoresActivos: "0",
+          porcentajeDirectoresActivos: 0,
           observacionesRealizadas: "0",
+          porcentajeObservacionesRealizadas: 0,
           retroalimentacionesRealizadas: "0",
+          porcentajeRetroalimentacionesRealizadas: 0,
         },
         bloques: [],
       },

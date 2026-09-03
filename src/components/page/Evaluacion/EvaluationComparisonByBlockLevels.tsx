@@ -26,6 +26,14 @@ function segments(row: DistribucionNivelPorBloque) {
 function hasDistributionData(row: DistribucionNivelPorBloque) {
     return normalizeSegment(row.universo) > 0 || segments(row).some((item) => normalizeSegment(item.value) > 0 || normalizeSegment(item.data) > 0);
 }
+function distributionRows(value: unknown): DistribucionNivelPorBloque[] {
+    if (Array.isArray(value)) return value as DistribucionNivelPorBloque[];
+    if (value && typeof value === "object") {
+        const rows = Object.values(value).filter((item) => item && typeof item === "object" && !Array.isArray(item));
+        return rows as DistribucionNivelPorBloque[];
+    }
+    return [];
+}
 export default function EvaluationComparisonByBlockLevels() {
     useDashboardData();
     const { blocks, setBlocks } = useAuditFilters();
@@ -35,7 +43,7 @@ export default function EvaluationComparisonByBlockLevels() {
     const rawDistributions = evaluacion.distribucionPorBloqueMateriaNiveles ?? {};
     const distributions = Object.entries(rawDistributions).reduce<Record<string, DistribucionNivelPorBloque[]>>((result, [subject, rows]) => {
         const normalizedSubject = normalizeMateria(subject);
-        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...rows.filter(hasDistributionData)];
+        result[normalizedSubject] = [...(result[normalizedSubject] ?? []), ...distributionRows(rows).filter(hasDistributionData)];
         return result;
     }, {});
     const availableSubjects = Object.keys(distributions).map((subject) => ({

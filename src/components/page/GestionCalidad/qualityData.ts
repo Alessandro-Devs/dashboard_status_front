@@ -9,10 +9,7 @@ export type Finding = {
 };
 
 type AuditedGroup = { name: string; auditados: number; total: number };
-<<<<<<< Updated upstream
-=======
 type CoverageGroup = { grupo: string; ronda: number; auditados: number; total: number; porcentaje: number };
->>>>>>> Stashed changes
 type Compliance = { name: string; value: number };
 
 export const qualityData = dashboardDatabase.gestionCalidad;
@@ -20,9 +17,6 @@ export const qualityData = dashboardDatabase.gestionCalidad;
 // La API sincroniza dashboardDatabase después de cargar este módulo. Estas
 // colecciones deben calcularse bajo demanda para no conservar copias vacías.
 export const getAuditedByGroup = () =>
-<<<<<<< Updated upstream
-  sortDescendingByNumber(qualityData.auditadosPorGrupo as AuditedGroup[], (item) => item.auditados);
-=======
   sortDescendingByNumber(
     (qualityData.auditadosPorGrupo as AuditedGroup[]).filter((item) => item && Number(item.auditados) > 0 && Number(item.total) > 0),
     (item) => item.auditados,
@@ -30,7 +24,6 @@ export const getAuditedByGroup = () =>
 export const getCoverageByGroup = () => Array.isArray(qualityData.coberturaPorGrupo)
   ? (qualityData.coberturaPorGrupo as CoverageGroup[]).filter((item) => item && Number(item.auditados) > 0 && Number(item.total) > 0 && Number(item.porcentaje) > 0)
   : [];
->>>>>>> Stashed changes
 export const getComplianceByGroup = () =>
   sortDescendingByNumber(
     (qualityData.cumplimientoPorGrupo as Compliance[]).filter((item) => item && Number(item.value) > 0),

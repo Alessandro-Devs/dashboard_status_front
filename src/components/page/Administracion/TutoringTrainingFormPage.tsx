@@ -19,8 +19,6 @@ const emptyValues = (value: JsonValue): JsonValue => {
   return null;
 };
 
-<<<<<<< Updated upstream
-=======
 const fixedTutoringTitles = ["Clase regular", "Remediación", "Refuerzo"];
 const tutoringAccents = ["blue", "purple", "orange"];
 const withoutPercentages = (value: JsonValue): JsonValue => value;
@@ -42,7 +40,6 @@ const withDerivedPercentage = (section: JsonValue, numeratorKey: string, denomin
   ? { ...section, porcentaje: derivedPercentage(section, numeratorKey, denominatorKey) }
   : section;
 
->>>>>>> Stashed changes
 const fallbackData: JsonValue = {
   accesos: { centros: "0", docentes: "0", docentesConAcceso: "0", porcentajeDocentes: 0, estudiantes: "0", estudiantesConAcceso: "0", porcentajeEstudiantes: 0 },
   modelamientos: {
@@ -106,21 +103,6 @@ const orderedEntries = (value: { [key: string]: JsonValue }) => [
   ...sectionOrder.filter((key) => key in value).map((key) => [key, value[key]] as [string, JsonValue]),
   ...Object.entries(value).filter(([key]) => !sectionOrder.includes(key)),
 ];
-<<<<<<< Updated upstream
-const normalizeShape = (value: JsonValue): JsonValue => object(value) ? { ...(clone(fallbackData) as { [key: string]: JsonValue }), ...value } : clone(fallbackData);
-const templateFor = (fieldKey: string, current?: JsonValue): JsonValue => {
-  if (current !== undefined) return clone(current);
-  if (fieldKey === "tutoriaVirtual") return { title: "", percentage: 0, accent: "blue", rows: [] };
-  if (fieldKey === "rows") return { block: "", invited: 0, attended: 0, percentage: 0 };
-  return "";
-};
-
-function Primitive({ label, value, onChange }: { label: string; value: string | number | boolean | null; onChange: (value: JsonValue) => void }) {
-  const numeric = typeof value === "number" || value === null || /porcentaje|convocados|asistieron/i.test(label);
-  const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
-  if (typeof value === "boolean") return <label className="flex items-center gap-2 text-[10px] font-semibold text-[#5d7285]"><input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)}/>{label}</label>;
-  return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<input className={style} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/></label>;
-=======
 const percentageLastEntries = (value: { [key: string]: JsonValue }) => {
   const entries = Object.entries(value);
   return [...entries.filter(([key]) => !/porcentaje|percentage/i.test(key)), ...entries.filter(([key]) => /porcentaje|percentage/i.test(key))];
@@ -173,7 +155,6 @@ function Primitive({ label, value, onChange, readOnly = false }: { label: string
   const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
   if (typeof value === "boolean") return <label className="flex items-center gap-2 text-[10px] font-semibold text-[#5d7285]"><input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)}/>{label}</label>;
   return <label className={`block text-[10px] font-semibold text-[#5d7285] ${readOnly ? "cursor-not-allowed" : ""}`}>{label}<input className={`${style}${readOnly ? " cursor-not-allowed bg-[#f3f6f8] text-[#718799]" : ""}`} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} placeholder={isCalculatedPercentage(label) ? "Se calcula automáticamente" : examplePlaceholder(label, numeric)} readOnly={readOnly} disabled={readOnly} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/></label>;
->>>>>>> Stashed changes
 }
 
 function ArrayField({ fieldKey, label, value, onChange }: { fieldKey: string; label: string; value: JsonValue[]; onChange: (value: JsonValue) => void }) {
@@ -181,21 +162,11 @@ function ArrayField({ fieldKey, label, value, onChange }: { fieldKey: string; la
   const add = () => onChange([...value, clone(template.current)]);
   const itemLabel = fieldKey === "tutoriaVirtual" ? "Grupo" : fieldKey === "rows" ? "Bloque" : "Fila";
 
-<<<<<<< Updated upstream
-  return <div className="col-span-full rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-2.5"><div className="mb-2 flex items-center justify-between"><div><p className="text-[11px] font-bold text-[#294b68]">{label}</p><p className="text-[9px] text-[#8a9cab]">{value.length} registros</p></div><button type="button" onClick={add} className="inline-flex items-center gap-1 rounded-md border border-[#bfd8eb] bg-white px-2 py-1 text-[10px] font-semibold text-[#176fc8]"><Plus size={11}/>Agregar fila</button></div>{value.length === 0 ? <button type="button" onClick={add} className="w-full rounded-md border border-dashed border-[#bcd3e4] bg-white py-4 text-[10px] text-[#6f8ca2]">+ Agregar el primer registro</button> : <div className="space-y-2">{value.map((item, index) => <div key={index} className="relative rounded-lg border border-[#dce7ef] bg-white p-2.5 pt-7"><span className="absolute left-2.5 top-2 text-[9px] font-bold text-[#688196]">{itemLabel} {index + 1}</span><button type="button" onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))} className="absolute right-2 top-1.5 rounded p-1 text-[#c85a5a] hover:bg-red-50" aria-label={`Eliminar fila ${index + 1}`}><Trash2 size={12}/></button><JsonField fieldKey={fieldKey} label={`${label} ${index + 1}`} value={item} onChange={(updated) => onChange(value.map((current, itemIndex) => itemIndex === index ? updated : current))} root={object(item)}/></div>)}</div>}</div>;
-=======
   return <div className="col-span-full rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-2.5"><div className="mb-2 flex items-center justify-between"><div><p className="text-[11px] font-bold text-[#294b68]">{label}</p><p className="text-[9px] text-[#8a9cab]">{value.length} registros</p></div><button type="button" onClick={add} className="inline-flex items-center gap-1 rounded-md border border-[#bfd8eb] bg-white px-2 py-1 text-[10px] font-semibold text-[#176fc8]"><Plus size={11}/>Agregar fila</button></div>{value.length === 0 ? <button type="button" onClick={add} className="w-full rounded-md border border-dashed border-[#bcd3e4] bg-white py-4 text-[10px] text-[#6f8ca2]">+ Agregar el primer registro</button> : <div className="space-y-2">{value.map((item, index) => <div key={index} className="relative rounded-lg border border-[#dce7ef] bg-white p-2.5 pt-7"><span className="absolute left-2.5 top-2 text-[9px] font-bold text-[#688196]">{itemLabel} {index + 1}</span><button type="button" onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))} className="absolute right-2 top-1.5 rounded p-1 text-[#c85a5a] hover:bg-red-50" aria-label={`Eliminar fila ${index + 1}`}><Trash2 size={12}/></button><JsonField fieldKey={fieldKey} label={`${label} ${index + 1}`} value={item} onChange={(updated) => onChange(value.map((current, itemIndex) => itemIndex === index ? (fieldKey === "rows" ? { ...(updated as { [key: string]: JsonValue }), percentage: attendancePercentage(updated) } : updated) : current))} root={object(item)} readOnlyTitle={fieldKey === "tutoriaVirtual"}/></div>)}</div>}</div>;
->>>>>>> Stashed changes
 }
 
-function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKey: string; label: string; value: JsonValue; onChange: (value: JsonValue) => void; root?: boolean }) {
+function JsonField({ fieldKey, label, value, onChange, root = false, readOnlyTitle = false }: { fieldKey: string; label: string; value: JsonValue; onChange: (value: JsonValue) => void; root?: boolean; readOnlyTitle?: boolean }) {
   if (Array.isArray(value)) return <ArrayField fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
-<<<<<<< Updated upstream
-  if (!object(value)) return <Primitive label={label} value={value} onChange={onChange}/>;
-
-  const entries = root ? Object.entries(value) : Object.entries(value);
-  const fields = <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-2">{entries.map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
-=======
   if (!object(value)) return <Primitive label={label} value={value} onChange={onChange} readOnly={/porcentaje|percentage/i.test(fieldKey) || (readOnlyTitle && ["title", "accent"].includes(fieldKey))}/>;
 
   const entries: [string, JsonValue][] = root && fieldKey === "tutoriaVirtual"
@@ -206,7 +177,6 @@ function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKe
         ? orderedModelingEntries(value)
         : percentageLastEntries(value);
   const fields = <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-2">{entries.map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })} readOnlyTitle={readOnlyTitle && ["title", "accent", "percentage"].includes(key)}/>)}</div>;
->>>>>>> Stashed changes
   if (root) return fields;
   return <details className="group col-span-full rounded-lg border border-[#d9e5ee] bg-white" open><summary className="flex cursor-pointer list-none items-center justify-between rounded-lg bg-[#f5f9fc] px-3 py-2 text-[11px] font-bold text-[#294b68] hover:bg-[#edf5fa]">{label}<ChevronDown size={13} className="transition group-open:rotate-180"/></summary><div className="border-t border-[#e6edf2] p-3">{fields}</div></details>;
 }
