@@ -1,15 +1,15 @@
 export type TestType = "cml" | "progreso" | "fundamentos";
 export type BlockItem = { block:string;universe:number;applied:number;pending:number;percentage:number };
-import { getEvaluacion, type DetalleBloque } from "./evaluationViewData";
-const sanitizeBlockItems = (items:Array<{bloque:string;aplicados:number;pendientes:number;universo:number;porcentaje:number}> = []):BlockItem[] =>
+import { getEvaluacion, numeroEvaluacion, type DetalleBloque } from "./evaluationViewData";
+const sanitizeBlockItems = (items:Array<{bloque:string;aplicados:unknown;pendientes:unknown;universo:unknown;porcentaje:unknown}> = []):BlockItem[] =>
   items
     .filter((item) => typeof item?.bloque === "string" && item.bloque.trim().length > 0)
     .map((item) => ({
       block: item.bloque,
-      applied: Number.isFinite(item.aplicados) ? item.aplicados : 0,
-      pending: Number.isFinite(item.pendientes) ? item.pendientes : 0,
-      universe: Number.isFinite(item.universo) ? item.universo : 0,
-      percentage: Number.isFinite(item.porcentaje) ? item.porcentaje : 0,
+      applied: numeroEvaluacion(item.aplicados),
+      pending: numeroEvaluacion(item.pendientes),
+      universe: numeroEvaluacion(item.universo),
+      percentage: numeroEvaluacion(item.porcentaje),
     }))
     .filter((item) => item.applied > 0 || item.pending > 0 || item.universe > 0 || item.percentage > 0);
 

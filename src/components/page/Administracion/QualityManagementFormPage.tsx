@@ -43,6 +43,7 @@ const withCoverageDefaults = (value: JsonValue): JsonValue => {
 };
 
 const labels: Record<string, string> = {
+  coberturaPorGrupo: "Cobertura acumulada semanal",
   kpis: "Estado de las auditorías",
   auditadosPorGrupo: "Centros escolares auditados por grupo",
   cumplimientoPorGrupo: "Cumplimiento global por grupo",

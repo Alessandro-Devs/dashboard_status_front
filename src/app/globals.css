@@ -81,16 +81,6 @@ section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div[class
   color: #526176;
 }
 
-section.mt-6 article:first-of-type > p:first-child,
-section.mt-6 article:nth-of-type(2) > p:first-child {
-  font-size: 0;
-}
-
-section.mt-6 article:first-of-type > p:first-child::after {
-  content: "Docentes sin acceso semanal";
-  font-size: 0.625rem;
-}
-
 section[class*="bg-[#f7f9fc]"] article.mt-3 > div.mt-3 > div.h-\[280px\] {
   height: 340px;
 }

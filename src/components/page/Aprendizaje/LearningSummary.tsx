@@ -5,7 +5,7 @@ import type { LearningLine } from "./learningData";
 import learningTemplate from "./learningProgressTemplate.json";
 
 export type LearningProgressSummary = { title: string; value: number; description: string };
-export type LearningProgressLine = { name: string; claseProducida?: number; items: Array<{ label: string; value: number; classes: string }> };
+export type LearningProgressLine = { name: string; contenido?: string; claseProducida?: number; items: Array<{ label: string; value: number; classes: string }> };
 export type LearningProgressNote = { title: string; description: string };
 export type LearningProgressData = {
   resumenAvance?: LearningProgressSummary[];
@@ -47,10 +47,10 @@ export function LearningProgressSummaryCards({ data = defaultProgressData }: { d
 
 export function LearningProgressLineCards({ data = defaultProgressData }: { data?: LearningProgressData }) {
   return <div className="mt-5 grid gap-4 lg:grid-cols-3">{(data.lineasAplicativo ?? []).map((line) => <article key={line.name} className="rounded-lg border bg-white p-4">
-    <div className="flex items-start justify-between gap-3">
+    <div className="flex items-end justify-between gap-3">
       <div>
         <h3 className="text-[14px] font-semibold text-[#17324a]">{line.name}</h3>
-        <p className="mt-1 text-[9px] font-semibold uppercase text-[#587086]">Contenido</p>
+        <p className="mt-1 text-[9px] font-semibold uppercase text-[#587086]">{line.contenido || "-"}</p>
       </div>
       <div className="flex shrink-0 flex-col items-center">
         <div className="flex h-8 min-w-10 items-center justify-center rounded-md bg-[#eaf3ff] px-2 text-[14px] font-semibold text-[#126fd0]">{line.claseProducida ?? 97}</div>

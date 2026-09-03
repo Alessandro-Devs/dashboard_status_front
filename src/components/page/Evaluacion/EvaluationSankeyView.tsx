@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CalendarRange, GitBranch } from "lucide-react";
 import { ResponsiveContainer, Sankey, Tooltip, type SankeyNodeProps, type TooltipContentProps } from "recharts";
 import { useDashboardData } from "@/stores/DashboardDataContext";
-import { getEvaluacion, tieneNumero, tieneTexto, type NivelDesempeno } from "./evaluationViewData";
+import { formatoMiles, formatoNumero, getEvaluacion, tieneNumero, tieneTexto, type NivelDesempeno } from "./evaluationViewData";
 
 type SankeyNode = {
   name?: string;
@@ -174,8 +174,8 @@ export default function EvaluationSankeyView() {
                   return (
                     <div key={item.idNivel} className="rounded-md border p-2.5">
                       <p className="text-[8px] font-semibold">{nivel?.nombre ?? item.idNivel}</p>
-                      {tieneNumero(item.centrosEscolares) && <strong style={{ color: nivel?.colorHexadecimal }}>{item.centrosEscolares}</strong>}
-                      {tieneNumero(item.porcentajeDelTotal) && <p className="text-[7px]">{item.porcentajeDelTotal}% del universo</p>}
+                      {tieneNumero(item.centrosEscolares) && <strong style={{ color: nivel?.colorHexadecimal }}>{formatoMiles(item.centrosEscolares)}</strong>}
+                      {tieneNumero(item.porcentajeDelTotal) && <p className="text-[7px]">{formatoNumero(item.porcentajeDelTotal)}% del universo</p>}
                     </div>
                   );
                 })}
@@ -618,7 +618,7 @@ function FlowTooltip({ active, payload }: TooltipContentProps) {
         {item.source?.name ?? item.name}
         {item.target?.name ? ` -> ${item.target.name}` : ""}
       </strong>
-      <p>{item.value ?? payload[0].value} centros escolares</p>
+      <p>{formatoMiles(item.value ?? payload[0].value)} centros escolares</p>
     </div>
   );
 }
