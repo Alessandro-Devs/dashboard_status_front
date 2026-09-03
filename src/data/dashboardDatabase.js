@@ -15,11 +15,29 @@ export const dashboardDatabase = {
       grupos: 0,
     },
     auditadosPorGrupo: [],
+<<<<<<< Updated upstream
+=======
+    coberturaPorGrupo: [
+      { grupo: "G1 F3", ronda: 3, auditados: 41, total: 184, porcentaje: 22.28 },
+      { grupo: "G2 F2", ronda: 2, auditados: 36, total: 197, porcentaje: 18.27 },
+      { grupo: "G3 F1", ronda: 1, auditados: 51, total: 198, porcentaje: 25.76 },
+      { grupo: "G4 F1", ronda: 1, auditados: 54, total: 201, porcentaje: 26.87 },
+      { grupo: "G5 F1", ronda: 1, auditados: 34, total: 200, porcentaje: 17 },
+    ],
+>>>>>>> Stashed changes
     cumplimientoPorGrupo: [],
     cumplimientoPorProceso: [],
     hallazgosCriticos: [],
   },
   gestionEscolar: {
+    noAccesosSemanal: { docentesSinAcceso: 0, numeroDeClases: 0 },
+    motivosCriticos: [
+      { motivo: "Actividad institucional", porcentaje: 34, datoReal: 340 },
+      { motivo: "Asignación incorrecta", porcentaje: 27, datoReal: 270 },
+      { motivo: "Cuenta de emergencia", porcentaje: 19, datoReal: 190 },
+      { motivo: "Cuenta DEMO", porcentaje: 12, datoReal: 120 },
+      { motivo: "Incapacidad o permiso personal", porcentaje: 8, datoReal: 80 },
+    ],
     actividades: {
       periodo: "",
       observacion: [],
@@ -42,6 +60,11 @@ export const dashboardDatabase = {
     asistenciaDiaria: [],
     observacionesPorBloque: [],
     gestionOperativa: {
+      campanasNerds: [
+        { nombre: "Campaña Nerds 1", fecha: "2026-08-19", tipoRespuesta: "Encuesta", mensajesNoEnviados: 12, mensajesEnviados: 148, mensajesEntregados: 136, leidos: 119, respuestasRecibidas: 94 },
+        { nombre: "Campaña Nerds 2", fecha: "2026-08-20", tipoRespuesta: "Opción múltiple", mensajesNoEnviados: 8, mensajesEnviados: 172, mensajesEntregados: 164, leidos: 141, respuestasRecibidas: 108 },
+        { nombre: "Campaña Nerds 3", fecha: "2026-08-21", tipoRespuesta: "Encuesta", mensajesNoEnviados: 5, mensajesEnviados: 196, mensajesEntregados: 191, leidos: 166, respuestasRecibidas: 132 },
+      ],
       formacion: {
         participantes: "0",
         secciones: "0",

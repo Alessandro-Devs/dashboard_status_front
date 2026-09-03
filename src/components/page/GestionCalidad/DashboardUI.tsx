@@ -11,7 +11,7 @@ export function DashboardCard({ children, className = "" }: {
     children: ReactNode;
     className?: string;
 }) {
-    return <section className={`rounded-lg border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)] ${className}`}>{children}</section>;
+    return <section className={`w-full min-w-0 rounded-lg border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)] ${className}`}>{children}</section>;
 }
 export function CardTitle({ title, subtitle, icon, rightText }: {
     title: string;

@@ -5,7 +5,6 @@ import EvaluationPage from "@/components/page/Evaluacion/EvaluationPage";
 import AuditReportPage from "@/components/page/GestionCalidad/AuditReportPage";
 import SchoolNoAccessDashboard from "@/components/page/GestionEscolar/SchoolNoAccessDashboard";
 import TutoringAndTrainingPage from "@/components/page/TutoriaFormacion/TutoringAndTrainingPage";
-import { SectionFilters } from "@/components/layout/AuditReportHeader";
 import { dashboardSections } from "@/lib/dashboardSections";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
@@ -93,7 +92,6 @@ export default function AllDashboardSections() {
             <h2 className="text-[15px] font-bold text-[#29445b]">{section.id === "gestion-calidad" ? "Gestión Calidad" : section.label}</h2>
             {section.id !== "gestion-calidad" && <p className="mt-0.5 text-[9px] text-[#8296a8]">{section.description}</p>}
           </div>
-          {section.id === "aprendizaje" && <SectionFilters section={section.label}/>}
         </div>
       </div>
       {sectionContent[section.id]}

@@ -13,7 +13,7 @@ const object = (value: JsonValue): value is { [key: string]: JsonValue } => valu
 const emptyValues = (value: JsonValue): JsonValue => {
   if (Array.isArray(value)) return value.map(emptyValues);
   if (object(value)) return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, emptyValues(child)]));
-  if (typeof value === "number") return 0;
+  if (typeof value === "number") return "";
   if (typeof value === "boolean") return false;
   if (typeof value === "string") return "";
   return null;
@@ -25,6 +25,21 @@ const fallbackQualityData: JsonValue = {
   cumplimientoPorGrupo: [],
   cumplimientoPorProceso: [],
   hallazgosCriticos: [],
+};
+const coverageGroupDefaults = [
+  { grupo: "G1 F3", ronda: 3 }, { grupo: "G2 F2", ronda: 2 }, { grupo: "G3 F1", ronda: 1 },
+  { grupo: "G4 F1", ronda: 1 }, { grupo: "G5 F1", ronda: 1 },
+];
+const withCoverageDefaults = (value: JsonValue): JsonValue => {
+  if (!object(value)) return value;
+  const rows = Array.isArray(value.coberturaPorGrupo) ? value.coberturaPorGrupo : [];
+  return {
+    ...value,
+    coberturaPorGrupo: coverageGroupDefaults.map((defaultRow, index) => {
+      const current = object(rows[index]) ? rows[index] : {};
+      return { auditados: 0, total: 0, porcentaje: 0, ...current, grupo: current.grupo === undefined || current.grupo === null ? defaultRow.grupo : String(current.grupo), ronda: current.ronda === undefined || current.ronda === null ? defaultRow.ronda : current.ronda };
+    }),
+  };
 };
 
 const labels: Record<string, string> = {
@@ -52,13 +67,27 @@ const labels: Record<string, string> = {
 };
 
 const humanize = (key: string) => labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
+<<<<<<< Updated upstream
 const sectionOrder = ["kpis", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
+=======
+const examplePlaceholder = (label: string, numeric: boolean) => {
+  if (numeric) return `Ej. ${label === "Ronda" ? "3" : ["Porcentaje", "Cobertura", "Cumplimiento"].some((item) => label.includes(item)) ? "85" : "100"}`;
+  const examples: Record<string, string> = {
+    Nombre: "G1 F3",
+    Grupo: "G1 F3",
+    Título: "Hallazgo crítico 1",
+    Proceso: "Gestión de Calidad",
+    Descripción: "Describe el hallazgo o la actividad realizada.",
+  };
+  return `Ej. ${examples[label] ?? humanize(label)}`;
+};
+const sectionOrder = ["kpis", "coberturaPorGrupo", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
+>>>>>>> Stashed changes
 const sectionDescriptions: Record<string, string> = {
   kpis: "Todos los bloques · indicadores principales del módulo.",
   auditadosPorGrupo: "Auditados respecto al universo de cada grupo.",
   cumplimientoPorGrupo: "Porcentaje promedio de cumplimiento.",
   cumplimientoPorProceso: "Comparación de los procesos evaluados.",
-  hallazgosCriticos: "Hallazgos críticos identificados en los centros auditados.",
 };
 const orderedEntries = (value: { [key: string]: JsonValue }) => [
   ...sectionOrder.filter((key) => key in value).map((key) => [key, value[key]] as [string, JsonValue]),
@@ -83,11 +112,11 @@ const templateFor = (fieldKey: string, current?: JsonValue): JsonValue => {
 
 function Primitive({ label, value, onChange }: { label: string; value: string | number | boolean | null; onChange: (value: JsonValue) => void }) {
   const percentage = ["Porcentaje", "Cobertura", "Cumplimiento", "Impacto"].includes(label);
-  const numeric = typeof value === "number" || value === null || percentage;
+  const numeric = typeof value === "number" || value === null || percentage || ["Ronda", "Auditados", "Universo"].includes(label);
   const multiline = typeof value === "string" && /descripción|hallazgo/i.test(label);
   const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
   if (typeof value === "boolean") return <label className="flex items-center gap-2 text-[10px] font-semibold text-[#5d7285]"><input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)}/>{label}</label>;
-  return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} className={style} value={value} onChange={(event) => onChange(event.target.value)}/> : <input className={style} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/>}</label>;
+  return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} className={style} value={value} placeholder={examplePlaceholder(label, false)} onChange={(event) => onChange(event.target.value)}/> : <input className={style} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} placeholder={examplePlaceholder(label, numeric)} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/>}</label>;
 }
 
 function ArrayField({ fieldKey, label, value, onChange }: { fieldKey: string; label: string; value: JsonValue[]; onChange: (value: JsonValue) => void }) {
@@ -104,7 +133,7 @@ function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKe
   if (Array.isArray(value)) return <ArrayField fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
   if (!object(value)) return <Primitive label={label} value={value} onChange={onChange}/>;
 
-  const fields = <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-2">{Object.entries(value).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
+  const fields = <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-2">{Object.entries(value).filter(([key]) => !(fieldKey === "kpis" && ["grupos", "cobertura"].includes(key))).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
   if (root) return fields;
   return <details className="group col-span-full rounded-lg border border-[#d9e5ee] bg-white" open={fieldKey === "kpis"}><summary className="flex cursor-pointer list-none items-center justify-between rounded-lg bg-[#f5f9fc] px-3 py-2 text-[11px] font-bold text-[#294b68] hover:bg-[#edf5fa]">{label}<ChevronDown size={13} className="transition group-open:rotate-180"/></summary><div className="border-t border-[#e6edf2] p-3">{fields}</div></details>;
 }
@@ -112,7 +141,7 @@ function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKe
 export default function QualityManagementFormPage({ recordId }: { recordId?: number }) {
   const router = useRouter();
   const [date, setDate] = useState("");
-  const [data, setData] = useState<JsonValue>(() => clone(dashboardDatabase.gestionCalidad) as JsonValue);
+  const [data, setData] = useState<JsonValue>(() => recordId ? withCoverageDefaults(clone(dashboardDatabase.gestionCalidad) as JsonValue) : withCoverageDefaults(emptyValues(clone(dashboardDatabase.gestionCalidad) as JsonValue)));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -120,7 +149,7 @@ export default function QualityManagementFormPage({ recordId }: { recordId?: num
   useEffect(() => {
     if (recordId) {
       apiFetch<{ record: { date: string; data: JsonValue } }>(`/dashboard/sections/gestionCalidad/${recordId}`)
-        .then(({ record }) => { setDate(record.date); setData(record.data); })
+        .then(({ record }) => { setDate(record.date); setData(withCoverageDefaults(record.data)); })
         .catch((cause) => setError(cause instanceof Error ? cause.message : "No fue posible cargar el registro."))
         .finally(() => setLoading(false));
       return;
@@ -129,11 +158,11 @@ export default function QualityManagementFormPage({ recordId }: { recordId?: num
     apiFetch<{ records: Array<{ data: JsonValue }> }>("/dashboard/sections/gestionCalidad")
       .then(({ records }) => {
         const source = records[0]?.data ?? clone(dashboardDatabase.gestionCalidad) as JsonValue;
-        setData(withFindingTitleDefaults(emptyValues(object(source) ? source : fallbackQualityData)));
+        setData(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData))));
       })
       .catch((cause) => {
         const source = clone(dashboardDatabase.gestionCalidad) as JsonValue;
-        setData(withFindingTitleDefaults(emptyValues(object(source) ? source : fallbackQualityData)));
+        setData(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData))));
         setError(cause instanceof Error ? cause.message : "No fue posible preparar el formulario.");
       })
       .finally(() => setLoading(false));

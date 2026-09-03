@@ -15,7 +15,7 @@ export default function LineProgressCard({ item }: {
     <header className="flex items-center justify-between border-b px-4 py-3">
       <div className="flex items-center gap-3">
         <span className={`flex h-8 w-8 items-center justify-center rounded-md ${colors.bg}`}><BookOpen className={`h-4 w-4 ${colors.icon}`}/></span>
-        <div><p className="text-[8px] font-semibold uppercase text-[#8194a7]">Línea / aplicativo</p><h3 className="mt-1 text-[15px] font-semibold">{item.name}</h3></div>
+        <div><p className="text-[8px] font-semibold uppercase text-[#8194a7]"></p><h3 className="mt-1 text-[15px] font-semibold">{item.name}</h3></div>
       </div>
       <span className={`rounded-full px-2 py-1 text-[8px] font-semibold ${colors.bg} ${colors.icon}`}>{status}</span>
     </header>

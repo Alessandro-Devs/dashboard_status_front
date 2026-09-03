@@ -10,8 +10,8 @@ export type DashboardSection = {
 
 export const dashboardSections: DashboardSection[] = [
   { id: "gestion-calidad", label: "Gestión de Calidad", description: "Auditorías, cumplimiento y hallazgos" },
-  { id: "gestion-escolar", label: "Gestión Escolar", description: "Seguimiento de no accesos" },
-  { id: "aprendizaje", label: "Aprendizaje", description: "Avance y producción de contenidos" },
+  { id: "gestion-escolar", label: "Gestión Escolar", description: "" },
+  { id: "aprendizaje", label: "Aprendizaje", description: "" },
   { id: "evaluacion", label: "Evaluación", description: "" },
   { id: "tutoria-formacion", label: "Tutoría y Formación", description: "Accesos, modelamientos y tutoría virtual" },
 ];
