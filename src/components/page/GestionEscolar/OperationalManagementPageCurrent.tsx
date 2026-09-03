@@ -46,7 +46,12 @@ type LegacyObservationBlock = {
     feedbackPercentage?: number;
 };
 function toNumber(value: unknown) {
-    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+        const parsed = Number(value.replace(/,/g, "").replace(/%/g, "").trim());
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
 }
 function formatPercentage(value: string | number | undefined) {
     if (value === undefined || value === "") return "0%";
@@ -99,8 +104,12 @@ function resolveObservationBlocks() {
     };
     const currentBlocks = gestionEscolar.gestionOperativa?.observaciones?.bloques;
     const legacyBlocks = gestionEscolar.observacionesPorBloque;
-    const source = Array.isArray(currentBlocks) && currentBlocks.length > 0 ? currentBlocks : Array.isArray(legacyBlocks) ? legacyBlocks : [];
-    return source.map(normalizeBlock).filter((item): item is BlockData => item !== null);
+    const source = [...(Array.isArray(currentBlocks) ? currentBlocks : []), ...(Array.isArray(legacyBlocks) ? legacyBlocks : [])];
+    const uniqueBlocks = new Map<string, BlockData>();
+    source.map(normalizeBlock).filter((item): item is BlockData => item !== null).forEach((item) => {
+        if (!uniqueBlocks.has(item.block)) uniqueBlocks.set(item.block, item);
+    });
+    return Array.from(uniqueBlocks.values());
 }
 function resolveObservationSummary(blocks: BlockData[]) {
     const resumen = (dashboardDatabase.gestionEscolar.gestionOperativa as {
