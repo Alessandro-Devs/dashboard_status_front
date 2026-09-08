@@ -2,10 +2,17 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { sortDescendingByNumber } from "@/lib/sortByPercentage";
 
 export type Finding = {
-  title: string;
-  process: string;
-  description: string;
-  impact: number;
+  severity?: string;
+  leader?: string;
+  component?: string;
+  finding?: string;
+  action?: string;
+  leaderAction?: string;
+  impact?: string | number;
+  count?: string | number;
+  title?: string;
+  process?: string;
+  description?: string;
 };
 
 type AuditedGroup = { name: string; auditados: number; total: number };
@@ -34,5 +41,9 @@ export const getComplianceByProcess = () =>
     (qualityData.cumplimientoPorProceso as Compliance[]).filter((item) => item && Number(item.value) > 0),
     (item) => item.value,
   );
-export const getCriticalFindings = (): Finding[] =>
-  qualityData.hallazgosCriticos as Finding[];
+export const getCriticalFindings = (): Finding[] => {
+  const rawFindings = qualityData.hallazgosCriticos as unknown;
+  return Array.isArray(rawFindings)
+    ? rawFindings.filter((item): item is Finding => Boolean(item && typeof item === "object" && !Array.isArray(item) && typeof item.severity === "string" && item.severity.trim() !== "" && Object.values(item).some((value) => value !== null && value !== undefined && String(value).trim() !== "")))
+    : [];
+};

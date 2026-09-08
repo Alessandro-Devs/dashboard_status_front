@@ -48,7 +48,7 @@ const labels: Record<string, string> = {
   auditadosPorGrupo: "Centros escolares auditados por grupo",
   cumplimientoPorGrupo: "Cumplimiento global por grupo",
   cumplimientoPorProceso: "Cumplimiento promedio por proceso",
-  hallazgosCriticos: "Diagnóstico de hallazgos",
+  hallazgosCriticos: "Hallazgos para la mejora en la implementación",
   auditados: "Auditados",
   universo: "Universo",
   cobertura: "Cobertura",
@@ -65,12 +65,28 @@ const labels: Record<string, string> = {
   process: "Proceso",
   description: "Descripción",
   impact: "Impacto",
+  severity: "Tipo de hallazgo",
+  leader: "Responsable",
+  component: "Componente",
+  finding: "Hallazgo",
+  action: "Acción",
+  leaderAction: "Acción del líder",
+  count: "Cantidad",
 };
 
 const humanize = (key: string) => labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
 const examplePlaceholder = (label: string, numeric: boolean) => {
   if (numeric) return `Ej. ${label === "Ronda" ? "3" : ["Porcentaje", "Cobertura", "Cumplimiento"].some((item) => label.includes(item)) ? "85" : "100"}`;
+  if (/^T/.test(label)) return "Bajo consumo de clases de Remediación";
+  if (/^P/.test(label)) return "Tutoría y Formación / Remediación";
+  if (/^D/.test(label)) return "Activar alertas de consumo bajo y reforzar seguimiento de tutoría virtual";
   const examples: Record<string, string> = {
+    Responsable: "Laura Pulido",
+    Componente: "Tutoría y Formación / Remediación",
+    Hallazgo: "Bajo consumo de clases de Remediación",
+    Acción: "Activar alertas de consumo bajo y reforzar seguimiento de tutoría virtual",
+    "Acción del líder": "Recalca y orienta al docente sobre los OVA y el desarrollo de la clase",
+    Cantidad: "108 clases",
     Nombre: "G1 F3",
     Grupo: "G1 F3",
     Título: "Hallazgo crítico 1",
@@ -92,27 +108,25 @@ const orderedEntries = (value: { [key: string]: JsonValue }) => [
 ];
 const withFindingTitleDefaults = (value: JsonValue): JsonValue => {
   if (!object(value) || !Array.isArray(value.hallazgosCriticos)) return value;
-  return {
-    ...value,
-    hallazgosCriticos: value.hallazgosCriticos.map((item, index) => object(item) && !item.title
-      ? { ...item, title: `Hallazgo crítico ${index + 1}` }
-      : item),
-  };
+  return { ...value, hallazgosCriticos: [{ severity: "", leader: "", component: "", finding: "", action: "", leaderAction: "", impact: "", count: "" }] };
 };
 const templateFor = (fieldKey: string, current?: JsonValue): JsonValue => {
   if (current !== undefined) return clone(current);
   if (fieldKey === "auditadosPorGrupo") return { name: "", auditados: 0, total: 0 };
   if (fieldKey === "cumplimientoPorGrupo" || fieldKey === "cumplimientoPorProceso") return { name: "", value: 0 };
-  if (fieldKey === "hallazgosCriticos") return { title: "", process: "", description: "", impact: 0 };
+  if (fieldKey === "hallazgosCriticos") return { severity: "", leader: "", component: "", finding: "", action: "", leaderAction: "", impact: "", count: "" };
   return "";
 };
 
 function Primitive({ label, value, onChange }: { label: string; value: string | number | boolean | null; onChange: (value: JsonValue) => void }) {
   const percentage = ["Porcentaje", "Cobertura", "Cumplimiento", "Impacto"].includes(label);
-  const numeric = typeof value === "number" || value === null || percentage || ["Ronda", "Auditados", "Universo"].includes(label);
-  const multiline = typeof value === "string" && /descripción|hallazgo/i.test(label);
+  const hallazgoCount = ["Hallazgos", "Hallazgos mayor", "Hallazgos menor"].includes(label);
+  const findingType = label === "Tipo de hallazgo";
+  const numeric = !hallazgoCount && (typeof value === "number" || value === null || percentage || ["Ronda", "Auditados", "Universo"].includes(label));
+  const multiline = !hallazgoCount && typeof value === "string" && ["Acción", "Acción del líder"].includes(label);
   const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
   if (typeof value === "boolean") return <label className="flex items-center gap-2 text-[10px] font-semibold text-[#5d7285]"><input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)}/>{label}</label>;
+  if (findingType) return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<select className={style} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="">Selecciona una opción</option><option value="Hallazgo mayor">Hallazgo mayor</option><option value="Hallazgo menor">Hallazgo menor</option><option value="Observación">Observación</option></select></label>;
   return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} className={style} value={value} placeholder={examplePlaceholder(label, false)} onChange={(event) => onChange(event.target.value)}/> : <input className={style} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} placeholder={examplePlaceholder(label, numeric)} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/>}</label>;
 }
 
@@ -120,7 +134,7 @@ function ArrayField({ fieldKey, label, value, onChange }: { fieldKey: string; la
   const template = useRef<JsonValue>(templateFor(fieldKey, value[0]));
   const add = () => {
     const next = clone(template.current);
-    onChange([...value, fieldKey === "hallazgosCriticos" && object(next) ? { ...next, title: `Hallazgo crítico ${value.length + 1}` } : next]);
+    onChange([...value, next]);
   };
 
   return <div className="col-span-full rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-2.5"><div className="mb-2 flex items-center justify-between"><div><p className="text-[11px] font-bold text-[#294b68]">{label}</p><p className="text-[9px] text-[#8a9cab]">{value.length} registros</p></div><button type="button" onClick={add} className="inline-flex items-center gap-1 rounded-md border border-[#bfd8eb] bg-white px-2 py-1 text-[10px] font-semibold text-[#176fc8]"><Plus size={11}/>Agregar fila</button></div>{value.length === 0 ? <button type="button" onClick={add} className="w-full rounded-md border border-dashed border-[#bcd3e4] bg-white py-4 text-[10px] text-[#6f8ca2]">+ Agregar el primer registro</button> : <div className="space-y-2">{value.map((item, index) => <div key={index} className="relative rounded-lg border border-[#dce7ef] bg-white p-2.5 pt-7"><span className="absolute left-2.5 top-2 text-[9px] font-bold text-[#688196]">Fila {index + 1}</span><button type="button" onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))} className="absolute right-2 top-1.5 rounded p-1 text-[#c85a5a] hover:bg-red-50" aria-label={`Eliminar fila ${index + 1}`}><Trash2 size={12}/></button><JsonField fieldKey={fieldKey} label={`${label} ${index + 1}`} value={item} onChange={(updated) => onChange(value.map((current, itemIndex) => itemIndex === index ? updated : current))} root={object(item)}/></div>)}</div>}</div>;
@@ -130,7 +144,7 @@ function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKe
   if (Array.isArray(value)) return <ArrayField fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
   if (!object(value)) return <Primitive label={label} value={value} onChange={onChange}/>;
 
-  const fields = <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-2">{Object.entries(value).filter(([key]) => !(fieldKey === "kpis" && ["grupos", "cobertura"].includes(key))).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
+  const fields = <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{Object.entries(value).filter(([key]) => !(fieldKey === "kpis" && ["grupos", "cobertura"].includes(key))).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
   if (root) return fields;
   return <details className="group col-span-full rounded-lg border border-[#d9e5ee] bg-white" open={fieldKey === "kpis"}><summary className="flex cursor-pointer list-none items-center justify-between rounded-lg bg-[#f5f9fc] px-3 py-2 text-[11px] font-bold text-[#294b68] hover:bg-[#edf5fa]">{label}<ChevronDown size={13} className="transition group-open:rotate-180"/></summary><div className="border-t border-[#e6edf2] p-3">{fields}</div></details>;
 }

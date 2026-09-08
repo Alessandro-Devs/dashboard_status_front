@@ -1,25 +1,80 @@
 "use client";
-import { AlertTriangle } from "lucide-react";
-import { DashboardCard, SectionHeader } from "./DashboardUI";
-import { getCriticalFindings } from "./qualityData";
+
+import { useState } from "react";
+import { getCriticalFindings, type Finding } from "./qualityData";
+
+type Severity = "mayor" | "menor" | "obs";
+type Priority = Finding & {
+  rank: number;
+  severity: Severity;
+  severityLabel: string;
+  impact: string;
+};
+
+const toPriority = (finding: Finding, index: number): Priority => {
+  const rawSeverity = String(finding.severity ?? "").toLowerCase();
+  const severity: Severity = rawSeverity.includes("mayor") ? "mayor" : rawSeverity.includes("menor") ? "menor" : "obs";
+  const severityLabel = severity === "mayor" ? "Mayor" : severity === "menor" ? "Menor" : "Observación";
+  const impactValue = finding.impact === undefined || finding.impact === null || finding.impact === "" ? "" : String(finding.impact);
+  const impact = impactValue && impactValue.endsWith("%") ? impactValue : impactValue ? `${impactValue}%` : "";
+
+  return { ...finding, rank: index + 1, severity, severityLabel, impact };
+};
+
+const severityStyles: Record<Severity, { badge: string; rank: string; impact: string }> = {
+  mayor: { badge: "bg-[#fff0f0] text-[#d83b3b]", rank: "bg-[#ef3333] text-white", impact: "text-[#ef3333]" },
+  menor: { badge: "bg-[#fff8e8] text-[#b87900]", rank: "bg-[#f0a51a] text-white", impact: "text-[#f0a51a]" },
+  obs: { badge: "bg-[#f1f3f5] text-[#6b7280]", rank: "bg-[#9ca3af] text-white", impact: "text-[#6b7280]" },
+};
+
 export default function FindingsDiagnosis() {
-    const criticalFindings = getCriticalFindings();
-    return (<>
+  const priorities = getCriticalFindings().map(toPriority);
+  const [filter, setFilter] = useState<"hallazgos" | Severity>("hallazgos");
+
+  if (!priorities.length) return null;
+
+  const visiblePriorities = filter === "hallazgos" ? priorities : priorities.filter((priority) => priority.severity === filter);
+
+  return (
+    <>
       <div className="mt-7">
-        <SectionHeader title="DIAGNÓSTICO DE HALLAZGOS"/>
+        <h2 className="text-sm font-semibold uppercase tracking-[.04em] text-[#20394e]">HALLAZGOS PARA LA MEJORA EN LA IMPLEMENTACIÓN</h2>
       </div>
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
-        {criticalFindings.map((item) => (<DashboardCard key={item.title}>
-            <div className="flex items-start justify-between gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#fff0f0]">
-                <AlertTriangle className="h-4 w-4 text-[#ef3333]"/>
-              </span>
-              <strong className="text-[22px] text-[#ef3333]">{item.impact}%</strong>
-            </div>
-            <h3 className="mt-4 text-[12px] font-semibold leading-[1.4] text-[#263e54]">{item.title}</h3>
-            <p className="mt-1.5 text-[10px] font-medium text-[#1971c9]">{item.process}</p>
-            <p className="mt-3 text-[9px] leading-[1.6] text-[#71869a]">{item.description}</p>
-          </DashboardCard>))}
+      <section id="quality-findings" className="hero mt-4 scroll-mt-5 rounded-xl border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)] sm:p-5">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[9px] font-semibold text-[#71869a]">
+        <label htmlFor="finding-filter">Filtrar por hallazgo</label>
+        <select id="finding-filter" value={filter} onChange={(event) => setFilter(event.target.value as "hallazgos" | Severity)} className="rounded-md border border-[#dce5ed] bg-white px-2 py-1 text-[9px] font-medium text-[#536d82] outline-none focus:border-[#7aaed1]">
+          <option value="hallazgos">Todos</option>
+          <option value="mayor">Mayor</option>
+          <option value="menor">Menor</option>
+          <option value="obs">Observación</option>
+        </select>
       </div>
-    </>);
+      <div className="mt-4 divide-y divide-[#dce5ed]">
+        {visiblePriorities.map((priority) => {
+          const styles = severityStyles[priority.severity];
+          return (
+            <article key={priority.rank} className="action grid items-center gap-3 py-4 first:pt-0 last:pb-0 sm:grid-cols-[28px_68px_minmax(140px,1.1fr)_minmax(240px,2.3fr)_74px] sm:items-center sm:gap-4">
+              <div className={`rank mx-auto flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${styles.rank}`}>{priority.rank}</div>
+              <div className={`type mx-auto inline-flex w-fit items-center justify-center rounded-full px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-[.03em] ${styles.badge}`}>{priority.severityLabel}</div>
+              <div className="who pl-0 text-left sm:pl-5">
+                <div className="name text-[10px] font-bold text-[#29445a]">{priority.leader}</div>
+                <div className="comp mt-1 text-[9px] leading-[1.45] text-[#71869a]">{priority.component}</div>
+              </div>
+              <div className="what min-w-0">
+                <div className="finding text-[10px] font-bold leading-[1.4] text-[#263e54]">{priority.finding}</div>
+                <div className="todo mt-1 text-[9px] leading-[1.5] text-[#4f6a82]">{priority.action}</div>
+                <div className="leader mt-2 rounded-md bg-[#eaf1fc]/50 px-2 py-1.5 text-[9px] font-[100] leading-[1.5] text-black"><b className="font-semibold text-blue-900">Acción del líder:</b> {priority.leaderAction}</div>
+              </div>
+              <div className="impact text-left sm:text-right">
+                <div className={`pct text-base font-bold leading-none ${styles.impact}`}>{priority.impact}</div>
+                <div className="n mt-1 text-[9px] text-[#8da0b4]">{priority.count}</div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      </section>
+    </>
+  );
 }

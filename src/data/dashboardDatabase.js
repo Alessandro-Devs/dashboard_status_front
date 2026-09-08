@@ -57,11 +57,7 @@ export const dashboardDatabase = {
     asistenciaDiaria: [],
     observacionesPorBloque: [],
     gestionOperativa: {
-      campanasNerds: [
-        { nombre: "Campaña Nerds 1", fecha: "2026-08-19", tipoRespuesta: "Encuesta", mensajesNoEnviados: 12, mensajesEnviados: 148, mensajesEntregados: 136, leidos: 119, respuestasRecibidas: 94 },
-        { nombre: "Campaña Nerds 2", fecha: "2026-08-20", tipoRespuesta: "Opción múltiple", mensajesNoEnviados: 8, mensajesEnviados: 172, mensajesEntregados: 164, leidos: 141, respuestasRecibidas: 108 },
-        { nombre: "Campaña Nerds 3", fecha: "2026-08-21", tipoRespuesta: "Encuesta", mensajesNoEnviados: 5, mensajesEnviados: 196, mensajesEntregados: 191, leidos: 166, respuestasRecibidas: 132 },
-      ],
+      campanasNerds: [],
       formacion: {
         participantes: "0",
         secciones: "0",
