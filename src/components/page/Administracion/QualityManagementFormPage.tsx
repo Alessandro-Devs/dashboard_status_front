@@ -102,6 +102,14 @@ const sectionDescriptions: Record<string, string> = {
   cumplimientoPorGrupo: "Porcentaje promedio de cumplimiento.",
   cumplimientoPorProceso: "Comparación de los procesos evaluados.",
 };
+const findingFieldOrder = ["severity", "leader", "component", "finding", "action", "leaderAction", "impact", "count"];
+const orderedObjectEntries = (value: { [key: string]: JsonValue }, fieldKey: string) => {
+  const preferredOrder = fieldKey === "hallazgosCriticos" ? findingFieldOrder : [];
+  return [
+    ...preferredOrder.filter((key) => key in value).map((key) => [key, value[key]] as [string, JsonValue]),
+    ...Object.entries(value).filter(([key]) => !preferredOrder.includes(key)),
+  ];
+};
 const orderedEntries = (value: { [key: string]: JsonValue }) => [
   ...sectionOrder.filter((key) => key in value).map((key) => [key, value[key]] as [string, JsonValue]),
   ...Object.entries(value).filter(([key]) => !sectionOrder.includes(key)),
@@ -144,7 +152,7 @@ function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKe
   if (Array.isArray(value)) return <ArrayField fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
   if (!object(value)) return <Primitive label={label} value={value} onChange={onChange}/>;
 
-  const fields = <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{Object.entries(value).filter(([key]) => !(fieldKey === "kpis" && ["grupos", "cobertura"].includes(key))).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
+  const fields = <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{orderedObjectEntries(value, fieldKey).filter(([key]) => !(fieldKey === "kpis" && ["grupos", "cobertura"].includes(key))).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
   if (root) return fields;
   return <details className="group col-span-full rounded-lg border border-[#d9e5ee] bg-white" open={fieldKey === "kpis"}><summary className="flex cursor-pointer list-none items-center justify-between rounded-lg bg-[#f5f9fc] px-3 py-2 text-[11px] font-bold text-[#294b68] hover:bg-[#edf5fa]">{label}<ChevronDown size={13} className="transition group-open:rotate-180"/></summary><div className="border-t border-[#e6edf2] p-3">{fields}</div></details>;
 }
