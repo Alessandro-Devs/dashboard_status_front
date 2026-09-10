@@ -26,7 +26,7 @@ type CampaignMetricItem = {
 };
 
 function numericValue(value: unknown): number {
-  const parsed = Number(value);
+  const parsed = Number(typeof value === "string" ? value.replace(/,/g, "").trim() : value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
@@ -48,14 +48,16 @@ function campaignMetrics(campaign: Campaign): CampaignMetricItem[][] {
 
 function campaignFields(item: Record<string, unknown>) {
   const enviados = numericValue(item.enviados ?? item.mensajesEnviados);
-  const noEnviados = numericValue(item.noEnviados ?? item.mensajesNoEnviados);
+  const sourceNoEnviados = numericValue(item.noEnviados ?? item.mensajesNoEnviados);
   const entregados = numericValue(item.entregados ?? item.mensajesEntregados);
   const leidos = numericValue(item.leidos);
   const respuestas = numericValue(item.respuestas ?? item.respuestasRecibidas);
+  const sourceBaseContactos = numericValue(item.baseContactos);
+  const baseContactos = sourceBaseContactos > 0 ? sourceBaseContactos : enviados + sourceNoEnviados;
   return {
-    baseContactos: numericValue(item.baseContactos) || enviados + noEnviados,
+    baseContactos,
     enviados,
-    noEnviados,
+    noEnviados: Math.max(0, baseContactos - enviados),
     entregados,
     noEntregados: numericValue(item.noEntregados) || Math.max(0, enviados - entregados),
     leidos,

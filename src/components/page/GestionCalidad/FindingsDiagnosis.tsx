@@ -27,13 +27,19 @@ const severityStyles: Record<Severity, { badge: string; rank: string; impact: st
   obs: { badge: "bg-[#f1f3f5] text-[#6b7280]", rank: "bg-[#9ca3af] text-white", impact: "text-[#6b7280]" },
 };
 
+const FINDINGS_PER_PAGE = 5;
+
 export default function FindingsDiagnosis() {
   const priorities = getCriticalFindings().map(toPriority);
   const [filter, setFilter] = useState<"hallazgos" | Severity>("hallazgos");
+  const [page, setPage] = useState(1);
 
   if (!priorities.length) return null;
 
   const visiblePriorities = filter === "hallazgos" ? priorities : priorities.filter((priority) => priority.severity === filter);
+  const totalPages = Math.max(1, Math.ceil(visiblePriorities.length / FINDINGS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedPriorities = visiblePriorities.slice((currentPage - 1) * FINDINGS_PER_PAGE, currentPage * FINDINGS_PER_PAGE);
 
   return (
     <>
@@ -43,7 +49,7 @@ export default function FindingsDiagnosis() {
       <section id="quality-findings" className="hero mt-4 scroll-mt-5 rounded-xl border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)] sm:p-5">
       <div className="mt-3 flex flex-wrap items-center gap-2 text-[9px] font-semibold text-[#71869a]">
         <label htmlFor="finding-filter">Filtrar por hallazgo</label>
-        <select id="finding-filter" value={filter} onChange={(event) => setFilter(event.target.value as "hallazgos" | Severity)} className="rounded-md border border-[#dce5ed] bg-white px-2 py-1 text-[9px] font-medium text-[#536d82] outline-none focus:border-[#7aaed1]">
+        <select id="finding-filter" value={filter} onChange={(event) => { setFilter(event.target.value as "hallazgos" | Severity); setPage(1); }} className="rounded-md border border-[#dce5ed] bg-white px-2 py-1 text-[9px] font-medium text-[#536d82] outline-none focus:border-[#7aaed1]">
           <option value="hallazgos">Todos</option>
           <option value="mayor">Mayor</option>
           <option value="menor">Menor</option>
@@ -51,7 +57,7 @@ export default function FindingsDiagnosis() {
         </select>
       </div>
       <div className="mt-4 divide-y divide-[#dce5ed]">
-        {visiblePriorities.map((priority) => {
+        {paginatedPriorities.map((priority) => {
           const styles = severityStyles[priority.severity];
           return (
             <article key={priority.rank} className="action grid items-center gap-3 py-4 first:pt-0 last:pb-0 sm:grid-cols-[28px_68px_minmax(140px,1.1fr)_minmax(240px,2.3fr)_74px] sm:items-center sm:gap-4">
@@ -74,6 +80,13 @@ export default function FindingsDiagnosis() {
           );
         })}
       </div>
+      {totalPages > 1 && <div className="mt-4 flex items-center justify-between border-t border-[#dce5ed] pt-3 text-[9px] font-semibold text-[#71869a]">
+        <span>Página {currentPage} de {totalPages}</span>
+        <div className="flex items-center gap-1.5">
+          <button type="button" onClick={() => setPage((pageNumber) => Math.max(1, pageNumber - 1))} disabled={currentPage === 1} className="rounded-md border border-[#dce5ed] bg-white px-2 py-1 text-[#536d82] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Página anterior">Anterior</button>
+          <button type="button" onClick={() => setPage((pageNumber) => Math.min(totalPages, pageNumber + 1))} disabled={currentPage === totalPages} className="rounded-md border border-[#dce5ed] bg-white px-2 py-1 text-[#536d82] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Página siguiente">Siguiente</button>
+        </div>
+      </div>}
       </section>
     </>
   );

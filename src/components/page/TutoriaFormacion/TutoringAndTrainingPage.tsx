@@ -3,33 +3,64 @@ import { useState, type ReactNode } from "react";
 import { BadgeCheck, BookOpen, ChevronLeft, ChevronRight, ClipboardCheck, GraduationCap, Handshake, KeyRound, Monitor, Stethoscope, UserCheck, UserRoundCheck, Users } from "lucide-react";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { sortDescendingByNumber } from "@/lib/sortByPercentage";
+import { useDashboardData } from "@/stores/DashboardDataContext";
 type Step = "accesos" | "modelamientos" | "diagnosticos" | "acompanamientos";
 type Accent = "blue" | "purple" | "orange" | "green" | "teal";
 const data = dashboardDatabase.tutoriaFormacion;
 const fixedTutoringTitles = ["Clase regular", "Remediación", "Refuerzo"];
 const tones: Record<string, string> = { blue: "bg-[#eaf3ff] text-[#1671d3]", purple: "bg-[#f2ecff] text-[#7544f4]", orange: "bg-[#fff3e6] text-[#e77b13]", green: "bg-[#eaf8ef] text-[#168642]", teal: "bg-[#e8f5f3] text-[#087f75]", slate: "bg-[#f1f4f7] text-[#263e54]" };
+const stepDefinitions: Array<{ id: Step; label: string; accent: Accent; isVisible: () => boolean }> = [
+    { id: "accesos", label: "ACCESOS", accent: "blue", isVisible: () => hasPositiveValue(data.accesos) },
+    { id: "modelamientos", label: "MODELAMIENTOS", accent: "purple", isVisible: () => hasPositiveValue(data.modelamientos) },
+    { id: "diagnosticos", label: "DIAGNOSTICOS", accent: "orange", isVisible: () => hasPositiveValue(data.diagnosticos) },
+    { id: "acompanamientos", label: "ACOMPANAMIENTOS", accent: "teal", isVisible: () => hasPositiveValue(data.acompanamientos?.realizados) },
+];
+const stepGridColumns: Record<number, string> = {
+    1: "sm:grid-cols-1 lg:grid-cols-1",
+    2: "sm:grid-cols-2 lg:grid-cols-2",
+    3: "sm:grid-cols-2 lg:grid-cols-3",
+    4: "sm:grid-cols-2 lg:grid-cols-4",
+};
+function hasPositiveValue(value: unknown, visited = new WeakSet<object>()): boolean {
+    if (value == null) return false;
+    if (typeof value === "number") return Number.isFinite(value) && value > 0;
+    if (typeof value === "string") {
+        const numeric = Number(value.replace(/,/g, "").trim());
+        return Number.isFinite(numeric) && numeric > 0;
+    }
+    if (Array.isArray(value)) return value.some((item) => hasPositiveValue(item, visited));
+    if (typeof value !== "object") return false;
+    if (visited.has(value)) return false;
+    visited.add(value);
+    return Object.values(value).some((item) => hasPositiveValue(item, visited));
+}
 const formatQuantity = (value: string | number) => {
     const numeric = Number(String(value).replace(/,/g, ""));
     return Number.isFinite(numeric) ? numeric.toLocaleString("es-SV") : String(value);
 };
 export default function TutoringAndTrainingPage() {
+    useDashboardData();
     const [step, setStep] = useState<Step>("accesos");
+    const visibleSteps = stepDefinitions.filter((definition) => definition.isVisible());
+    const currentStep = visibleSteps.some((definition) => definition.id === step) ? step : visibleSteps[0]?.id;
+    const currentIndex = visibleSteps.findIndex((definition) => definition.id === currentStep);
+    const goToStep = (direction: -1 | 1) => {
+        const nextStep = visibleSteps[currentIndex + direction];
+        if (nextStep) setStep(nextStep.id);
+    };
+    if (!currentStep) return null;
     return <main className="flex-1 bg-[#f5f8fc] text-[#17324a]"><div className="mx-auto w-full max-w-[1200px] px-4 pb-16 pt-6 sm:px-6">
-    <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-xl border border-[#d7e0e8] bg-white p-2 sm:grid-cols-2 lg:grid-cols-4">
-      <StepButton index="01" label="ACCESOS" icon={<KeyRound className="h-4 w-4"/>} active={step === "accesos"} accent="blue" onClick={() => setStep("accesos")}/>
-      <StepButton index="02" label="MODELAMIENTOS" icon={<Monitor className="h-4 w-4"/>} active={step === "modelamientos"} accent="purple" onClick={() => setStep("modelamientos")}/>
-      <StepButton index="03" label="DIAGNÓSTICOS" icon={<Stethoscope className="h-4 w-4"/>} active={step === "diagnosticos"} accent="orange" onClick={() => setStep("diagnosticos")}/>
-      <StepButton index="04" label="ACOMPAÑAMIENTOS" icon={<Handshake className="h-4 w-4"/>} active={step === "acompanamientos"} accent="teal" onClick={() => setStep("acompanamientos")}/>
+    <div className={`grid grid-cols-1 gap-2 overflow-hidden rounded-xl border border-[#d7e0e8] bg-white p-2 ${stepGridColumns[Math.min(visibleSteps.length, 4)] ?? "sm:grid-cols-2 lg:grid-cols-4"}`}>
+      {visibleSteps.map((definition) => <StepButton key={definition.id} label={definition.label} icon={definition.id === "accesos" ? <KeyRound className="h-4 w-4"/> : definition.id === "modelamientos" ? <Monitor className="h-4 w-4"/> : definition.id === "diagnosticos" ? <Stethoscope className="h-4 w-4"/> : <Handshake className="h-4 w-4"/>} active={currentStep === definition.id} accent={definition.accent} onClick={() => setStep(definition.id)}/>)}
     </div>
-    {step === "accesos" && <AccessView onNext={() => setStep("modelamientos")}/>}
-    {step === "modelamientos" && <ModelingView onBack={() => setStep("accesos")} onNext={() => setStep("diagnosticos")}/>}
-    {step === "diagnosticos" && <DiagnosticsView onBack={() => setStep("modelamientos")} onNext={() => setStep("acompanamientos")}/>}
-    {step === "acompanamientos" && <AcompanamientosView onBack={() => setStep("diagnosticos")}/>}
+    {currentStep === "accesos" && <AccessView onNext={() => goToStep(1)}/>}
+    {currentStep === "modelamientos" && <ModelingView onBack={() => goToStep(-1)} onNext={() => goToStep(1)}/>}
+    {currentStep === "diagnosticos" && <DiagnosticsView onBack={() => goToStep(-1)} onNext={() => goToStep(1)}/>}
+    {currentStep === "acompanamientos" && <AcompanamientosView onBack={() => goToStep(-1)}/>}
     <div className="mt-6"><TutoriaVirtual /></div>
   </div></main>;
 }
-function StepButton({ index, label, icon, active, accent, onClick }: {
-    index: string;
+function StepButton({ label, icon, active, accent, onClick }: {
     label: string;
     icon: ReactNode;
     active: boolean;
@@ -37,7 +68,7 @@ function StepButton({ index, label, icon, active, accent, onClick }: {
     onClick: () => void;
 }) {
     return <button type="button" onClick={onClick} className={`relative flex min-h-[58px] items-center gap-3 rounded-lg px-4 text-left ${active ? tones[accent] : "bg-white text-[#6f8497]"}`}>
-    {active && <span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-current"/>}<span className={`flex h-8 w-8 items-center justify-center rounded-lg ${active ? "bg-white/70" : "bg-[#f5f7fa]"}`}>{icon}</span><div><p className="text-[8px] font-semibold opacity-70">{index}</p><p className="mt-1 text-[11px] font-semibold text-[#213a51]">{label}</p></div>{!active && <ChevronRight className="ml-auto h-3 w-3 text-[#d2dce5]"/>}
+    {active && <span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-current"/>}<span className={`flex h-8 w-8 items-center justify-center rounded-lg ${active ? "bg-white/70" : "bg-[#f5f7fa]"}`}>{icon}</span><div><p className="text-[11px] font-semibold text-[#213a51]">{label}</p></div>{!active && <ChevronRight className="ml-auto h-3 w-3 text-[#d2dce5]"/>}
   </button>;
 }
 function AccessView({ onNext }: {
@@ -55,7 +86,7 @@ function AccessView({ onNext }: {
         { label: "DOCENTES", current: access.docentesConAcceso, total: access.docentes, percentage: access.porcentajeDocentes, color: "#168642" },
         { label: "ESTUDIANTES", current: access.estudiantesConAcceso, total: access.estudiantes, percentage: access.porcentajeEstudiantes, color: "#087f75" },
     ], (item) => item.percentage);
-    return <section className="mt-6"><SectionTitle index="01" title="ACCESOS" subtitle="" icon={<KeyRound className="h-4 w-4"/>} accent="blue"/><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{cards.map(({ icon: Icon, ...item }) => <MetricCard key={item.title} icon={<Icon className="h-4 w-4"/>} {...item}/>)}</div><Card className="mt-5"><h3 className="text-[12px] font-semibold">Nivel de acceso</h3><div className="mt-6 grid gap-7 lg:grid-cols-2">{progressItems.map((item) => <Progress key={item.label} {...item}/>)}</div></Card><div className="mt-5 flex justify-end"><Next onClick={onNext}>Ver Modelamientos</Next></div></section>;
+    return <section className="mt-6"><SectionTitle title="ACCESOS" subtitle="" icon={<KeyRound className="h-4 w-4"/>} accent="blue"/><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{cards.map(({ icon: Icon, ...item }) => <MetricCard key={item.title} icon={<Icon className="h-4 w-4"/>} {...item}/>)}</div><Card className="mt-5"><h3 className="text-[12px] font-semibold">Nivel de acceso</h3><div className="mt-6 grid gap-7 lg:grid-cols-2">{progressItems.map((item) => <Progress key={item.label} {...item}/>)}</div></Card><div className="mt-5 flex justify-end"><Next onClick={onNext}>Ver Modelamientos</Next></div></section>;
 }
 function ModelingView({ onBack, onNext }: {
     onBack: () => void;
@@ -74,7 +105,7 @@ function ModelamientosSection({ model: sourceModel }: {
         { title: "Clase regular", value: model.soloClaseRegular.realizados, percentage: Number(model.soloClaseRegular.porcentaje) || 0, color: "blue" as const },
         { title: "Remediación", value: model.soloRemediacion.realizados, percentage: Number(model.soloRemediacion.porcentaje) || 0, color: "orange" as const },
     ], (item) => item.percentage);
-    return <section className="w-full bg-[#f5f8fc] p-1 text-[#17324a]"><div className="w-full"><div className="mb-4 flex items-start gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f2ecff]"><Monitor className="h-4 w-4 text-[#7544f4]"/></div><div><div className="flex items-center gap-2"><span className="text-[9px] font-semibold text-[#7544f4]">02</span><h2 className="text-[18px] font-semibold leading-none text-[#243c52]">MODELAMIENTOS</h2></div></div></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><ModelingMetricCard title="TOTAL DOCENTES" value={model.totalDocentes} subtitle="Docentes considerados" icon={<Users className="h-4 w-4"/>} accent="blue"/><ModelingMetricCard title="META MODELAMIENTOS" value={model.meta.total} subtitle="Meta establecida" icon={<BookOpen className="h-4 w-4"/>} accent="green"/><ModelingMetricCard title="MODELAMIENTOS REALIZADOS" value={model.meta.realizados} subtitle="Total acumulado del período" icon={<Monitor className="h-4 w-4"/>} accent="purple"/></div><div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">{distributionCards.map((item) => <ModelingDistributionCard key={item.title} {...item}/>)}</div><div className="mt-3 rounded-[10px] border border-[#d9e1e8] bg-white px-5 py-4"><div className="flex items-start justify-between"><div><h3 className="text-[10px] font-semibold text-[#29445a]">Meta de modelamientos</h3><p className="mt-1 text-[7px] text-[#8da1b5]">Avance respecto a la meta establecida</p></div><div className="text-right"><p className="text-[22px] font-semibold leading-none text-[#7544f4]">{model.meta.realizados} <span className="text-[11px] font-normal text-[#91a2b5]">/ {model.meta.total}</span></p><p className="mt-2 text-[7px] text-[#8da1b5]">{model.meta.porcentaje}% de la meta</p></div></div><div className="mt-4 h-[10px] overflow-hidden rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-[#7544f4]" style={{ width: `${model.meta.porcentaje}%` }}/></div></div></div></section>;
+    return <section className="w-full bg-[#f5f8fc] p-1 text-[#17324a]"><div className="w-full"><div className="mb-4 flex items-start gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f2ecff]"><Monitor className="h-4 w-4 text-[#7544f4]"/></div><div><div className="flex items-center gap-2"><h2 className="text-[18px] font-semibold leading-none text-[#243c52]">MODELAMIENTOS</h2></div></div></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><ModelingMetricCard title="TOTAL DOCENTES" value={model.totalDocentes} subtitle="Docentes considerados" icon={<Users className="h-4 w-4"/>} accent="blue"/><ModelingMetricCard title="META MODELAMIENTOS" value={model.meta.total} subtitle="Meta establecida" icon={<BookOpen className="h-4 w-4"/>} accent="green"/><ModelingMetricCard title="MODELAMIENTOS REALIZADOS" value={model.meta.realizados} subtitle="Total acumulado del período" icon={<Monitor className="h-4 w-4"/>} accent="purple"/></div><div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">{distributionCards.map((item) => <ModelingDistributionCard key={item.title} {...item}/>)}</div><div className="mt-3 rounded-[10px] border border-[#d9e1e8] bg-white px-5 py-4"><div className="flex items-start justify-between"><div><h3 className="text-[10px] font-semibold text-[#29445a]">Meta de modelamientos</h3><p className="mt-1 text-[7px] text-[#8da1b5]">Avance respecto a la meta establecida</p></div><div className="text-right"><p className="text-[22px] font-semibold leading-none text-[#7544f4]">{model.meta.realizados} <span className="text-[11px] font-normal text-[#91a2b5]">/ {model.meta.total}</span></p><p className="mt-2 text-[7px] text-[#8da1b5]">{model.meta.porcentaje}% de la meta</p></div></div><div className="mt-4 h-[10px] overflow-hidden rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-[#7544f4]" style={{ width: `${model.meta.porcentaje}%` }}/></div></div></div></section>;
 }
 function ModelingMetricCard({ title, value, subtitle, icon, accent, tinted = false }: {
     title: string;
@@ -108,7 +139,7 @@ type DiagnosticData = typeof data.diagnosticos;
 function DiagnosticoSection({ diagnostic, pending }: {
     diagnostic: DiagnosticData;
     pending: string;
-}) { return <section className="w-full bg-[#f5f8fc] p-1 text-[#17324a]"><div className="mb-4 flex items-start gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fff1e8]"><ClipboardCheck className="h-4 w-4 text-[#f05b0b]"/></div><div><div className="flex items-center gap-2"><span className="text-[9px] font-semibold text-[#f05b0b]">03</span><h2 className="text-[18px] font-semibold leading-none text-[#243c52]">DIAGNÓSTICOS</h2></div></div></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><DiagnosticMetricCard title="DOCENTES CONSIDERADOS" value={diagnostic.totalDocentes} subtitle="Universo de diagnóstico" icon={<Users className="h-4 w-4"/>} type="blue"/><DiagnosticMetricCard title="DIAGNÓSTICOS REALIZADOS" value={diagnostic.docentesDiagnosticados} subtitle="Acumulado a la fecha" icon={<ClipboardCheck className="h-4 w-4"/>} type="orange"/><DiagnosticMetricCard title="PENDIENTES" value={pending} subtitle="Para completar la meta" icon={<Users className="h-4 w-4"/>} type="red"/></div><div className="mt-4 rounded-[10px] border border-[#d9e1e8] bg-white px-5 py-5"><div className="flex items-start justify-between"><div><h3 className="text-[10px] font-semibold text-[#29445a]">Avance del diagnóstico</h3><p className="mt-1 text-[7px] text-[#8fa1b5]">Diagnósticos realizados respecto al universo definido</p></div><div className="text-right"><p className="text-[22px] font-semibold leading-none text-[#f05b0b]">{diagnostic.porcentaje}%</p><p className="mt-2 text-[7px] text-[#8fa1b5]">{diagnostic.docentesDiagnosticados} de {diagnostic.totalDocentes}</p></div></div><div className="mt-4 h-[10px] overflow-hidden rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-[#f05b0b]" style={{ width: `${diagnostic.porcentaje}%` }}/></div></div></section>; }
+}) { return <section className="w-full bg-[#f5f8fc] p-1 text-[#17324a]"><div className="mb-4 flex items-start gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fff1e8]"><ClipboardCheck className="h-4 w-4 text-[#f05b0b]"/></div><div><div className="flex items-center gap-2"><h2 className="text-[18px] font-semibold leading-none text-[#243c52]">DIAGNÓSTICOS</h2></div></div></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><DiagnosticMetricCard title="DOCENTES CONSIDERADOS" value={diagnostic.totalDocentes} subtitle="Universo de diagnóstico" icon={<Users className="h-4 w-4"/>} type="blue"/><DiagnosticMetricCard title="DIAGNÓSTICOS REALIZADOS" value={diagnostic.docentesDiagnosticados} subtitle="Acumulado a la fecha" icon={<ClipboardCheck className="h-4 w-4"/>} type="orange"/><DiagnosticMetricCard title="PENDIENTES" value={pending} subtitle="Para completar la meta" icon={<Users className="h-4 w-4"/>} type="red"/></div><div className="mt-4 rounded-[10px] border border-[#d9e1e8] bg-white px-5 py-5"><div className="flex items-start justify-between"><div><h3 className="text-[10px] font-semibold text-[#29445a]">Avance del diagnóstico</h3><p className="mt-1 text-[7px] text-[#8fa1b5]">Diagnósticos realizados respecto al universo definido</p></div><div className="text-right"><p className="text-[22px] font-semibold leading-none text-[#f05b0b]">{diagnostic.porcentaje}%</p><p className="mt-2 text-[7px] text-[#8fa1b5]">{diagnostic.docentesDiagnosticados} de {diagnostic.totalDocentes}</p></div></div><div className="mt-4 h-[10px] overflow-hidden rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-[#f05b0b]" style={{ width: `${diagnostic.porcentaje}%` }}/></div></div></section>; }
 function DiagnosticMetricCard({ title, value, subtitle, icon, type }: {
     title: string;
     value: string;
@@ -141,7 +172,7 @@ function AcompanamientosView({ onBack }: {
 }) {
     const rawAcompanamientos = data.acompanamientos ?? { realizados: "0", estado: "Seguimiento" };
     const acompanamientos = { ...rawAcompanamientos, realizados: formatQuantity(String(rawAcompanamientos.realizados)) };
-    return <section className="mt-6"><SectionTitle index="04" title="ACOMPAÑAMIENTOS" subtitle="" icon={<Handshake className="h-4 w-4"/>} accent="teal"/><div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr]"><div className="rounded-xl border border-[#b9ddd7] bg-white px-5 py-4"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-4"><div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eef8f6]"><Handshake className="h-4 w-4 text-[#0b7a75]"/></div><div><p className="text-[10px] font-semibold uppercase tracking-[.06em] text-[#91a2b5]">ACOMPAÑAMIENTOS REALIZADOS</p><p className="mt-1 text-[10px] text-[#9aacbf]">Acumulado a la fecha</p></div></div><p className="pr-2 text-right text-[44px] font-medium leading-none text-[#0b7a75]">{acompanamientos.realizados}</p></div></div><div className="rounded-xl border border-[#b9ddd7] bg-white px-5 py-4"><div className="flex items-start gap-4"><div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eef8f6]"><BadgeCheck className="h-4 w-4 text-[#198754]"/></div><div><p className="text-[10px] font-semibold uppercase tracking-[.06em] text-[#91a2b5]">ESTADO</p><p className="mt-5 text-[18px] font-semibold text-[#17324a]">{acompanamientos.estado}</p><p className="mt-2 text-[10px] text-[#9aacbf]">Indicador acumulado del proceso</p></div></div></div></div><div className="mt-5"><Back onClick={onBack}>Diagnósticos</Back></div></section>;
+    return <section className="mt-6"><SectionTitle title="ACOMPAÑAMIENTOS" subtitle="" icon={<Handshake className="h-4 w-4"/>} accent="teal"/><div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr]"><div className="rounded-xl border border-[#b9ddd7] bg-white px-5 py-4"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-4"><div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eef8f6]"><Handshake className="h-4 w-4 text-[#0b7a75]"/></div><div><p className="text-[10px] font-semibold uppercase tracking-[.06em] text-[#91a2b5]">ACOMPAÑAMIENTOS REALIZADOS</p><p className="mt-1 text-[10px] text-[#9aacbf]">Acumulado a la fecha</p></div></div><p className="pr-2 text-right text-[44px] font-medium leading-none text-[#0b7a75]">{acompanamientos.realizados}</p></div></div><div className="rounded-xl border border-[#b9ddd7] bg-white px-5 py-4"><div className="flex items-start gap-4"><div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#eef8f6]"><BadgeCheck className="h-4 w-4 text-[#198754]"/></div><div><p className="text-[10px] font-semibold uppercase tracking-[.06em] text-[#91a2b5]">ESTADO</p><p className="mt-5 text-[18px] font-semibold text-[#17324a]">{acompanamientos.estado}</p><p className="mt-2 text-[10px] text-[#9aacbf]">Indicador acumulado del proceso</p></div></div></div></div><div className="mt-5"><Back onClick={onBack}>Diagnósticos</Back></div></section>;
 }
 function MetricCard({ title, value, subtitle, badge, tone, icon }: {
     title: string;
@@ -158,13 +189,12 @@ function Progress({ label, current, total, percentage, color }: {
     percentage: number;
     color: string;
 }) { return <div className="mt-5"><div className="flex items-end justify-between"><div><p className="text-[9px] font-semibold text-[#8398b2]">{label}</p><p className="mt-2 text-[15px] font-semibold">{formatQuantity(current)} <span className="font-normal text-[#9aaac0]">de {formatQuantity(total)}</span></p></div><strong className="text-[24px]" style={{ color }}>{percentage}%</strong></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-[#edf1f5]"><div className="h-full rounded-full" style={{ width: `${percentage}%`, backgroundColor: color }}/></div></div>; }
-function SectionTitle({ index, title, subtitle, icon, accent }: {
-    index: string;
+function SectionTitle({ title, subtitle, icon, accent }: {
     title: string;
     subtitle: string;
     icon: ReactNode;
     accent: Accent;
-}) { return <div className="flex items-center gap-3"><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tones[accent]}`}>{icon}</span><div><div className="flex items-center gap-2"><span className={`text-[9px] font-semibold ${tones[accent].split(" ")[1]}`}>{index}</span><h2 className="text-[17px] font-semibold">{title}</h2></div><p className="mt-1 text-[10px] text-[#8ca0ba]">{subtitle}</p></div></div>; }
+}) { return <div className="flex items-center gap-3"><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tones[accent]}`}>{icon}</span><div><h2 className="text-[17px] font-semibold">{title}</h2><p className="mt-1 text-[10px] text-[#8ca0ba]">{subtitle}</p></div></div>; }
 function Card({ children, className = "" }: {
     children: ReactNode;
     className?: string;
