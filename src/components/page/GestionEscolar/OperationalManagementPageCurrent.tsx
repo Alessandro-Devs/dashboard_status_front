@@ -132,8 +132,8 @@ function resolveObservationSummary(blocks: BlockData[]) {
 export default function OperationalManagementPageCurrent() {
     useDashboardData();
     const [mainTab, setMainTab] = useState<MainTab>("observaciones");
-    const operationalData = dashboardDatabase.gestionEscolar.gestionOperativa as {
-        formacion: {
+    const operationalData = (dashboardDatabase.gestionEscolar?.gestionOperativa ?? {}) as {
+        formacion?: {
             participantes: string;
             secciones: string;
             grupos: FormationGroup[];

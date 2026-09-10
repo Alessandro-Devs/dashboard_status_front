@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { dashboardSections, getAvailableDashboardSections, type DashboardSection } from "@/lib/dashboardSections";
 import { apiFetch } from "@/services/api";
@@ -100,10 +101,16 @@ function synchronize(target: unknown, source: unknown): unknown {
 
 export function DashboardDataProvider({ children }: { children: ReactNode }) {
   const { startDate, endDate, setPeriod } = useAuditFilters();
+  const pathname = usePathname();
   const [state, setState] = useState<DashboardDataState>({ hasData: false, snapshotDate: null, resolvedDate: null, error: null });
   const resolvedDateRef = useRef<string | null>(null);
+  const pathnameRef = useRef(pathname);
 
   useEffect(() => {
+    if (pathnameRef.current !== pathname) {
+      pathnameRef.current = pathname;
+      resolvedDateRef.current = "__route_changed__";
+    }
     if (startDate !== endDate) {
       return;
     }
@@ -111,7 +118,8 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const isInitialLoad = resolvedDateRef.current === null;
+    const hasLoadedDashboard = typeof window !== "undefined" && window.sessionStorage.getItem("dashboard:has-loaded") === "true";
+    const isInitialLoad = resolvedDateRef.current === null && !hasLoadedDashboard;
     const path = isInitialLoad ? "/dashboard" : `/dashboard?date=${encodeURIComponent(endDate)}`;
     let active = true;
     let showingCachedData = false;
@@ -142,6 +150,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
         const resolvedDate = response.snapshot.date;
         cacheDashboard(response, isInitialLoad);
         synchronize(dashboardDatabase, response.data);
+        if (typeof window !== "undefined") window.sessionStorage.setItem("dashboard:has-loaded", "true");
         resolvedDateRef.current = resolvedDate;
         setState({ hasData: true, snapshotDate: resolvedDate, resolvedDate, error: null });
         if (isInitialLoad && resolvedDate !== endDate) {
@@ -160,7 +169,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       active = false;
       controller.abort();
     };
-  }, [startDate, endDate, setPeriod]);
+  }, [startDate, endDate, pathname, setPeriod]);
 
   const value = useMemo(() => {
     const isCurrentDate = startDate === endDate && state.resolvedDate === endDate;

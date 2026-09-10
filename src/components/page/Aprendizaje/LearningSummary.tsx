@@ -5,8 +5,8 @@ import type { LearningLine } from "./learningData";
 import learningTemplate from "./learningProgressTemplate.json";
 
 export type LearningProgressSummary = { title: string; value: number; description: string };
-export type LearningProgressLine = { name: string; contenido?: string; claseProducida?: number; items: Array<{ label: string; value: number; classes: string }> };
-export type LearningProgressNote = { title: string; description: string };
+export type LearningProgressLine = { name: string; trimestre?: string; contenido?: string; claseProducida?: number | string; items: Array<{ label: string; value: number; classes: string }> };
+export type LearningProgressNote = { aplicativo?: string; title: string; description: string };
 export type LearningProgressData = {
   resumenAvance?: LearningProgressSummary[];
   lineasAplicativo?: LearningProgressLine[];
@@ -18,6 +18,7 @@ const colorForIndex = (index: number) => ["text-[#126fd0] bg-[#eaf3ff]", "text-[
 const textColorForIndex = (index: number) => ["text-[#126fd0]", "text-[#16863f]", "text-[#e77b13]"][index % 3];
 const lastClassValue = (value: string) => value.split(/\s+de\s+|-|\//i).at(-1)?.trim() ?? value;
 const readNumber = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : null);
+const hasText = (value: unknown) => typeof value === "string" && value.trim().length > 0;
 
 export default function LearningSummary({ lines }: { lines: LearningLine[] }) {
   const maxClass = lines.length ? Math.max(...lines.map((item) => item.estatus.hastaClase)) : 0;
@@ -35,7 +36,9 @@ export default function LearningSummary({ lines }: { lines: LearningLine[] }) {
 }
 
 export function LearningProgressSummaryCards({ data = defaultProgressData }: { data?: LearningProgressData }) {
-  return <div className="mt-5 grid gap-4 md:grid-cols-3">{(data.resumenAvance ?? []).map((item, index) => {
+  const items = (data.resumenAvance ?? []).filter((item) => hasText(item.title) && readNumber(item.value) !== null && hasText(item.description));
+  if (!items.length) return null;
+  return <div className="mt-5 grid gap-4 md:grid-cols-3">{items.map((item, index) => {
     const colors = colorForIndex(index);
     return <article key={item.title} className="min-h-[118px] rounded-lg border bg-white p-4">
       <div className="flex items-center gap-3"><span className={`flex h-7 w-7 items-center justify-center rounded-md ${colors}`}><BookOpenCheck className="h-4 w-4"/></span><span className="text-[9px] font-semibold uppercase text-[#587086]">{item.title}</span></div>
@@ -46,14 +49,16 @@ export function LearningProgressSummaryCards({ data = defaultProgressData }: { d
 }
 
 export function LearningProgressLineCards({ data = defaultProgressData }: { data?: LearningProgressData }) {
-  return <div className="mt-5 grid gap-4 lg:grid-cols-3">{(data.lineasAplicativo ?? []).map((line) => <article key={line.name} className="rounded-lg border bg-white p-4">
+  const lines = (data.lineasAplicativo ?? []).map((line) => ({ ...line, items: (line.items ?? []).filter((item) => hasText(item.label) && readNumber(item.value) !== null && hasText(item.classes)) })).filter((line) => hasText(line.name) && line.items.length > 0);
+  if (!lines.length) return null;
+  return <div className="mt-5 grid gap-4 lg:grid-cols-3">{lines.map((line, index) => <article key={`${line.name}-${index}`} className="rounded-lg border bg-white p-4">
     <div className="flex items-end justify-between gap-3">
       <div>
-        <h3 className="text-[14px] font-semibold text-[#17324a]">{line.name}</h3>
+        <h3 className="text-[14px] font-semibold text-[#17324a]">{line.trimestre ? `${line.name} - ${line.trimestre}` : line.name}</h3>
         <p className="mt-1 text-[9px] font-semibold uppercase text-[#587086]">{line.contenido || "-"}</p>
       </div>
       <div className="flex shrink-0 flex-col items-center">
-        <div className="flex h-8 min-w-10 items-center justify-center rounded-md bg-[#eaf3ff] px-2 text-[14px] font-semibold text-[#126fd0]">{line.claseProducida ?? 97}</div>
+        <div className="flex h-8 min-w-10 items-center justify-center rounded-md bg-[#eaf3ff] px-2 text-[14px] font-semibold text-[#126fd0]">{line.claseProducida ?? "-"}</div>
         <p className="mt-1 text-[8px] font-semibold uppercase tracking-wide text-[#8295a8]">Producido</p>
       </div>
     </div>
@@ -69,17 +74,22 @@ export function LearningProgressLineCards({ data = defaultProgressData }: { data
 }
 
 export function LearningProgressNotes({ data = defaultProgressData }: { data?: LearningProgressData }) {
-  return <div className="mt-5 grid gap-4 md:grid-cols-3">{(data.barreras ?? []).map((item) => <article key={item.title} className="rounded-lg border border-[#e1e8ef] bg-white p-4">
-    <div className="flex items-start gap-3"><span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#fff3e6] text-[#e77b13]"><AlertTriangle className="h-4 w-4"/></span><div><h3 className="text-[12px] font-semibold text-[#29445b]">{item.title}</h3><p className="mt-2 text-[9px] leading-5 text-[#71869a]">{item.description}</p></div></div>
-  </article>)}</div>;
+  const applications = ["IHFB", "Kira", "xAI"].map((application) => ({ application, items: (data.barreras ?? []).filter((item) => item.aplicativo?.trim().toLowerCase() === application.toLowerCase() && hasText(item.description)) })).filter(({ items }) => items.length > 0);
+  if (!applications.length) return null;
+  return <div className="mt-5 grid gap-6 md:grid-cols-3">{applications.map(({ application, items }) => <div key={application}>
+    <div className="mt-3 space-y-3">{items.map((item, index) => <article key={`${application}-${index}`} className="rounded-md border border-[#e1e8ef] bg-white p-3">
+      <div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#e77b13]"/><div><h4 className="text-[10px] font-semibold text-[#29445b]">{item.title || "Barrera"}</h4><p className="mt-1 text-[9px] leading-5 text-[#71869a]">{item.description}</p></div></div>
+    </article>)}</div>
+  </div>)}</div>;
 }
 
 export function hasLearningProgressData(value: unknown): value is LearningProgressData {
   if (typeof value !== "object" || value === null) return false;
 
   const data = value as LearningProgressData;
-  const hasSummary = data.resumenAvance?.some((item) => (readNumber(item.value) ?? 0) > 0) ?? false;
-  const hasLines = data.lineasAplicativo?.some((line) => line.items.some((item) => (readNumber(item.value) ?? 0) > 0)) ?? false;
+  const hasSummary = data.resumenAvance?.some((item) => hasText(item.title) && readNumber(item.value) !== null && hasText(item.description)) ?? false;
+  const hasLines = data.lineasAplicativo?.some((line) => hasText(line.name) && line.items.some((item) => hasText(item.label) && readNumber(item.value) !== null && hasText(item.classes))) ?? false;
+  const hasBarriers = data.barreras?.some((item) => (hasText(item.aplicativo) || hasText(item.title)) && hasText(item.description)) ?? false;
 
-  return hasSummary || hasLines;
+  return hasSummary || hasLines || hasBarriers;
 }

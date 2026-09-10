@@ -50,7 +50,7 @@ const fallbackData: JsonValue = {
     meta: { total: "0", realizados: "0", porcentaje: 0 },
   },
   diagnosticos: { docentesDiagnosticados: "0", totalDocentes: "0", porcentaje: 0 },
-  acompanamientos: { realizados: "0", estado: "En seguimiento" },
+  acompanamientos: { realizados: "0", estado: "Seguimiento" },
   tutoriaVirtual: [],
 };
 
@@ -134,6 +134,9 @@ const normalizeShape = (value: JsonValue): JsonValue => {
     };
   }
   normalized.diagnosticos = withDerivedPercentage(normalized.diagnosticos, "docentesDiagnosticados", "totalDocentes");
+  normalized.acompanamientos = object(normalized.acompanamientos)
+    ? { ...normalized.acompanamientos, estado: "Seguimiento" }
+    : { realizados: "0", estado: "Seguimiento" };
   const groups = Array.isArray(normalized.tutoriaVirtual) ? normalized.tutoriaVirtual : [];
   normalized.tutoriaVirtual = fixedTutoringTitles.map((title, index) => {
     const current = object(groups[index]) ? groups[index] : {};
@@ -167,7 +170,7 @@ function ArrayField({ fieldKey, label, value, onChange }: { fieldKey: string; la
 
 function JsonField({ fieldKey, label, value, onChange, root = false, readOnlyTitle = false }: { fieldKey: string; label: string; value: JsonValue; onChange: (value: JsonValue) => void; root?: boolean; readOnlyTitle?: boolean }) {
   if (Array.isArray(value)) return <ArrayField fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
-  if (!object(value)) return <Primitive label={label} value={value} onChange={onChange} readOnly={/porcentaje|percentage/i.test(fieldKey) || (readOnlyTitle && ["title", "accent"].includes(fieldKey))}/>;
+  if (!object(value)) return <Primitive label={label} value={value} onChange={onChange} readOnly={/porcentaje|percentage|^estado$/i.test(fieldKey) || (readOnlyTitle && ["title", "accent"].includes(fieldKey))}/>;
 
   const entries: [string, JsonValue][] = root && fieldKey === "tutoriaVirtual"
     ? ["title", "accent", "rows"].filter((key) => key in value).map((key) => [key, value[key]])
