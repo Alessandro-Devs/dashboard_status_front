@@ -6,16 +6,24 @@ import BarreraAplicacionCard from "./BarreraAplicacionCard";
 import BlockDetailModal from "./BlockDetailModal";
 import TestCard from "./TestCard";
 import { hasBlockDetail, type TestType } from "./evaluationData";
+import { hasCmlResults, hasProgressResults } from "./EvaluationProgressFiltered";
 import { getEvaluacion, tieneNumero, tieneTexto, type PruebaEvaluacion } from "./evaluationViewData";
+const hasMetricValue = (value: unknown) => {
+    if (tieneNumero(value)) return value > 0;
+    if (!tieneTexto(value)) return false;
+    const numeric = Number(value.replace(/,/g, ""));
+    return Number.isFinite(numeric) ? numeric > 0 : false;
+};
 const hasMetricData = (metric?: PruebaEvaluacion["centrosEscolares"]) => Boolean(metric && (
     (tieneNumero(metric.porcentaje) && metric.porcentaje > 0) ||
-    [metric.aplicados, metric.pendientes, metric.universo].some(tieneTexto)
+    [metric.aplicados, metric.pendientes, metric.universo].some(hasMetricValue)
 ));
 export default function EvaluationPage() {
     const [selected, setSelected] = useState<TestType | null>(null);
     const evaluacion = getEvaluacion();
     const pruebas = evaluacion.pruebas ?? {};
     const orderedIds: TestType[] = ["cml", "progreso", "fundamentos"];
+    const tieneResultados = hasCmlResults() || hasProgressResults();
     const tarjetas = orderedIds.flatMap((id) => {
         const prueba = pruebas[id];
         const tieneResumen = hasMetricData(prueba?.centrosEscolares) || hasMetricData(prueba?.matricula);
@@ -25,10 +33,10 @@ export default function EvaluationPage() {
     <div className="mx-auto max-w-[1020px] px-4 pb-16 pt-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold tracking-[.04em]">SEGUIMIENTO DE APLICACION</h2>
-        <Link href="/evaluacion/progreso" className="flex h-[30px] items-center gap-2 rounded-md border border-[#b8d2ee] bg-white px-3 text-[8px] text-[#176fc8]">
+        {tieneResultados && <Link href="/evaluacion/progreso" className="flex h-[30px] items-center gap-2 rounded-md border border-[#b8d2ee] bg-white px-3 text-[8px] text-[#176fc8]">
           Resultados
           <ChevronRight className="h-3 w-3"/>
-        </Link>
+        </Link>}
       </div>
       <div className="mt-5 space-y-4">
         {tarjetas.length === 0 && <article className="rounded-lg border border-dashed border-[#cbd6e0] bg-white px-5 py-8 text-center"><p className="text-[12px] font-semibold text-[#526a80]">Sin registros de aplicacion</p><p className="mt-2 text-[10px] text-[#8b9daf]">No hay datos disponibles para las pruebas del periodo seleccionado.</p></article>}

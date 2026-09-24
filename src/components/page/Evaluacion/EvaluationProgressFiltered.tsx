@@ -14,11 +14,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function hasLevelData(row: Record<string, unknown>) {
     return numberValue(row.universo) > 0 || [1, 2, 3, 4, 5].some((level) => numberValue(row[`nivel${level}data`]) > 0 || numberValue(row[`nivel${level}percent`]) > 0);
 }
-function hasCmlResults() {
+export function hasCmlResults() {
     const distributions = getEvaluacion().distribucionPorBloqueMateriaNiveles ?? {};
     return Object.values(distributions).some((rows) => Array.isArray(rows) && rows.some((row) => isRecord(row) && hasLevelData(row)));
 }
-function hasProgressResults() {
+export function hasProgressResults() {
     const source = getEvaluacion().resultadosPorMes;
     if (!isRecord(source)) return false;
     return Object.values(source).some((rows) => Array.isArray(rows) && rows.some((row) => {
