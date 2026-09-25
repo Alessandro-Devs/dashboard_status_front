@@ -202,9 +202,9 @@ function Metric({
       {subtitle ? <p className="mt-2 text-[5px] text-[#8193a5]">{subtitle}</p> : null}
       {details && details.length > 0 ? (
         <div className="mt-3 flex flex-row flex-wrap gap-2 text-[5.5px]">
-          {details.map((item) => (
+          {details.map((item, index) => (
             <div
-              key={`${label}-${item.label}`}
+              key={`${label}-${item.label}-${index}`}
               className="flex w-[calc(50%-4px)] min-w-0 items-center justify-between gap-2 rounded bg-[#f7fafd] px-2 py-1"
             >
               <span className="block truncate uppercase tracking-[0.04em] text-[#74879a]">{item.label}</span>
@@ -258,8 +258,10 @@ function EmptyDetailState({ mode }: { mode: DetailMode }) {
 function ChartCard({ data }: { data: BlockItem[] }) {
   const chartData = data.map((item) => ({
     block: item.block,
-    applied: item.applied,
-    pending: item.pending,
+    applied: item.universe ? (item.applied / item.universe) * 100 : 0,
+    pending: item.universe ? (item.pending / item.universe) * 100 : 0,
+    appliedRaw: item.applied,
+    pendingRaw: item.pending,
   }));
 
   return (
@@ -297,7 +299,8 @@ function ChartCard({ data }: { data: BlockItem[] }) {
               axisLine={false}
               tickLine={false}
               width={40}
-              tickFormatter={formatShort}
+              domain={[0, 100]}
+              tickFormatter={(value) => `${value}%`}
               tick={{ fill: "#6f8294", fontSize: 10 }}
             />
             <Tooltip content={<ChartTooltip />} />
@@ -325,11 +328,23 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 
 type ChartPayloadEntry = { dataKey?: string | number; value?: number | string };
 
-function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: ChartPayloadEntry[]; label?: string | number }) {
+type ChartDatum = {
+  block: string;
+  applied: number;
+  pending: number;
+  appliedRaw: number;
+  pendingRaw: number;
+};
+
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<ChartPayloadEntry & { payload?: ChartDatum }>; label?: string | number }) {
   if (!active || !payload?.length) return null;
 
-  const applied = payload.find((entry) => entry.dataKey === "applied")?.value;
-  const pending = payload.find((entry) => entry.dataKey === "pending")?.value;
+  const appliedEntry = payload.find((entry) => entry.dataKey === "applied");
+  const pendingEntry = payload.find((entry) => entry.dataKey === "pending");
+  const applied = appliedEntry?.payload?.appliedRaw;
+  const pending = pendingEntry?.payload?.pendingRaw;
+  const appliedPercentage = appliedEntry?.value;
+  const pendingPercentage = pendingEntry?.value;
 
   return (
     <div className="rounded-md border border-[#dce3ea] bg-white px-3 py-2 text-[10px] shadow-[0_10px_24px_rgba(15,35,55,.12)]">
@@ -337,11 +352,11 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
       <div className="mt-2 space-y-1">
         <p className="flex items-center justify-between gap-4">
           <span className="text-[#5f7488]">Aplicados</span>
-          <strong className="text-[#16a34a]">{formatLabelValue(applied)}</strong>
+          <strong className="text-[#16a34a]">{formatLabelValue(applied)} · {formatPercentage(appliedPercentage)}%</strong>
         </p>
         <p className="flex items-center justify-between gap-4">
           <span className="text-[#5f7488]">Pendientes</span>
-          <strong className="text-[#ef5b5b]">{formatLabelValue(pending)}</strong>
+          <strong className="text-[#ef5b5b]">{formatLabelValue(pending)} · {formatPercentage(pendingPercentage)}%</strong>
         </p>
       </div>
     </div>
@@ -378,7 +393,7 @@ function BarValueLabel({
       fontSize={11}
       fontWeight={600}
     >
-      {formatShort(numeroEvaluacion(value))}
+      {formatPercentage(numeroEvaluacion(value))}%
     </text>
   );
 }
@@ -387,15 +402,14 @@ function format(value: number) {
   return formatoMiles(value);
 }
 
-function formatShort(value: number) {
-  return new Intl.NumberFormat("es-SV", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
 function formatLabelValue(value: unknown) {
   return formatoMiles(value);
+}
+
+function formatPercentage(value: unknown) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "0";
+  return new Intl.NumberFormat("es-SV", { maximumFractionDigits: 1 }).format(number);
 }
 
 function getBlockRangeTitle(data: BlockItem[]) {
