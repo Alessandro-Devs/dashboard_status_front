@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import EvaluationComparisonByBlockLevels from "./EvaluationComparisonByBlockLevels";
-import EvaluationProgressMonthlyBars from "./EvaluationProgressMonthlyBars";
+import EvaluationProgressHeatmap from "./EvaluationProgressHeatmap";
 import { getEvaluacion } from "./evaluationViewData";
 type EvaluationFilter = "cml" | "progreso";
 const numberValue = (value: unknown) => {
@@ -50,7 +50,7 @@ export default function EvaluationProgressFiltered({ activeFilter, onChange }: {
     </div>
     <div className="mt-4">
       {availableFilters.length === 0 && <article className="rounded-lg border border-dashed border-[#cbd6e0] bg-white px-5 py-8 text-center"><p className="text-[12px] font-semibold text-[#526a80]">Sin resultados</p><p className="mt-2 text-[10px] text-[#8b9daf]">No hay resultados disponibles para este periodo.</p></article>}
-      {availableFilters.length > 0 && (visibleFilter === "cml" ? <EvaluationComparisonByBlockLevels /> : <EvaluationProgressMonthlyBars />)}
+      {availableFilters.length > 0 && (visibleFilter === "cml" ? <EvaluationComparisonByBlockLevels /> : <EvaluationProgressHeatmap />)}
     </div>
   </section>;
 }
