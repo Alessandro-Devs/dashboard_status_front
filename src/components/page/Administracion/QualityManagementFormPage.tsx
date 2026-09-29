@@ -5,6 +5,8 @@ import { ArrowLeft, ChevronDown, Plus, ShieldCheck, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { apiFetch } from "@/services/api";
+import { qualityHtmlExample } from "@/components/page/GestionCalidad/qualityHtmlExample";
+import HtmlCodeEditor from "./HtmlCodeEditor";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -25,6 +27,7 @@ const fallbackQualityData: JsonValue = {
   cumplimientoPorGrupo: [],
   cumplimientoPorProceso: [],
   hallazgosCriticos: [],
+  codigoHtml: qualityHtmlExample,
 };
 const coverageGroupDefaults = [
   { grupo: "G1 F3", ronda: 3 }, { grupo: "G2 F2", ronda: 2 }, { grupo: "G3 F1", ronda: 1 },
@@ -72,9 +75,10 @@ const labels: Record<string, string> = {
   action: "Acción",
   leaderAction: "Acción del líder",
   count: "Cantidad",
+  codigoHtml: "Detalles de hallazgos",
 };
 
-const humanize = (key: string) => labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
+const humanize = (key: string) => key === "hallazgosCriticos" ? "Detalles de hallazgos" : labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
 const examplePlaceholder = (label: string, numeric: boolean) => {
   if (numeric) return `Ej. ${label === "Ronda" ? "3" : ["Porcentaje", "Cobertura", "Cumplimiento"].some((item) => label.includes(item)) ? "85" : "100"}`;
   if (/^T/.test(label)) return "Bajo consumo de clases de Remediación";
@@ -95,8 +99,9 @@ const examplePlaceholder = (label: string, numeric: boolean) => {
   };
   return `Ej. ${examples[label] ?? humanize(label)}`;
 };
-const sectionOrder = ["kpis", "coberturaPorGrupo", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "hallazgosCriticos"];
+const sectionOrder = ["kpis", "coberturaPorGrupo", "auditadosPorGrupo", "cumplimientoPorGrupo", "cumplimientoPorProceso", "codigoHtml"];
 const sectionDescriptions: Record<string, string> = {
+  codigoHtml: "Personaliza el contenido que se mostrará para esta fecha.",
   kpis: "Todos los bloques · indicadores principales del módulo.",
   auditadosPorGrupo: "Auditados respecto al universo de cada grupo.",
   cumplimientoPorGrupo: "Porcentaje promedio de cumplimiento.",
@@ -112,11 +117,15 @@ const orderedObjectEntries = (value: { [key: string]: JsonValue }, fieldKey: str
 };
 const orderedEntries = (value: { [key: string]: JsonValue }) => [
   ...sectionOrder.filter((key) => key in value).map((key) => [key, value[key]] as [string, JsonValue]),
-  ...Object.entries(value).filter(([key]) => !sectionOrder.includes(key)),
+  ...Object.entries(value).filter(([key]) => !sectionOrder.includes(key) && key !== "hallazgosCriticos"),
 ];
 const withFindingTitleDefaults = (value: JsonValue): JsonValue => {
   if (!object(value) || !Array.isArray(value.hallazgosCriticos)) return value;
   return { ...value, hallazgosCriticos: [{ severity: "", leader: "", component: "", finding: "", action: "", leaderAction: "", impact: "", count: "" }] };
+};
+const withCodeDefault = (value: JsonValue): JsonValue => {
+  if (!object(value) || typeof value.codigoHtml === "string") return value;
+  return { ...value, codigoHtml: qualityHtmlExample };
 };
 const templateFor = (fieldKey: string, current?: JsonValue): JsonValue => {
   if (current !== undefined) return clone(current);
@@ -126,13 +135,14 @@ const templateFor = (fieldKey: string, current?: JsonValue): JsonValue => {
   return "";
 };
 
-function Primitive({ label, value, onChange }: { label: string; value: string | number | boolean | null; onChange: (value: JsonValue) => void }) {
+function Primitive({ fieldKey, label, value, onChange }: { fieldKey: string; label: string; value: string | number | boolean | null; onChange: (value: JsonValue) => void }) {
   const percentage = ["Porcentaje", "Cobertura", "Cumplimiento", "Impacto"].includes(label);
   const hallazgoCount = ["Hallazgos", "Hallazgos mayor", "Hallazgos menor"].includes(label);
   const findingType = label === "Tipo de hallazgo";
   const numeric = !hallazgoCount && (typeof value === "number" || value === null || percentage || ["Ronda", "Auditados", "Universo"].includes(label));
   const multiline = !hallazgoCount && typeof value === "string" && ["Acción", "Acción del líder"].includes(label);
   const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
+  if (fieldKey === "codigoHtml") return <div className="col-span-full block text-[10px] font-semibold text-[#5d7285]"><p>{label}</p><span className="mt-1 block text-[9px] font-normal text-[#8296a8]">Editor HTML tipo VS Code. Puedes reemplazar esta plantilla por cualquier HTML y clases Tailwind que quieras mostrar en el dashboard.</span><HtmlCodeEditor value={String(value ?? "")} onChange={onChange}/></div>;
   if (typeof value === "boolean") return <label className="flex items-center gap-2 text-[10px] font-semibold text-[#5d7285]"><input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)}/>{label}</label>;
   if (findingType) return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<select className={style} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="">Selecciona una opción</option><option value="Hallazgo mayor">Hallazgo mayor</option><option value="Hallazgo menor">Hallazgo menor</option><option value="Observación">Observación</option></select></label>;
   return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} className={style} value={value} placeholder={examplePlaceholder(label, false)} onChange={(event) => onChange(event.target.value)}/> : <input className={style} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} placeholder={examplePlaceholder(label, numeric)} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/>}</label>;
@@ -150,7 +160,7 @@ function ArrayField({ fieldKey, label, value, onChange }: { fieldKey: string; la
 
 function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKey: string; label: string; value: JsonValue; onChange: (value: JsonValue) => void; root?: boolean }) {
   if (Array.isArray(value)) return <ArrayField fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
-  if (!object(value)) return <Primitive label={label} value={value} onChange={onChange}/>;
+  if (!object(value)) return <Primitive fieldKey={fieldKey} label={label} value={value} onChange={onChange}/>;
 
   const fields = <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{orderedObjectEntries(value, fieldKey).filter(([key]) => !(fieldKey === "kpis" && ["grupos", "cobertura"].includes(key))).map(([key, child]) => <JsonField key={key} fieldKey={key} label={humanize(key)} value={child} onChange={(updated) => onChange({ ...value, [key]: updated })}/>)}</div>;
   if (root) return fields;
@@ -177,11 +187,11 @@ export default function QualityManagementFormPage({ recordId }: { recordId?: num
     apiFetch<{ records: Array<{ data: JsonValue }> }>("/dashboard/sections/gestionCalidad")
       .then(({ records }) => {
         const source = records[0]?.data ?? clone(dashboardDatabase.gestionCalidad) as JsonValue;
-        setData(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData))));
+        setData(withCodeDefault(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData)))));
       })
       .catch((cause) => {
         const source = clone(dashboardDatabase.gestionCalidad) as JsonValue;
-        setData(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData))));
+        setData(withCodeDefault(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData)))));
         setError(cause instanceof Error ? cause.message : "No fue posible preparar el formulario.");
       })
       .finally(() => setLoading(false));
