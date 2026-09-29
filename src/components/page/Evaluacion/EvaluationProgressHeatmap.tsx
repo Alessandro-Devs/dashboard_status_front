@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MoveHorizontal } from "lucide-react";
+import MonthRangeFilter, { type MonthRange } from "./MonthRangeFilter";
 
 const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -39,6 +41,26 @@ export default function EvaluationProgressHeatmap() {
   const [selectedBlock, setSelectedBlock] = useState("Todos");
   const [selectedSubject, setSelectedSubject] = useState("Matemática");
   const [riskFactorsActive, setRiskFactorsActive] = useState(false);
+  const [monthRange, setMonthRange] = useState<MonthRange>({ start: 0, end: months.length - 1 });
+  const visibleMonthIndexes = useMemo(() => months.map((_, index) => index).filter((index) => index >= monthRange.start && index <= monthRange.end), [monthRange]);
+  const gridTemplateColumns = `120px repeat(${visibleMonthIndexes.length}, minmax(65px, 1fr))`;
+  const gridMinWidth = Math.max(420, 120 + visibleMonthIndexes.length * 82);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollState, setScrollState] = useState({ overflow: false, atStart: true, atEnd: true });
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    const update = () => {
+      const maxScroll = element.scrollWidth - element.clientWidth;
+      setScrollState({ overflow: maxScroll > 1, atStart: element.scrollLeft <= 1, atEnd: element.scrollLeft >= maxScroll - 1 });
+    };
+    update();
+    element.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    if (element.firstElementChild) observer.observe(element.firstElementChild);
+    return () => { element.removeEventListener("scroll", update); observer.disconnect(); };
+  }, [gridMinWidth]);
   const chartLevels = useMemo(() => {
     const blockAdjustment = selectedBlock === "Todos" ? 0 : blocks.indexOf(selectedBlock) * 2;
     const subjectAdjustment = selectedSubject === "Matemática" ? 2 : 0;
@@ -50,6 +72,8 @@ export default function EvaluationProgressHeatmap() {
   }, [riskFactorsActive, selectedBlock, selectedSubject]);
 
   return (
+    <div>
+    <MonthRangeFilter months={months} value={monthRange} onChange={setMonthRange} />
     <section className="rounded-xl border border-[#dce4ec] bg-white p-4">
       <div className="mb-4">
         <h3 className="text-[13px] font-semibold uppercase text-[#334b60]">Resultados de progreso</h3>
@@ -58,23 +82,27 @@ export default function EvaluationProgressHeatmap() {
         <FilterSelect label="Bloque" value={selectedBlock} options={blockOptions} onChange={(value) => { setSelectedBlock(value); setRiskFactorsActive(false); }} />
         <FilterSelect label="Materia" value={selectedSubject} options={subjects} onChange={setSelectedSubject} />
         {selectedBlock === "B1" ? <button type="button" aria-pressed={riskFactorsActive} onClick={() => setRiskFactorsActive((active) => !active)} className={`h-7 cursor-pointer rounded-md border px-3 text-[9px] font-semibold transition sm:ml-auto ${riskFactorsActive ? "border-[#e6a7aa] bg-[#fff1f1] text-[#d64545] hover:bg-[#ffe5e5]" : "border-[#f2c48e] bg-[#fff7ea] text-[#c87913] hover:bg-[#fff0d2]"}`}>Factores de riesgo{riskFactorsActive ? <span className="ml-2 text-sm leading-none">×</span> : null}</button> : null}
+        {scrollState.overflow ? <p className={`flex h-7 items-center gap-1 text-[10px] text-[#a0aec0] ${selectedBlock === "B1" ? "sm:ml-3" : "sm:ml-auto"}`}><MoveHorizontal className="h-3 w-3" strokeWidth={1.5} />Desplace horizontalmente</p> : null}
       </div>
-      <div className="w-full overflow-x-auto">
-        <div className="min-w-[1100px]">
-          <div className="mb-3 grid items-end gap-2" style={{ gridTemplateColumns: "120px repeat(12, minmax(65px, 1fr))" }}>
+      <div className="relative">
+      <div ref={scrollRef} className="w-full overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#e2e8f0] [&::-webkit-scrollbar-thumb:hover]:bg-[#cbd5e1] [&::-webkit-scrollbar-track]:bg-transparent">
+        <div style={{ minWidth: gridMinWidth }}>
+          <div className="mb-3 grid items-end gap-2" style={{ gridTemplateColumns }}>
             <div />
-            {months.map((month) => <div key={month} className="text-center text-[12px] font-medium text-slate-500">{month}</div>)}
+            {visibleMonthIndexes.map((index) => <div key={months[index]} className="text-center text-[12px] font-medium text-slate-500">{months[index]}</div>)}
           </div>
           <div className="space-y-2">
-            {chartLevels.map((level) => <div key={level.name} className="grid items-center gap-2" style={{ gridTemplateColumns: "120px repeat(12, minmax(65px, 1fr))" }}>
+            {chartLevels.map((level) => <div key={level.name} className="grid items-center gap-2" style={{ gridTemplateColumns }}>
               <div className="flex items-center gap-2"><span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: level.dotColor }} /><span className="text-[12px] font-medium text-slate-600">{level.name}</span></div>
-              {level.values.map((value, index) => <div key={`${level.name}-${index}`} className="flex h-[52px] items-center justify-center rounded-lg text-[12px] font-semibold text-white transition-transform duration-150 hover:scale-[1.03]" style={{ backgroundColor: level.colors[index] }}>{value}%</div>)}
+              {visibleMonthIndexes.map((index) => ({ value: level.values[index], index })).map(({ value, index }) => <div key={`${level.name}-${index}`} className="flex h-[52px] items-center justify-center rounded-lg text-[12px] font-semibold text-white transition-transform duration-150 hover:scale-[1.03]" style={{ backgroundColor: level.colors[index] }}>{value}%</div>)}
             </div>)}
           </div>
         </div>
       </div>
+      </div>
       {riskFactorsActive ? <RiskFactorsTreemap /> : null}
     </section>
+    </div>
   );
 }
 
