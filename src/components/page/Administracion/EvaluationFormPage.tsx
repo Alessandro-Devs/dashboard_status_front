@@ -14,9 +14,7 @@ const sectionDescriptions: Record<string, string> = {
   nivelesDesempeno: "Rangos utilizados para clasificar los resultados.",
   distribucionPorBloqueMateriaNiveles: "Resultados de Lengua y Matemática por nivel de desempeño.",
 };
-sections.resultadosPorMes = "Resultados por mes";
 sections.promediosGenerales = "Promedios generales por prueba";
-sectionDescriptions.resultadosPorMes = "Resultados mensuales de Matemática y Lengua por nivel de desempeño.";
 sectionDescriptions.promediosGenerales = "Promedios generales de Lenguaje y Matemática para CML y Progreso.";
 const sectionStyles: Record<string, { accent: string; icon: typeof ClipboardCheck }> = {
   pruebas: { accent: "bg-[#eaf4ff] text-[#176fc8]", icon: ClipboardCheck },
@@ -24,7 +22,6 @@ const sectionStyles: Record<string, { accent: string; icon: typeof ClipboardChec
   nivelesDesempeno: { accent: "bg-[#fff7e7] text-[#b87616]", icon: Gauge },
   distribucionPorBloqueMateriaNiveles: { accent: "bg-[#f2efff] text-[#7457bd]", icon: BarChart3 },
 };
-sectionStyles.resultadosPorMes = { accent: "bg-[#edf8f3] text-[#25845e]", icon: BarChart3 };
 sectionStyles.promediosGenerales = { accent: "bg-[#eaf8ff] text-[#19749b]", icon: BarChart3 };
 const labels: Record<string, string> = { cml: "CML", progreso: "Progreso", fundamentos: "Fundamentos", resumen: "Resumen", matricula: "Matrícula", centrosEscolares: "Centros escolares", titulo: "Título", universo: "Universo", aplicados: "Aplicados", pendientes: "Pendientes", porcentaje: "Porcentaje", promedioLengua: "Promedio de Lenguaje", promedioMatematica: "Promedio de Matemática", materiaSeleccionadaPorDefecto: "Materia seleccionada por defecto", materiasDisponibles: "Materias disponibles", composicionDelUniverso: "Composición del universo", trayectoriaDeResultados: "Trayectoria de resultados", etapas: "Etapas", resumenPorNivel: "Resumen por nivel", lecturaPrincipal: "Lectura principal", descripcionLectura: "Descripción de la lectura", nivelesDeDesempeno: "Niveles de desempeño", distribucionPorcentualDeLosFlujos: "Distribución porcentual de los flujos", porcentajesJulio: "Porcentajes de julio", porcentajesJunio: "Porcentajes de junio", variacionRespectoJunio: "Variación respecto a junio", programados: "Programados", aplicaciones: "Aplicaciones", barrera: "Barrera", etiqueta: "Etiqueta", entrada: "Entrada", incidencias: "Incidencias", lengua: "Lengua", matematica: "Matemática", bloque: "Bloque", materia: "Materia", subgrupo: "Subgrupo", transiciones: "Transiciones", totalCe: "Total CE", valores: "Valores", de: "De", hacia: "Hacia", rango: "Rango", nombre: "Nombre", nivel: "Nivel", estatus: "Estatus", promedio: "Promedio" };
 // Secciones que no se muestran en el formulario. Sus datos se conservan y se guardan tal cual.
@@ -35,8 +32,6 @@ const humanize = (key: string) => {
   return labels[key] ?? key.replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 };
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
-const monthOrder = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-const monthPosition = (value: string) => { const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); return monthOrder.indexOf(normalized); };
 const isObject = (value: JsonValue): value is { [key: string]: JsonValue } => value !== null && typeof value === "object" && !Array.isArray(value);
 const hasMonthlyRows = (value: JsonValue | undefined) => value !== undefined && isObject(value) && Object.values(value).some((blocks) => Array.isArray(blocks) && blocks.some((block) => isObject(block) && Object.entries(block).some(([key, fieldValue]) => /^nivel\d+data$/.test(key) && Number(fieldValue) > 0)));
 const orderedEntries = (value: { [key: string]: JsonValue }) => Object.entries(value).sort(([left], [right]) => {
@@ -134,36 +129,6 @@ function ArrayEditor({ label, values, onChange, depth, template }: { label: stri
   return <div className="col-span-full rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-2.5"><div className="mb-2 flex items-center justify-between"><div><p className="text-[11px] font-bold text-[#294b68]">{label}</p><p className="text-[9px] text-[#8a9cab]">{values.length} {values.length === 1 ? "registro" : "registros"}</p></div><button type="button" onClick={add} className="inline-flex items-center gap-1 rounded-md border border-[#bfd8eb] bg-white px-2 py-1 text-[10px] font-semibold text-[#176fc8] shadow-sm transition hover:bg-[#edf7ff]"><Plus size={11}/>Agregar fila</button></div>{values.length === 0 ? <button type="button" onClick={add} className="w-full rounded-md border border-dashed border-[#bcd3e4] bg-white py-4 text-center text-[10px] font-medium text-[#6f8ca2] transition hover:border-[#79add4] hover:bg-[#f7fbff]">+ Agregar el primer registro</button> : <div className="space-y-2">{values.map((item, index) => <div key={index} className="relative rounded-lg border border-[#dce7ef] bg-white p-2.5 pt-7 shadow-[0_1px_3px_rgba(27,58,87,.03)]"><span className="absolute left-2.5 top-2 rounded bg-[#eef5fa] px-1.5 py-0.5 text-[9px] font-bold text-[#688196]">Fila {index + 1}</span><button type="button" title="Eliminar fila" aria-label={`Eliminar ${label} ${index + 1}`} onClick={() => onChange(values.filter((_, i) => i !== index))} className="absolute right-1.5 top-1.5 rounded p-1 text-[#c85a5a] transition hover:bg-red-50"><Trash2 size={12}/></button><ValueEditor label={`${label} ${index + 1}`} value={item} onChange={(updated) => onChange(values.map((v, i) => i === index ? updated : v))} depth={isObject(item) ? 0 : depth + 1}/></div>)}</div>}</div>;
 }
 
-function getMonthlySeed(value: JsonValue | undefined): JsonValue | undefined {
-  if (value === undefined || !isObject(value)) return undefined;
-  for (const [subject, rows] of Object.entries(value)) {
-    if (!Array.isArray(rows)) continue;
-    const row = rows.find((item) => isObject(item));
-    if (row === undefined || !isObject(row)) continue;
-    return { ...row, materia: subject, subgrupo: "" };
-  }
-  return undefined;
-}
-
-function MonthlyResultsEditor({ value, onChange, template }: { value: JsonValue; onChange: (value: JsonValue) => void; template?: JsonValue }) {
-  if (!isObject(value)) return <ValueEditor label="Resultados por mes" value={value} onChange={onChange}/>;
-  const existingTemplate = Object.values(value).flatMap((blocks) => Array.isArray(blocks) ? blocks : []).find((block) => isObject(block) && Object.entries(block).some(([key, fieldValue]) => /^nivel\d+(data|percent)$/.test(key) && typeof fieldValue === "number" && fieldValue > 0)) ?? template;
-  return <div className="col-span-full space-y-2">
-    {Object.entries(value).sort(([left], [right]) => (monthPosition(left) < 0 ? 99 : monthPosition(left)) - (monthPosition(right) < 0 ? 99 : monthPosition(right))).map(([month, blocks], index) => {
-      const rows = Array.isArray(blocks) ? blocks : [];
-      return <details key={month} open={index === 0} className="group rounded-lg border border-[#d9e5ee] bg-white transition open:shadow-[0_2px_8px_rgba(27,58,87,.04)]">
-        <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg bg-[#f5f9fc] px-3 py-2.5 text-[11px] font-bold text-[#294b68] transition hover:bg-[#edf5fa]">
-          <span>{month}<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">{rows.length} {rows.length === 1 ? "bloque" : "bloques"}</span></span>
-          <ChevronDown size={13} className="transition group-open:rotate-180" />
-        </summary>
-        <div className="border-t border-[#e6edf2] p-3">
-          <ArrayEditor label={`Bloques de ${month}`} values={rows} onChange={(updated) => onChange({ ...value, [month]: updated })} depth={1} template={existingTemplate}/>
-        </div>
-      </details>;
-    })}
-  </div>;
-}
-
 function ValueEditor({ label, value, onChange, depth = 0, prioritizeResumen = false }: { label: string; value: JsonValue; onChange: (value: JsonValue) => void; depth?: number; prioritizeResumen?: boolean }) {
   if (Array.isArray(value)) return <ArrayEditor label={label} values={value} onChange={onChange} depth={depth}/>;
   if (!isObject(value)) return <Primitive label={label} value={value} onChange={onChange}/>;
@@ -220,10 +185,6 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
   const updateSection = (key: string, updated: JsonValue) => {
     if (key === "pruebas" || key === "detallePorBloque") {
       setData({ ...data, [key]: calculateApplicationPercentages(updated) });
-      return;
-    }
-    if (key === "resultadosPorMes") {
-      setData({ ...data, [key]: calculateMonthlyPercentages(updated) });
       return;
     }
     if (key === "distribucionPorBloqueMateriaNiveles") {
@@ -288,7 +249,7 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
   if (loadingRecord) return <main className="min-h-screen bg-[#f3f7fb] p-8 text-center text-xs text-[#61788c]">Cargando registro...</main>;
   return <main className="min-h-screen bg-[#f3f7fb] p-3 sm:p-4 lg:p-5"><div className="mx-auto max-w-[1180px] overflow-clip rounded-xl border border-[#dce6ee] bg-[#f4f8fb] shadow-[0_6px_18px_rgba(27,58,87,.05)]">
     <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6ee] bg-white/95 px-4 py-2.5 shadow-[0_2px_8px_rgba(27,58,87,.05)] backdrop-blur sm:px-5"><div className="flex items-center gap-2.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} aria-label="Volver a Evaluación" className="rounded-md p-1.5 text-[#61788c] transition hover:bg-[#edf4f9]"><ArrowLeft size={16}/></button><div><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#6f8799]">{recordId ? "Editar registro" : "Nuevo registro"}</p><h1 className="text-sm font-semibold text-[#17324a]">Información de Evaluación</h1></div></div><label className="flex items-center gap-2 text-[10px] font-semibold text-[#61788c]"><span>Fecha</span><input type="date" required value={snapshotDate} onChange={(event) => setSnapshotDate(event.target.value)} className="h-8 rounded-md border border-[#d5e2eb] bg-white px-2.5 text-[11px] font-medium text-[#294b68] outline-none transition focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]"/></label></header>
-    <form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{Object.entries(data).filter(([key]) => !hiddenFormSections.includes(key)).map(([key, value]) => { const config = sectionStyles[key]; const Icon = config.icon; return <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-[0_2px_8px_rgba(27,58,87,.03)]"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-3 py-2.5 sm:px-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.accent}`}><Icon size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{sections[key]}</h2><p className="text-[9px] leading-4 text-[#718799]">{sectionDescriptions[key]}</p></div></div><div className="p-3 sm:p-4">{key === "resultadosPorMes" ? <MonthlyResultsEditor value={value} template={getMonthlySeed(data.distribucionPorBloqueMateriaNiveles)} onChange={(updated) => updateSection(key, updated)}/> : <ValueEditor label={sections[key]} value={value} onChange={(updated) => updateSection(key, updated)} prioritizeResumen={key === "distribucionPorBloqueMateriaNiveles"}/>}</div></section>; })}</form>
+    <form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{Object.entries(data).filter(([key]) => !hiddenFormSections.includes(key)).map(([key, value]) => { const config = sectionStyles[key]; const Icon = config.icon; return <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-[0_2px_8px_rgba(27,58,87,.03)]"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-3 py-2.5 sm:px-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.accent}`}><Icon size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{sections[key]}</h2><p className="text-[9px] leading-4 text-[#718799]">{sectionDescriptions[key]}</p></div></div><div className="p-3 sm:p-4"><ValueEditor label={sections[key]} value={value} onChange={(updated) => updateSection(key, updated)} prioritizeResumen={key === "distribucionPorBloqueMateriaNiveles"}/></div></section>; })}</form>
     <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#dce6ee] bg-white px-4 py-2.5 sm:px-5"><div><button type="button" onClick={() => { setData(clone(evaluationTemplate) as JsonValue); setSnapshotDate(""); setSaveError(""); }} className="text-[10px] font-semibold text-[#60798e] hover:text-[#176fc8]">Restablecer formulario</button>{saveError && <p className="mt-1 text-[10px] font-medium text-red-600">{saveError}</p>}</div><div className="flex gap-1.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} className="rounded-md border border-[#ccdbe6] px-3 py-1.5 text-[11px] font-semibold text-[#526b80]">Cancelar</button><button type="button" onClick={saveEvaluation} disabled={!snapshotDate || saving} title={!snapshotDate ? "Selecciona una fecha" : undefined} className="rounded-md bg-[#176fc8] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#1262b2] disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Guardando..." : "Guardar registro"}</button></div></footer>
   </div></main>;
 }

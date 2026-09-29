@@ -46,20 +46,19 @@ export default function EvaluationProgressHeatmap() {
   const gridTemplateColumns = `120px repeat(${visibleMonthIndexes.length}, minmax(65px, 1fr))`;
   const gridMinWidth = Math.max(420, 120 + visibleMonthIndexes.length * 82);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [scrollState, setScrollState] = useState({ overflow: false, atStart: true, atEnd: true });
+  const [scrollState, setScrollState] = useState({ overflow: false });
   useEffect(() => {
     const element = scrollRef.current;
     if (!element) return;
     const update = () => {
       const maxScroll = element.scrollWidth - element.clientWidth;
-      setScrollState({ overflow: maxScroll > 1, atStart: element.scrollLeft <= 1, atEnd: element.scrollLeft >= maxScroll - 1 });
+      setScrollState({ overflow: maxScroll > 1 });
     };
     update();
-    element.addEventListener("scroll", update, { passive: true });
     const observer = new ResizeObserver(update);
     observer.observe(element);
     if (element.firstElementChild) observer.observe(element.firstElementChild);
-    return () => { element.removeEventListener("scroll", update); observer.disconnect(); };
+    return () => observer.disconnect();
   }, [gridMinWidth]);
   const chartLevels = useMemo(() => {
     const blockAdjustment = selectedBlock === "Todos" ? 0 : blocks.indexOf(selectedBlock) * 2;

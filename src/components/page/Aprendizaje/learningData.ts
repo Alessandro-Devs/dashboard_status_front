@@ -19,6 +19,3 @@ export type LearningLine = {
 
 export const getLearningLines = () =>
   dashboardDatabase.aprendizaje.estadoLxp as LearningLine[];
-export function belongsToTrimester(line: LearningLine, trimester: number) {
-  return line.estatus.trimestre === trimester || line.estatus.trimestrePublicado === trimester || line.estatus.trimestreEnProceso === trimester;
-}

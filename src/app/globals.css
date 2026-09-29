@@ -274,26 +274,6 @@ textarea {
   font-family: inherit;
 }
 
-/* Controles globales sobre la franja gris compacta del encabezado. */
-.audit-filter-bar label,
-.audit-filter-bar legend {
-  color: #61788c !important;
-}
-
-.audit-filter-bar select,
-.audit-filter-bar label > input,
-.audit-filter-bar button[aria-expanded] {
-  border-color: #c7d3de !important;
-  background-color: #ffffff !important;
-  color: #29445b !important;
-}
-
-.audit-filter-bar select:hover,
-.audit-filter-bar label > input:hover,
-.audit-filter-bar button[aria-expanded]:hover {
-  border-color: #79a9d4 !important;
-}
-
 /* Mantiene legibles las etiquetas pequeñas sin agrandar títulos ni métricas. */
 main :is(
   [class*="text-[5px]"],
@@ -421,78 +401,6 @@ main :is(
     overflow-y: hidden;
     opacity: 1;
     transform: translateY(0);
-  }
-
-  .audit-filter-bar {
-    background: transparent;
-  }
-
-  .audit-header-filters,
-  .audit-header-filters > div,
-  .audit-header-filters fieldset,
-  .audit-header-filters label {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .audit-header-filters > div,
-  .audit-header-filters > div > div {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: end;
-    gap: 12px;
-  }
-
-  .audit-header-filters select,
-  .audit-header-filters label > input,
-  .audit-header-filters fieldset > div,
-  .audit-header-filters button[aria-expanded] {
-    width: 100% !important;
-    min-width: 0;
-    height: 40px !important;
-    font-size: 12px !important;
-    border-radius: 7px;
-  }
-
-  .audit-header-filters fieldset > div {
-    display: flex;
-    padding: 2px;
-  }
-
-  .audit-header-filters fieldset button {
-    min-width: 0;
-    height: 100%;
-    flex: 1 1 0;
-  }
-
-  .audit-header-filters div[class*="absolute"] {
-    right: auto;
-    left: 0;
-    width: 100% !important;
-    max-width: calc(100vw - 40px);
-  }
-
-  .audit-header-filters select {
-    padding-inline: 12px 36px;
-  }
-
-  .audit-header-filters input[type="date"] {
-    display: block;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box;
-    padding-inline: 12px;
-  }
-
-  .audit-header-filters input[type="date"]::-webkit-date-and-time-value {
-    min-width: 0;
-    text-align: left;
-  }
-
-  .audit-header-filters input[type="date"]::-webkit-calendar-picker-indicator {
-    margin-left: 4px;
-    flex: 0 0 auto;
   }
 
   .mobile-header__toggle {

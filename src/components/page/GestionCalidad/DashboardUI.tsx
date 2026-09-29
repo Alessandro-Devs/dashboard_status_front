@@ -29,8 +29,3 @@ export function KpiCard({ icon, iconBg, title, children }: {
 }) {
     return <div className="min-h-[145px] rounded-lg border border-[#d7e0e9] bg-white p-4"><div className="flex items-start gap-3"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${iconBg}`}>{icon}</span><h3 className="max-w-[145px] pt-1 text-[8px] font-semibold uppercase leading-[1.35] tracking-[.04em] text-[#4f6a82]">{title}</h3></div><div className="mt-4">{children}</div></div>;
 }
-export function CircularProgress({ value }: {
-    value: number;
-}) {
-    return <div className="relative flex h-[65px] w-[65px] items-center justify-center rounded-full bg-[conic-gradient(#277ed0_0deg,#277ed0_40deg,#e6edf6_40deg,#e6edf6_360deg)]"><div className="flex h-[51px] w-[51px] items-center justify-center rounded-full bg-white"><span className="text-xs font-semibold text-[#1976d2]">{value}%</span></div></div>;
-}

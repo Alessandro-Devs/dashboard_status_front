@@ -1,15 +1,11 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { dashboardSections, getDefaultDashboardSectionLabel } from "@/lib/dashboardSections";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
-import FilterSelect from "./FilterSelect";
-import LearningFilters from "./LearningFilters";
 import PeriodFilter from "./PeriodFilter";
-import TutoringFilters from "./TutoringFilters";
 
 const viewBySection: Record<string, string> = {
   "Gestión de Calidad": "gestion-calidad",
@@ -18,21 +14,6 @@ const viewBySection: Record<string, string> = {
   Evaluación: "evaluacion",
   "Tutoría y Formación": "tutoria-formacion",
 };
-
-const blocks = ["B1", "B2", "B3", "B4", "B5"].map((label) => ({
-  id: label.toLowerCase(),
-  label,
-}));
-
-const components = [
-  "Conectividad",
-  "Infraestructura",
-  "Gestión escolar",
-  "Tutoría y formación",
-  "Calidad",
-  "Aprendizaje",
-  "Evaluación",
-].map((label) => ({ id: label, label }));
 
 const subscribeToHydration = () => () => undefined;
 
@@ -145,98 +126,6 @@ export default function AuditReportHeader() {
 
       {isLoading && resolvedDate !== null ? <LoadingDateModal date={state.endDate} /> : null}
     </>
-  );
-}
-
-export function SectionFilters({ section }: { section: string }) {
-  const state = useAuditFilters();
-  const school = section === "Gestión Escolar";
-  const learning = section === "Aprendizaje";
-  const evaluation = section === "Evaluación";
-  const tutoring = section === "Tutoría y Formación";
-
-  return (
-    <div className="audit-filter-bar audit-header-filters">
-      {learning ? (
-        <LearningFilters />
-      ) : evaluation ? (
-        <div className="flex flex-wrap items-end gap-3">
-          <FilterSelect
-            label="Bloque"
-            selected={state.blocks}
-            options={blocks}
-            onChange={state.setBlocks}
-            className="w-[92px]"
-          />
-          <PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod} />
-        </div>
-      ) : tutoring ? (
-        <TutoringFilters />
-      ) : (
-        <div className="flex flex-wrap items-end gap-3">
-          {school ? <PlatformFilters /> : null}
-          <FilterSelect
-            label="Bloque"
-            selected={state.blocks}
-            options={blocks}
-            onChange={state.setBlocks}
-            className="w-[92px]"
-          />
-          {!school ? (
-            <FilterSelect
-              label="Componente"
-              selected={state.components}
-              options={components}
-              onChange={state.setComponents}
-              className="w-[110px]"
-            />
-          ) : null}
-          <PeriodFilter startDate={state.startDate} endDate={state.endDate} onApply={state.setPeriod} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PlatformFilters() {
-  const { platforms, togglePlatform } = useAuditFilters();
-
-  return (
-    <fieldset>
-      <legend className="mb-1 block text-[8px] font-semibold uppercase text-[#61788c]">
-        Plataforma
-      </legend>
-      <div className="flex h-[29px] w-[180px] gap-1 rounded-md border border-[#c7d3de] bg-white p-0.5">
-        {(["KIRA", "IHFB"] as const).map((platform) => {
-          const active = platforms.includes(platform);
-
-          return (
-            <button
-              key={platform}
-              type="button"
-              aria-pressed={active}
-              onClick={() => togglePlatform(platform)}
-              className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded border px-2 text-[9px] font-semibold ${
-                active
-                  ? platform === "KIRA"
-                    ? "border-[#55a7f3] bg-[#eaf4ff] text-[#176fc8]"
-                    : "border-[#a68af8] bg-[#f1edff] text-[#7142d8]"
-                  : "border-transparent text-[#8295a7]"
-              }`}
-            >
-              <span
-                className={`flex h-3.5 w-3.5 items-center justify-center rounded border ${
-                  active ? "border-current" : "border-[#9eafbd]"
-                }`}
-              >
-                {active ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : null}
-              </span>
-              {platform}
-            </button>
-          );
-        })}
-      </div>
-    </fieldset>
   );
 }
 

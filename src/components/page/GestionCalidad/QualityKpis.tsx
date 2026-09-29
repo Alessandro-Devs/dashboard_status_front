@@ -2,13 +2,12 @@
 import { AlertTriangle, BriefcaseBusiness, ClipboardCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { KpiCard } from "./DashboardUI";
-import { getCoverageByGroup, hasRenderableCustomHtml, qualityData } from "./qualityData";
+import { getCoverageByGroup, qualityData } from "./qualityData";
 
 
 export default function QualityKpis() {
   const router = useRouter();
   const { kpis } = qualityData;
-  const hasDetails = hasRenderableCustomHtml();
   const coverageData = getCoverageByGroup();
   const coberturaAcumulada = coverageData.reduce((sum, item) => sum + Number(item.auditados || 0), 0);
   const universoAcumulado = coverageData.reduce((sum, item) => sum + Number(item.total || 0), 0);

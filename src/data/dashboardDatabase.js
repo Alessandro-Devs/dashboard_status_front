@@ -242,5 +242,3 @@ export const dashboardDatabase = {
     tutoriaVirtual: [],
   },
 };
-
-export default dashboardDatabase;
