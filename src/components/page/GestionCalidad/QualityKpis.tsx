@@ -2,12 +2,12 @@
 import { AlertTriangle, BriefcaseBusiness, ClipboardCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { KpiCard } from "./DashboardUI";
-import { getCoverageByGroup, getCriticalFindings, hasRenderableCustomHtml, qualityData } from "./qualityData";
+import { getCoverageByGroup, getCriticalFindings, getQualityKpis, hasRenderableCustomHtml } from "./qualityData";
 
 
 export default function QualityKpis() {
   const router = useRouter();
-  const { kpis } = qualityData;
+  const kpis = getQualityKpis();
   // "Ver detalles" solo aparece si la fecha tiene HTML de detalles o hallazgos registrados.
   const hasDetails = hasRenderableCustomHtml() || getCriticalFindings().length > 0;
   const coverageData = getCoverageByGroup();
