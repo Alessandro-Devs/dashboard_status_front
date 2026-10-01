@@ -61,7 +61,7 @@ export default function EvaluationProgressHeatmap() {
     const values = levelValues[level.name] ?? [];
     return { ...level, values };
   });
-  // Tooltip con universo y estudiantes (datos capturados a mano en el panel).
+  // Tooltip con la cantidad de estudiantes (datos capturados a mano en el panel).
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<{ level: string; month: number; x: number; y: number; below: boolean } | null>(null);
   const showTooltip = (event: React.MouseEvent<HTMLElement>, level: string, month: number) => {
@@ -76,8 +76,8 @@ export default function EvaluationProgressHeatmap() {
   };
   const tooltipRows = (level: string, month: number) => {
     const blocks = activeBlock === ALL_BLOCKS ? heatmap.bloques : [activeBlock];
-    return blocks.map((block) => ({ block, universe: heatmap.universos[activeSubject]?.[block] ?? null, students: heatmap.estudiantes[activeSubject]?.[block]?.[level]?.[month] ?? null }))
-      .filter((row) => row.universe !== null || row.students !== null);
+    return blocks.map((block) => ({ block, students: heatmap.estudiantes[activeSubject]?.[block]?.[level]?.[month] ?? null }))
+      .filter((row) => row.students !== null);
   };
   const hoveredRows = hovered ? tooltipRows(hovered.level, hovered.month) : [];
   const hasVisibleData = chartLevels.some((level) => visibleMonthIndexes.some((index) => typeof level.values[index] === "number"));
@@ -151,15 +151,14 @@ function RiskFactorsTreemap({ group }: { group: RiskFactorGroup }) {
 
 const formatCount = (value: number | null) => (value === null ? "—" : value.toLocaleString("es-SV"));
 
-function HeatmapTooltip({ x, y, below, title, rows, single }: { x: number; y: number; below: boolean; title: string; rows: { block: string; universe: number | null; students: number | null }[]; single: boolean }) {
-  return <div role="tooltip" className="pointer-events-none absolute z-20 min-w-[170px] rounded-lg border border-[#d7e0e9] bg-white px-3 py-2.5 text-[10px] shadow-[0_10px_28px_rgba(15,35,55,.14)]" style={{ left: x, top: y, transform: `translate(-50%, ${below ? "8px" : "calc(-100% - 8px)"})` }}>
+function HeatmapTooltip({ x, y, below, title, rows, single }: { x: number; y: number; below: boolean; title: string; rows: { block: string; students: number | null }[]; single: boolean }) {
+  return <div role="tooltip" className="pointer-events-none absolute z-20 min-w-[150px] rounded-lg border border-[#d7e0e9] bg-white px-3 py-2.5 text-[10px] shadow-[0_10px_28px_rgba(15,35,55,.14)]" style={{ left: x, top: y, transform: `translate(-50%, ${below ? "8px" : "calc(-100% - 8px)"})` }}>
     <p className="mb-1.5 text-[10px] font-semibold text-[#233a4e]">{title}</p>
     {single ? <div className="space-y-1">
       <p className="flex justify-between gap-4 text-[#5d7285]"><span>Estudiantes</span><strong className="tabular-nums text-[#17324a]">{formatCount(rows[0].students)}</strong></p>
-      <p className="flex justify-between gap-4 text-[#5d7285]"><span>Universo</span><strong className="tabular-nums text-[#17324a]">{formatCount(rows[0].universe)}</strong></p>
     </div> : <table className="w-full">
-      <thead><tr className="text-[8px] uppercase tracking-[.04em] text-[#8a9bb0]"><th className="pb-1 text-left font-semibold">Bloque</th><th className="pb-1 pl-3 text-right font-semibold">Estudiantes</th><th className="pb-1 pl-3 text-right font-semibold">Universo</th></tr></thead>
-      <tbody>{rows.map((row) => <tr key={row.block} className="text-[#5d7285]"><td className="py-0.5 font-semibold text-[#29445b]">{row.block}</td><td className="py-0.5 pl-3 text-right tabular-nums">{formatCount(row.students)}</td><td className="py-0.5 pl-3 text-right tabular-nums">{formatCount(row.universe)}</td></tr>)}</tbody>
+      <thead><tr className="text-[8px] uppercase tracking-[.04em] text-[#8a9bb0]"><th className="pb-1 text-left font-semibold">Bloque</th><th className="pb-1 pl-3 text-right font-semibold">Estudiantes</th></tr></thead>
+      <tbody>{rows.map((row) => <tr key={row.block} className="text-[#5d7285]"><td className="py-0.5 font-semibold text-[#29445b]">{row.block}</td><td className="py-0.5 pl-3 text-right tabular-nums">{formatCount(row.students)}</td></tr>)}</tbody>
     </table>}
   </div>;
 }

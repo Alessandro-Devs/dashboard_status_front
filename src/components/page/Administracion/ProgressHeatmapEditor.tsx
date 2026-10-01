@@ -45,18 +45,26 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
 
   const emit = (next: HeatmapProgreso) => onChange(next as unknown as JsonValue);
   // Con universo capturado, el porcentaje de cada celda se calcula: estudiantes / universo × 100.
+  // El porcentaje se sugiere con estudiantes ÷ universo × 100, pero siempre se puede editar a mano.
   const automatic = universe !== null && universe > 0;
-  const withPercentages = (students: LevelValues, total: number | null, current: LevelValues): LevelValues => total !== null && total > 0
-    ? Object.fromEntries(Object.entries(students).map(([level, months]) => [level, months.map((cell) => (cell === null ? null : Math.round((cell / total) * 1000) / 10))]))
-    : current;
-  const saveBlock = (students: LevelValues, total: number | null) => emit({
-    ...heatmap,
-    estudiantes: { ...heatmap.estudiantes, [subject]: { ...heatmap.estudiantes[subject], [block]: students } },
-    universos: { ...heatmap.universos, [subject]: { ...heatmap.universos[subject], [block]: total } },
-    materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: withPercentages(students, total, levels) } },
-  });
-  const setStudentCell = (level: string, month: number, raw: string) => saveBlock({ ...studentLevels, [level]: studentLevels[level].map((cell, index) => (index === month ? parseCell(raw) : cell)) }, universe);
-  const setUniverse = (raw: string) => saveBlock(studentLevels, parseCell(raw));
+  const percentOf = (students: number | null, total: number | null) => (students !== null && total !== null && total > 0 ? Math.round((students / total) * 1000) / 10 : null);
+  const setCell = (level: string, month: number, raw: string) => {
+    const nextLevels = { ...levels, [level]: levels[level].map((cell, index) => (index === month ? parseCell(raw) : cell)) };
+    emit({ ...heatmap, materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: nextLevels } } });
+  };
+  const setStudentCell = (level: string, month: number, raw: string) => {
+    const students = parseCell(raw);
+    const nextStudents = { ...studentLevels, [level]: studentLevels[level].map((cell, index) => (index === month ? students : cell)) };
+    const computed = percentOf(students, universe);
+    const nextLevels = computed === null ? levels : { ...levels, [level]: levels[level].map((cell, index) => (index === month ? computed : cell)) };
+    emit({ ...heatmap, estudiantes: { ...heatmap.estudiantes, [subject]: { ...heatmap.estudiantes[subject], [block]: nextStudents } }, materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: nextLevels } } });
+  };
+  const setUniverse = (raw: string) => {
+    const total = parseCell(raw);
+    // Al cambiar el universo se recalculan las celdas que tienen estudiantes; las demás se conservan.
+    const nextLevels = Object.fromEntries(Object.entries(levels).map(([level, months]) => [level, months.map((cell, index) => percentOf(studentLevels[level]?.[index] ?? null, total) ?? cell)])) as LevelValues;
+    emit({ ...heatmap, universos: { ...heatmap.universos, [subject]: { ...heatmap.universos[subject], [block]: total } }, materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: nextLevels } } });
+  };
   const addBlock = () => {
     const name = newBlock.trim().toUpperCase();
     if (!name || name === ALL_BLOCKS.toUpperCase() || heatmap.bloques.includes(name)) return;
@@ -108,14 +116,14 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
 
     {block ? <div className="rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-2.5">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[11px] font-bold text-[#294b68]">{subject} · {block}<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Escribe el universo y los estudiantes por nivel; el porcentaje se calcula solo.</span></p>
+        <p className="text-[11px] font-bold text-[#294b68]">{subject} · {block}<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Porcentaje de estudiantes por nivel (0–100). Deja la celda vacía si no hay dato.</span></p>
         <button type="button" onClick={clearBlock} className="flex cursor-pointer items-center gap-1 text-[9px] font-semibold text-[#c05050] hover:underline"><Trash2 size={11} />Vaciar tabla</button>
       </div>
       <label className="mb-3 flex w-fit items-center gap-2 rounded-md border border-[#d8e4ee] bg-white px-2.5 py-1.5">
         <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[.04em] text-[#71869a]">Universo de estudiantes · {block}</span>
         <input type="number" inputMode="numeric" min={0} step={1} value={universe ?? ""} placeholder="Ej. 1200" onChange={(event) => setUniverse(event.target.value)} className={`${inputStyle} !w-[110px]`} aria-label={`Universo ${subject} ${block}`} />
       </label>
-      <p className="mb-1 text-[10px] font-semibold text-[#4b6378]">Cantidad de estudiantes por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">También se muestra al pasar el mouse en el dashboard.</span></p>
+      <p className="mb-1 text-[10px] font-semibold text-[#4b6378]">Cantidad de estudiantes por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Se muestra al pasar el mouse en el dashboard.</span></p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] border-separate border-spacing-1">
           <thead><tr><th className="w-[92px]" />{HEATMAP_MONTHS.map((month) => <th key={month} className="text-[9px] font-semibold text-[#6b8196]">{month.slice(0, 3)}</th>)}</tr></thead>
@@ -127,14 +135,14 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
           </tr>)}</tbody>
         </table>
       </div>
-      <p className="mb-1 mt-3 text-[10px] font-semibold text-[#4b6378]">Porcentaje por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">{automatic ? "Se calcula automáticamente: estudiantes ÷ universo × 100." : "Escribe el universo del bloque para calcular los porcentajes."}</span></p>
+      <p className="mb-1 mt-3 text-[10px] font-semibold text-[#4b6378]">Porcentaje por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">{automatic ? "Se llena con estudiantes ÷ universo × 100; puedes editarlo." : "Escríbelo a mano, o captura el universo y los estudiantes para llenarlo solo."}</span></p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] border-separate border-spacing-1">
           <thead><tr><th className="w-[92px]" />{HEATMAP_MONTHS.map((month) => <th key={month} className="text-[9px] font-semibold text-[#6b8196]">{month.slice(0, 3)}</th>)}</tr></thead>
           <tbody>{HEATMAP_LEVELS.map((level) => <tr key={level.name}>
             <td className="whitespace-nowrap pr-1 text-[10px] font-semibold text-[#4b6378]"><span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ backgroundColor: level.dotColor }} />{level.name}</td>
             {HEATMAP_MONTHS.map((month, index) => <td key={month}>
-              <input type="number" inputMode="decimal" min={0} max={100} step="any" aria-label={`${level.name} ${month}`} value={levels[level.name][index] ?? ""} disabled readOnly className={`${inputStyle} cursor-not-allowed !border-transparent !bg-[#eef4f9] font-semibold !text-[#176fc8] ${(levels[level.name][index] ?? 0) > 100 || (levels[level.name][index] ?? 0) < 0 ? "border-[#e25c5c] bg-[#fff3f3] text-[#c03030]" : ""}`} title={(levels[level.name][index] ?? 0) > 100 ? "El porcentaje no puede ser mayor que 100" : undefined} />
+              <input type="number" inputMode="decimal" min={0} max={100} step="any" aria-label={`${level.name} ${month}`} value={levels[level.name][index] ?? ""} onChange={(event) => setCell(level.name, index, event.target.value)} className={`${inputStyle} ${(levels[level.name][index] ?? 0) > 100 || (levels[level.name][index] ?? 0) < 0 ? "border-[#e25c5c] bg-[#fff3f3] text-[#c03030]" : ""}`} title={(levels[level.name][index] ?? 0) > 100 ? "El porcentaje no puede ser mayor que 100" : undefined} />
             </td>)}
           </tr>)}</tbody>
         </table>
