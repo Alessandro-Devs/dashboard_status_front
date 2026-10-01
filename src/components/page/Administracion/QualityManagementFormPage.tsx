@@ -7,6 +7,7 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { apiFetch } from "@/services/api";
 import { qualityHtmlExample } from "@/components/page/GestionCalidad/qualityHtmlExample";
 import HtmlCodeEditor from "./HtmlCodeEditor";
+import Select from "@/components/ui/Select";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -144,7 +145,7 @@ function Primitive({ fieldKey, label, value, onChange }: { fieldKey: string; lab
   const style = "mt-0.5 w-full rounded-md border border-[#d8e4ee] bg-white px-2 py-1.5 text-[11px] text-[#243f57] outline-none focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]";
   if (fieldKey === "codigoHtml") return <div className="col-span-full block text-[10px] font-semibold text-[#5d7285]"><p>{label}</p><span className="mt-1 block text-[9px] font-normal text-[#8296a8]">Editor HTML tipo VS Code. Puedes reemplazar esta plantilla por cualquier HTML y clases Tailwind que quieras mostrar en el dashboard.</span><HtmlCodeEditor value={String(value ?? "")} onChange={onChange}/></div>;
   if (typeof value === "boolean") return <label className="flex items-center gap-2 text-[10px] font-semibold text-[#5d7285]"><input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)}/>{label}</label>;
-  if (findingType) return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<select className={style} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="">Selecciona una opción</option><option value="Hallazgo mayor">Hallazgo mayor</option><option value="Hallazgo menor">Hallazgo menor</option><option value="Observación">Observación</option></select></label>;
+  if (findingType) return <div className="block text-[10px] font-semibold text-[#5d7285]">{label}<Select value={String(value ?? "")} options={[{ value: "", label: "Selecciona una opción" }, "Hallazgo mayor", "Hallazgo menor", "Observación"]} onChange={onChange} size="form" ariaLabel={label} className="mt-0.5 w-full" /></div>;
   return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}{multiline ? <textarea rows={2} className={style} value={value} placeholder={examplePlaceholder(label, false)} onChange={(event) => onChange(event.target.value)}/> : <input className={style} type={numeric ? "number" : "text"} step={numeric ? "any" : undefined} value={value ?? ""} placeholder={examplePlaceholder(label, numeric)} onChange={(event) => onChange(numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value)}/>}</label>;
 }
 

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, BarChart3, ChevronDown, ClipboardCheck, Gauge, Layers3, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BarChart3, ChevronDown, ClipboardCheck, Gauge, Grid3x3, Layers3, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/services/api";
 import { evaluationHiddenDefaults, evaluationTemplate } from "./evaluationTemplate";
+import { ProgressHeatmapEditor, RiskFactorsEditor } from "./ProgressHeatmapEditor";
+import { hasHeatmapData, normalizeHeatmap, normalizeRiskFactors } from "@/lib/progressHeatmap";
 
 type JsonValue = string | number | null | JsonValue[] | { [key: string]: JsonValue };
 const sections: Record<string, string> = { pruebas: "Pruebas", detallePorBloque: "Detalle por bloque", nivelesDesempeno: "Niveles de desempeño", distribucionPorBloqueMateriaNiveles: "Distribución por bloque" };
@@ -16,6 +18,10 @@ const sectionDescriptions: Record<string, string> = {
 };
 sections.promediosGenerales = "Promedios generales por prueba";
 sectionDescriptions.promediosGenerales = "Promedios generales de Lenguaje y Matemática para CML y Progreso.";
+sections.heatmapProgreso = "Heatmap de progreso";
+sectionDescriptions.heatmapProgreso = "Porcentaje de estudiantes por nivel de desempeño, mes, bloque y materia.";
+sections.factoresRiesgo = "Factores de riesgo";
+sectionDescriptions.factoresRiesgo = "Factores intervenibles y no intervenibles por bloque (treemap del heatmap).";
 const sectionStyles: Record<string, { accent: string; icon: typeof ClipboardCheck }> = {
   pruebas: { accent: "bg-[#eaf4ff] text-[#176fc8]", icon: ClipboardCheck },
   detallePorBloque: { accent: "bg-[#edf8f3] text-[#25845e]", icon: Layers3 },
@@ -23,6 +29,8 @@ const sectionStyles: Record<string, { accent: string; icon: typeof ClipboardChec
   distribucionPorBloqueMateriaNiveles: { accent: "bg-[#f2efff] text-[#7457bd]", icon: BarChart3 },
 };
 sectionStyles.promediosGenerales = { accent: "bg-[#eaf8ff] text-[#19749b]", icon: BarChart3 };
+sectionStyles.heatmapProgreso = { accent: "bg-[#edf8f3] text-[#25845e]", icon: Grid3x3 };
+sectionStyles.factoresRiesgo = { accent: "bg-[#fff4e8] text-[#c87913]", icon: AlertTriangle };
 const labels: Record<string, string> = { cml: "CML", progreso: "Progreso", fundamentos: "Fundamentos", resumen: "Resumen", matricula: "Matrícula", centrosEscolares: "Centros escolares", titulo: "Título", universo: "Universo", aplicados: "Aplicados", pendientes: "Pendientes", porcentaje: "Porcentaje", promedioLengua: "Promedio de Lenguaje", promedioMatematica: "Promedio de Matemática", materiaSeleccionadaPorDefecto: "Materia seleccionada por defecto", materiasDisponibles: "Materias disponibles", composicionDelUniverso: "Composición del universo", trayectoriaDeResultados: "Trayectoria de resultados", etapas: "Etapas", resumenPorNivel: "Resumen por nivel", lecturaPrincipal: "Lectura principal", descripcionLectura: "Descripción de la lectura", nivelesDeDesempeno: "Niveles de desempeño", distribucionPorcentualDeLosFlujos: "Distribución porcentual de los flujos", porcentajesJulio: "Porcentajes de julio", porcentajesJunio: "Porcentajes de junio", variacionRespectoJunio: "Variación respecto a junio", programados: "Programados", aplicaciones: "Aplicaciones", barrera: "Barrera", etiqueta: "Etiqueta", entrada: "Entrada", incidencias: "Incidencias", lengua: "Lengua", matematica: "Matemática", bloque: "Bloque", materia: "Materia", subgrupo: "Subgrupo", transiciones: "Transiciones", totalCe: "Total CE", valores: "Valores", de: "De", hacia: "Hacia", rango: "Rango", nombre: "Nombre", nivel: "Nivel", estatus: "Estatus", promedio: "Promedio" };
 // Secciones que no se muestran en el formulario. Sus datos se conservan y se guardan tal cual.
 const hiddenFormSections = ["resultadosPorMes"];
@@ -152,8 +160,18 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
         .then(({ records }) => {
           const previous = records.find((record) => hasMonthlyRows(record.data?.evaluacion?.resultadosPorMes));
           const monthlyResults = previous?.data?.evaluacion?.resultadosPorMes;
-          if (monthlyResults === undefined) return;
-          setData((current) => isObject(current) ? { ...current, resultadosPorMes: calculateMonthlyPercentages(clone(monthlyResults)) } : current);
+          // El heatmap acumula meses: un registro nuevo parte del último heatmap capturado.
+          const previousHeatmap = records.find((record) => hasHeatmapData(normalizeHeatmap(record.data?.evaluacion?.heatmapProgreso)));
+          const heatmap = previousHeatmap?.data?.evaluacion?.heatmapProgreso;
+          const riskFactors = previousHeatmap?.data?.evaluacion?.factoresRiesgo;
+          setData((current) => {
+            if (!isObject(current)) return current;
+            const next = { ...current };
+            if (monthlyResults !== undefined) next.resultadosPorMes = calculateMonthlyPercentages(clone(monthlyResults));
+            if (heatmap !== undefined) next.heatmapProgreso = normalizeHeatmap(heatmap) as unknown as JsonValue;
+            if (riskFactors !== undefined) next.factoresRiesgo = normalizeRiskFactors(riskFactors) as unknown as JsonValue;
+            return next;
+          });
         })
         .catch(() => undefined);
       return;
@@ -169,6 +187,8 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
           distribucionPorBloqueMateriaNiveles: ensureDistributionAverages(evaluation.distribucionPorBloqueMateriaNiveles ?? clone(evaluationTemplate.distribucionPorBloqueMateriaNiveles) as JsonValue),
           promediosGenerales: evaluation.promediosGenerales ?? clone(evaluationTemplate.promediosGenerales) as JsonValue,
           resultadosPorMes: calculateMonthlyPercentages(evaluation.resultadosPorMes ?? clone(evaluationTemplate.resultadosPorMes) as JsonValue),
+          heatmapProgreso: normalizeHeatmap(evaluation.heatmapProgreso) as unknown as JsonValue,
+          factoresRiesgo: normalizeRiskFactors(evaluation.factoresRiesgo) as unknown as JsonValue,
         });
         setHiddenData({
           vistaResultados: evaluation.vistaResultados ?? clone(evaluationHiddenDefaults.vistaResultados) as JsonValue,
@@ -231,6 +251,8 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
         detallePorBloque: data.detallePorBloque,
         nivelesDesempeno: data.nivelesDesempeno,
         resultadosPorMes: data.resultadosPorMes,
+        heatmapProgreso: data.heatmapProgreso,
+        factoresRiesgo: data.factoresRiesgo,
         sankeysSeparados: hiddenData.sankeysSeparados,
         comparativasPorMateria: data.comparativasPorMateria ?? hiddenData.comparativasPorMateria,
         promediosGenerales: data.promediosGenerales,
@@ -249,7 +271,7 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
   if (loadingRecord) return <main className="min-h-screen bg-[#f3f7fb] p-8 text-center text-xs text-[#61788c]">Cargando registro...</main>;
   return <main className="min-h-screen bg-[#f3f7fb] p-3 sm:p-4 lg:p-5"><div className="mx-auto max-w-[1180px] overflow-clip rounded-xl border border-[#dce6ee] bg-[#f4f8fb] shadow-[0_6px_18px_rgba(27,58,87,.05)]">
     <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6ee] bg-white/95 px-4 py-2.5 shadow-[0_2px_8px_rgba(27,58,87,.05)] backdrop-blur sm:px-5"><div className="flex items-center gap-2.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} aria-label="Volver a Evaluación" className="rounded-md p-1.5 text-[#61788c] transition hover:bg-[#edf4f9]"><ArrowLeft size={16}/></button><div><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#6f8799]">{recordId ? "Editar registro" : "Nuevo registro"}</p><h1 className="text-sm font-semibold text-[#17324a]">Información de Evaluación</h1></div></div><label className="flex items-center gap-2 text-[10px] font-semibold text-[#61788c]"><span>Fecha</span><input type="date" required value={snapshotDate} onChange={(event) => setSnapshotDate(event.target.value)} className="h-8 rounded-md border border-[#d5e2eb] bg-white px-2.5 text-[11px] font-medium text-[#294b68] outline-none transition focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]"/></label></header>
-    <form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{Object.entries(data).filter(([key]) => !hiddenFormSections.includes(key)).map(([key, value]) => { const config = sectionStyles[key]; const Icon = config.icon; return <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-[0_2px_8px_rgba(27,58,87,.03)]"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-3 py-2.5 sm:px-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.accent}`}><Icon size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{sections[key]}</h2><p className="text-[9px] leading-4 text-[#718799]">{sectionDescriptions[key]}</p></div></div><div className="p-3 sm:p-4"><ValueEditor label={sections[key]} value={value} onChange={(updated) => updateSection(key, updated)} prioritizeResumen={key === "distribucionPorBloqueMateriaNiveles"}/></div></section>; })}</form>
+    <form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{Object.entries(data).filter(([key]) => !hiddenFormSections.includes(key)).map(([key, value]) => { const config = sectionStyles[key]; const Icon = config.icon; return <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-[0_2px_8px_rgba(27,58,87,.03)]"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-3 py-2.5 sm:px-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.accent}`}><Icon size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{sections[key]}</h2><p className="text-[9px] leading-4 text-[#718799]">{sectionDescriptions[key]}</p></div></div><div className="p-3 sm:p-4">{key === "heatmapProgreso" ? <ProgressHeatmapEditor value={value} onChange={(updated) => updateSection(key, updated)}/> : key === "factoresRiesgo" ? <RiskFactorsEditor value={value} blocks={normalizeHeatmap(data.heatmapProgreso).bloques} onChange={(updated) => updateSection(key, updated)}/> : <ValueEditor label={sections[key]} value={value} onChange={(updated) => updateSection(key, updated)} prioritizeResumen={key === "distribucionPorBloqueMateriaNiveles"}/>}</div></section>; })}</form>
     <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#dce6ee] bg-white px-4 py-2.5 sm:px-5"><div><button type="button" onClick={() => { setData(clone(evaluationTemplate) as JsonValue); setSnapshotDate(""); setSaveError(""); }} className="text-[10px] font-semibold text-[#60798e] hover:text-[#176fc8]">Restablecer formulario</button>{saveError && <p className="mt-1 text-[10px] font-medium text-red-600">{saveError}</p>}</div><div className="flex gap-1.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} className="rounded-md border border-[#ccdbe6] px-3 py-1.5 text-[11px] font-semibold text-[#526b80]">Cancelar</button><button type="button" onClick={saveEvaluation} disabled={!snapshotDate || saving} title={!snapshotDate ? "Selecciona una fecha" : undefined} className="rounded-md bg-[#176fc8] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#1262b2] disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Guardando..." : "Guardar registro"}</button></div></footer>
   </div></main>;
 }

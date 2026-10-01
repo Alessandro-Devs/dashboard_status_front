@@ -13,5 +13,4 @@ export const qualityHtmlExample = `<section class="rounded-2xl bg-[#f4f7fb] p-4 
       <div class="mt-auto rounded-lg border border-yellow-200 bg-yellow-50/70 p-3"><div class="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-yellow-700"><span class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-yellow-500 text-[9px]">◎</span>Acción requerida para cierre</div><p class="text-[11px] leading-relaxed text-[#526a80]">Capacitación con docentes de refuerzo para fortalecer el proceso de implementación.</p></div>
     </article>
   </div>
-  <div class="mt-5 rounded-xl border border-[#d9e1e8] bg-white p-4"><h2 class="mb-3 text-sm font-bold text-[#20394e]">Cumplimiento por grupo</h2><div data-chart="bar" data-source="cumplimientoPorGrupo"></div></div>
 </section>`;

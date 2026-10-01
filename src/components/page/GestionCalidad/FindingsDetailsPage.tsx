@@ -2,13 +2,18 @@
 
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getCriticalFindings, type Finding } from "./qualityData";
+import { useDashboardData } from "@/stores/DashboardDataContext";
+import CustomHtmlRenderer from "./CustomHtmlRenderer";
+import { getCriticalFindings, getCustomHtml, hasRenderableCustomHtml, type Finding } from "./qualityData";
 
 export default function FindingsDetailsPage() {
   const router = useRouter();
+  // Se suscribe a la carga de datos: al llegar la fecha seleccionada, la página vuelve a renderizar con sus datos.
+  const { isLoading, snapshotDate } = useDashboardData();
   const findings = getCriticalFindings();
+  const customHtml = hasRenderableCustomHtml() ? getCustomHtml() : "";
 
-  return <main className="min-h-screen bg-[#f4f7fb] px-4 py-5 text-[#223b53] sm:px-6"><div className="mx-auto max-w-[1080px]"><div className="flex items-start justify-between gap-4"><div><p className="text-[9px] font-semibold uppercase tracking-[.1em] text-[#71869a]">Gestión de Calidad</p><h1 className="mt-1 text-[18px] font-semibold tracking-[.04em] text-[#27435c]">DETALLE DE HALLAZGOS</h1><p className="mt-1 text-[10px] text-[#8da0b4]">Consulta completa de los hallazgos para la mejora en la implementación.</p></div><button type="button" onClick={() => router.push("/#gestion-calidad")} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#d8e0e8] bg-white px-3 py-2 text-[10px] text-[#667b90] transition hover:bg-[#f8fafc]" aria-label="Volver a Gestión de Calidad"><ArrowLeft size={14}/>Volver</button></div>{findings.length === 0 ? <div className="mt-6 rounded-xl border border-dashed border-[#cbd6e0] bg-white px-5 py-10 text-center"><p className="text-[11px] font-semibold text-[#526a80]">No hay hallazgos registrados.</p></div> : <div className="mt-6 space-y-4">{findings.map((finding, index) => <FindingDetailCard key={`${finding.finding ?? "hallazgo"}-${index}`} finding={finding} index={index}/>)}</div>}</div></main>;
+  return <main className="min-h-screen bg-[#f4f7fb] px-4 py-5 text-[#223b53] sm:px-6"><div className="mx-auto max-w-[1080px]"><div className="flex items-start justify-between gap-4"><div><p className="text-[9px] font-semibold uppercase tracking-[.1em] text-[#71869a]">Gestión de Calidad</p><h1 className="mt-1 text-[18px] font-semibold tracking-[.04em] text-[#27435c]">DETALLE DE HALLAZGOS</h1><p className="mt-1 text-[10px] text-[#8da0b4]">Consulta completa de los hallazgos para la mejora en la implementación.</p></div><button type="button" onClick={() => router.push("/#gestion-calidad")} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#d8e0e8] bg-white px-3 py-2 text-[10px] text-[#667b90] transition hover:bg-[#f8fafc]" aria-label="Volver a Gestión de Calidad"><ArrowLeft size={14}/>Volver</button></div>{isLoading ? <div className="mt-6 rounded-xl border border-[#d9e1e8] bg-white px-5 py-10 text-center"><div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-[#d7e6f5] border-t-[#2f82d5]"/><p className="mt-3 text-[10px] text-[#71869a]">Cargando detalles de hallazgos...</p></div> : customHtml ? <div className="mt-6"><CustomHtmlRenderer key={snapshotDate ?? "sin-fecha"} html={customHtml}/></div> : findings.length === 0 ? <div className="mt-6 rounded-xl border border-dashed border-[#cbd6e0] bg-white px-5 py-10 text-center"><p className="text-[11px] font-semibold text-[#526a80]">No hay detalles de hallazgos registrados para esta fecha.</p></div> : <div className="mt-6 space-y-4">{findings.map((finding, index) => <FindingDetailCard key={`${finding.finding ?? "hallazgo"}-${index}`} finding={finding} index={index}/>)}</div>}</div></main>;
 }
 
 function FindingDetailCard({ finding, index }: { finding: Finding; index: number }) {

@@ -21,6 +21,17 @@ type Compliance = { name: string; value: number };
 
 export const qualityData = dashboardDatabase.gestionCalidad;
 
+// HTML personalizado que se captura en Administración > Gestión de Calidad > "Detalles de hallazgos".
+export const getCustomHtml = (): string => {
+  const value = (qualityData as typeof qualityData & { codigoHtml?: unknown }).codigoHtml;
+  return typeof value === "string" ? value.trim() : "";
+};
+
+export const hasRenderableCustomHtml = (): boolean => {
+  const visibleText = getCustomHtml().replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim();
+  return visibleText.length > 0;
+};
+
 // La API sincroniza dashboardDatabase después de cargar este módulo. Estas
 // colecciones deben calcularse bajo demanda para no conservar copias vacías.
 export const getAuditedByGroup = () =>

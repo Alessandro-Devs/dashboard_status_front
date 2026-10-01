@@ -139,7 +139,8 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    apiFetch<DashboardResponse>(path, { signal: controller.signal })
+    // Espera a que el servidor despierte (capas gratuitas): mientras tanto se muestra el modal de carga.
+    apiFetch<DashboardResponse>(path, { signal: controller.signal, waitForServer: true })
       .then((response) => {
         if (!active) return;
         if (!response.snapshot || !isObject(response.data)) {

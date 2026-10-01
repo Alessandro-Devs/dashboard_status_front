@@ -41,6 +41,8 @@ type EvaluacionNueva = {
   promediosGenerales?:PromediosGenerales;
   distribucionPorBloqueMateriaNiveles?:Record<string,DistribucionNivelPorBloque[]>;
   resultadosPorMes?:Record<string,unknown>;
+  heatmapProgreso?:unknown;
+  factoresRiesgo?:unknown;
   vistaResultados?:VistaResultados;
 };
 

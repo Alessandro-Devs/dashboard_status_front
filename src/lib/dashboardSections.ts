@@ -1,6 +1,7 @@
 "use client";
 
 import { dashboardDatabase } from "@/data/dashboardDatabase";
+import { hasAvanceProduccion, normalizeAvanceProduccion } from "@/lib/productionProgress";
 
 export type DashboardSection = {
   id: "gestion-calidad" | "gestion-escolar" | "aprendizaje" | "evaluacion" | "tutoria-formacion";
@@ -66,6 +67,9 @@ function hasLearningData(value: unknown) {
   ) {
     return true;
   }
+
+  // El avance de producción (Kira / xAI) también cuenta como dato del módulo.
+  if (hasAvanceProduccion(normalizeAvanceProduccion(value.avanceProduccion))) return true;
 
   return false;
 }

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import EvaluationComparisonByBlockLevels from "./EvaluationComparisonByBlockLevels";
 import EvaluationProgressHeatmap from "./EvaluationProgressHeatmap";
 import { getEvaluacion } from "./evaluationViewData";
+import { hasHeatmapData, normalizeHeatmap } from "@/lib/progressHeatmap";
 type EvaluationFilter = "cml" | "progreso";
 const numberValue = (value: unknown) => {
     const numeric = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
@@ -18,13 +19,10 @@ export function hasCmlResults() {
     const distributions = getEvaluacion().distribucionPorBloqueMateriaNiveles ?? {};
     return Object.values(distributions).some((rows) => Array.isArray(rows) && rows.some((row) => isRecord(row) && hasLevelData(row)));
 }
+// "Progreso" solo se muestra si el heatmap tiene al menos un porcentaje capturado para la
+// fecha. `resultadosPorMes` ya no se usa en la vista, así que no cuenta como dato de progreso.
 export function hasProgressResults() {
-    const source = getEvaluacion().resultadosPorMes;
-    if (!isRecord(source)) return false;
-    return Object.values(source).some((rows) => Array.isArray(rows) && rows.some((row) => {
-        if (!isRecord(row)) return false;
-        return hasLevelData(row) || numberValue(row.promedioMatematica) > 0 || numberValue(row.promedioLengua) > 0;
-    }));
+    return hasHeatmapData(normalizeHeatmap(getEvaluacion().heatmapProgreso));
 }
 export default function EvaluationProgressFiltered({ activeFilter, onChange }: {
     activeFilter: EvaluationFilter;

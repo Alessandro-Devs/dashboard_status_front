@@ -6,6 +6,7 @@ import { dashboardSections, getDefaultDashboardSectionLabel } from "@/lib/dashbo
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
 import PeriodFilter from "./PeriodFilter";
+import LoadingDataModal from "@/components/ui/LoadingDataModal";
 
 const viewBySection: Record<string, string> = {
   "Gestión de Calidad": "gestion-calidad",
@@ -124,32 +125,8 @@ export default function AuditReportHeader() {
         </div>
       </header>
 
-      {isLoading && resolvedDate !== null ? <LoadingDateModal date={state.endDate} /> : null}
+      {/* Carga inicial (sin fecha resuelta aún) y cambios de fecha usan el mismo modal. */}
+      {isLoading ? <LoadingDataModal key={state.endDate} date={resolvedDate !== null ? state.endDate : undefined} /> : null}
     </>
   );
-}
-
-function LoadingDateModal({ date }: { date: string }) {
-  return (
-    <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-[#17324a]/38 px-4 backdrop-blur-[8px]"
-      role="presentation"
-      aria-hidden="true"
-    >
-      <div className="w-full max-w-[260px] rounded-[14px] border border-[#dbe5ee] bg-white px-5 py-5 text-center shadow-[0_24px_60px_rgba(15,35,55,0.18)]">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#d7e6f5] border-t-[#2f82d5]" />
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#22384c]">
-          Cargando datos
-        </p>
-        <p className="mt-2 text-[9px] text-[#7b8ea1]">
-          Consultando la fecha {formatModalDate(date)}.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function formatModalDate(value: string) {
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
 }

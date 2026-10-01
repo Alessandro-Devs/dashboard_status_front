@@ -4,6 +4,7 @@ import BarreraCard from "./BarreraCard";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
 import { getEvaluacion, normalizeMateria, tieneNumero, type DistribucionNivelPorBloque } from "./evaluationViewData";
+import Select from "@/components/ui/Select";
 
 const levels = [
     { key: "nivel1percent", dataKey: "nivel1data", color: "#e5252a", label: "Crítico" },
@@ -131,10 +132,7 @@ function BlockFilter({ options, selected, onChange }: {
     const currentValue = selected.find((item) => options.some((option) => option.id === item)) ?? "";
     return <div className="rounded-[9px] border border-[#dce3ea] bg-white p-4">
     <p className="text-[10px] font-semibold uppercase text-[#60778c]">Bloque</p>
-    <select value={currentValue} onChange={(event) => onChange(event.target.value ? [event.target.value] : [])} className="mt-2 h-9 w-full rounded-md border border-[#d9e2eb] bg-[#fbfcfd] px-3 text-[10px] font-semibold text-[#334b60] outline-none transition focus:border-[#176fc8] focus:ring-2 focus:ring-[#eaf4ff]">
-      <option value="">Todos los bloques</option>
-      {options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-    </select>
+    <Select value={currentValue} options={[{ value: "", label: "Todos los bloques" }, ...options.map((option) => ({ value: option.id, label: option.label }))]} onChange={(value) => onChange(value ? [value] : [])} size="md" ariaLabel="Bloque" className="mt-2 w-full" />
   </div>;
 }
 
@@ -146,10 +144,7 @@ function SubjectFilter({ options, selected, onChange }: {
     const currentValue = selected.find((item) => options.some((option) => option.id === item)) ?? "";
     return <div className="rounded-[9px] border border-[#dce3ea] bg-white p-4">
     <p className="text-[10px] font-semibold uppercase text-[#60778c]">Materia</p>
-    <select value={currentValue} onChange={(event) => onChange(event.target.value ? [event.target.value] : [])} className="mt-2 h-9 w-full rounded-md border border-[#d9e2eb] bg-[#fbfcfd] px-3 text-[10px] font-semibold text-[#334b60] outline-none transition focus:border-[#176fc8] focus:ring-2 focus:ring-[#eaf4ff]">
-      <option value="">Todas las materias</option>
-      {options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-    </select>
+    <Select value={currentValue} options={[{ value: "", label: "Todas las materias" }, ...options.map((option) => ({ value: option.id, label: option.label }))]} onChange={(value) => onChange(value ? [value] : [])} size="md" ariaLabel="Materia" className="mt-2 w-full" />
   </div>;
 }
 
@@ -159,12 +154,10 @@ function SelectFilter({ label, value, onChange, options }: {
     onChange: (value: string) => void;
     options: Array<{ value: string; label: string }>;
 }) {
-    return <label className="flex items-center justify-between gap-3 rounded-[9px] border border-[#dce3ea] bg-white px-3 py-2">
+    return <div className="flex items-center justify-between gap-3 rounded-[9px] border border-[#dce3ea] bg-white px-3 py-2">
       <span className="text-[10px] font-semibold text-[#60778c]">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded border border-[#d9e2eb] bg-white px-2 py-1.5 text-[10px] font-semibold text-[#334b60] outline-none">
-        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
-    </label>;
+      <Select value={value} options={options} onChange={onChange} size="sm" ariaLabel={label} className="w-auto min-w-[130px]" />
+    </div>;
 }
 
 function Average({ title, value, variation }: {

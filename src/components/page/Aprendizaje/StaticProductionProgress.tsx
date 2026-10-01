@@ -1,39 +1,158 @@
 "use client";
 
-import { useState } from "react";
+import { Gauge, MonitorCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { dashboardDatabase } from "@/data/dashboardDatabase";
+import { hasXaiData, normalizeAvanceProduccion, typeColors, visibleKiraTypes, visibleXaiSubjects } from "@/lib/productionProgress";
+
+// Avance de producción de las plataformas Kira y xAI, con el estilo del dashboard
+// (mismas tarjetas de indicadores, tipografía, colores y selector que el resto de secciones).
 
 type Platform = "kira" | "xai";
-const types = [
-  { letter: "A", name: "TIPO A", audience: "Estudiantes con bajo rezago", color: "#059c80", subjects: [["Lenguaje", 66], ["Matematicas", 66], ["Refuerzo curricular", 66], ["Ciencia y Tecnologia", 0], ["Desarrollo del pensamiento", 0]] },
-  { letter: "B", name: "TIPO B", audience: "Estudiantes con medio rezago", color: "#187ec7", subjects: [["Lenguaje", 100], ["Matematicas", 100], ["Refuerzo curricular", 100]] },
-  { letter: "C", name: "TIPO C", audience: "Centros escolares multigrado", color: "#f26a0a", subjects: [["Remediacion", 10], ["Nivelacion", 0]] },
-] as const;
+type Row = { name: string; done: number; total: number };
+// Colores de estado del dashboard.
+const DONE_COLOR = "#168a4c";
+const PROGRESS_COLOR = "#e78316";
+const EMPTY_COLOR = "#e3e9ef";
 
-export default function StaticProductionProgress({ date }: { date: string }) {
-  const [platform, setPlatform] = useState<Platform>("kira");
-  if (date !== "2026-09-24") return null;
+const percent = (item: Row) => (item.total > 0 ? Math.min(100, Math.floor((item.done / item.total) * 100)) : 0);
+const status = (value: number) => {
+  if (value >= 100) return { label: "Completo", className: "bg-[#e7f8ee] text-[#168a4c]" };
+  if (value > 0) return { label: "En curso", className: "bg-[#fff4e5] text-[#c87913]" };
+  return { label: "Sin iniciar", className: "bg-[#f1f3f5] text-[#8296a8]" };
+};
+
+export default function StaticProductionProgress() {
+  // Datos capturados en Administración > Aprendizaje > "Avance de producción" para la fecha elegida.
+  const data = normalizeAvanceProduccion((dashboardDatabase.aprendizaje as { avanceProduccion?: unknown } | undefined)?.avanceProduccion);
+  const kiraTypes = visibleKiraTypes(data).map((type) => ({
+    letter: type.letra,
+    ...typeColors(type.index),
+    audience: type.descripcion,
+    rows: type.componentes.map((item): Row => ({ name: item.nombre, done: item.clasesProducidas ?? 0, total: item.clasesTotales ?? 0 })),
+  }));
+  const xaiSubjects = visibleXaiSubjects(data);
+  const platforms = ([["kira", "KIRA"], ["xai", "xAI"]] as const).filter(([id]) => (id === "kira" ? kiraTypes.length > 0 : hasXaiData(data)));
+  const [selectedPlatform, setPlatform] = useState<Platform>("kira");
+  const platform: Platform = platforms.some(([id]) => id === selectedPlatform) ? selectedPlatform : platforms[0]?.[0] ?? "kira";
+  // Las barras crecen desde 0 al mostrarse y al cambiar de plataforma.
+  const [animated, setAnimated] = useState<Platform | null>(null);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnimated(platform), 60);
+    return () => window.clearTimeout(timer);
+  }, [platform]);
+  if (platforms.length === 0) return null;
+
+  const mounted = animated === platform;
+  const all = kiraTypes.flatMap((type) => type.rows.map(percent));
+  const done = all.filter((value) => value >= 100).length;
+  const inProgress = all.filter((value) => value > 0 && value < 100).length;
+  const notStarted = all.length - done - inProgress;
+  const global = all.length ? Math.round(all.reduce((sum, value) => sum + value, 0) / all.length) : 0;
+  const types = kiraTypes.map((type) => {
+    const values = type.rows.map(percent);
+    return { ...type, avg: values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0 };
+  });
+  const share = (count: number) => `${mounted && all.length ? (count / all.length) * 100 : 0}%`;
 
   return (
-    <section className="mt-8 pt-7" aria-label="Avance de produccion por plataforma">
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div><h2 className="text-sm font-semibold uppercase tracking-[.04em] text-[#253d53]">Avance de produccion por tipo y materia</h2><p className="mt-1 text-[8px] text-[#8fa1b5]">Plataforma {platform === "kira" ? "Kira" : "xAI"} · Corte: 24 de septiembre de 2026</p></div>
-        <nav className="flex items-center gap-5 border-b border-[#dce6ef]" aria-label="Seleccionar plataforma">
-          {([['kira', 'KIRA'], ['xai', 'xAI']] as const).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={platform === value} onClick={() => setPlatform(value)} className={`relative w-12 cursor-pointer px-0.5 pb-2.5 text-center text-[11px] font-semibold transition ${platform === value ? value === "kira" ? "text-[#059c80] after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-[#059c80]" : "text-[#386fb8] after:absolute after:bottom-[-1px] after:left-0 after:h-0.5 after:w-full after:bg-[#386fb8]" : "text-[#8295a8] hover:text-[#526a80]"}`}>{label}</button>)}
-        </nav>
+    <section className="mt-8 pt-7" aria-label="Avance de producción por plataforma">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[.04em] text-[#253d53]">Avance de producción por tipo y materia</h2>
+        </div>
+        {platforms.length > 1 ? <div role="tablist" aria-label="Seleccionar plataforma" className="grid grid-cols-2 self-start border-b" style={{ borderBottomColor: "#e3e9ef" }}>
+          {platforms.map(([id, label]) => {
+            const active = platform === id;
+            return <button key={id} type="button" role="tab" aria-selected={active} onClick={() => setPlatform(id)} style={{ borderBottomColor: active ? "#176fc8" : "transparent" }} className={`-mb-px w-14 cursor-pointer border-b-2 pb-1.5 text-center text-[10px] font-semibold tracking-[.04em] transition-colors ${active ? "text-[#176fc8]" : "text-[#8a9bb0] hover:text-[#4f6a82]"}`}>{label}</button>;
+          })}
+        </div> : <span className="self-start text-[10px] font-semibold tracking-[.04em] text-[#176fc8]">{platforms[0][1]}</span>}
       </div>
 
-      {platform === "kira" ? <div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {types.map((type) => <article key={type.letter} className="overflow-hidden rounded-lg border border-[#dce6ef] bg-white shadow-[0_3px_10px_rgba(26,67,110,.025)]">
-            <div className="flex items-center gap-3 px-4 py-3 text-white" style={{ backgroundColor: type.color }}><span className="grid h-9 w-9 place-items-center rounded-full bg-white text-base font-black" style={{ color: type.color }}>{type.letter}</span><div><span className="block text-[11px] font-bold">{type.name}</span><span className="mt-0.5 block text-[8px] font-medium leading-tight">{type.audience}</span></div></div>
-            <div className="grid gap-3 px-4 py-4">{type.subjects.map(([subject, value]) => <div key={subject} className="grid gap-1.5"><div className="flex items-center justify-between gap-2"><span className="text-[10px] font-semibold text-[#29445b]">{subject}</span><span className="text-[10px] font-bold" style={{ color: type.color }}>{value}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[#e3ebf2]"><div className="h-full min-w-1 rounded-full" style={{ width: `${value}%`, backgroundColor: type.color }} /></div></div>)}</div>
+      {platform === "kira" ? <>
+        <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* Avance global: ocupa toda la fila; los tipos van debajo en dos columnas (una en teléfono). */}
+          <Kpi className="sm:col-span-2" compact badge={<Gauge className="h-4 w-4 text-[#1976d2]" />} badgeClass="bg-[#e8f3ff]" title="Avance global Kira">
+            <div className="flex items-baseline gap-1"><span className="text-[31px] font-semibold leading-none tabular-nums text-[#1670d2]">{global}%</span></div>
+            <div className="mt-3 flex h-2 gap-[2px] overflow-hidden rounded-full" style={{ background: EMPTY_COLOR }}>
+              <div className="transition-[width] duration-700 ease-out" style={{ width: share(done), background: DONE_COLOR }} />
+              <div className="transition-[width] delay-100 duration-700 ease-out" style={{ width: share(inProgress), background: PROGRESS_COLOR }} />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[8px] text-[#8a9bb0]">
+              <LegendItem color={DONE_COLOR} label="Completos" value={done} />
+              <LegendItem color={PROGRESS_COLOR} label="En curso" value={inProgress} />
+              <LegendItem color="#c3cfdb" label="Sin iniciar" value={notStarted} />
+            </div>
+          </Kpi>
+          {types.map((type) => {
+            const chip = status(type.avg);
+            return <Kpi key={type.letter} badge={<span className="text-[11px] font-bold" style={{ color: type.accent }}>{type.letter}</span>} badgeStyle={{ background: type.tint }} title={`Tipo ${type.letter}`} aside={<Chip {...chip} />}>
+              <span className="text-[31px] font-semibold leading-none tabular-nums" style={{ color: type.accent }}>{type.avg}%</span>
+              {type.audience.trim() ? <p className="mt-2 text-[8px] text-[#8a9bb0]">{type.audience}</p> : null}
+            </Kpi>;
+          })}
+        </div>
+
+        <h3 className="mt-6 text-[10px] font-semibold uppercase tracking-[.04em] text-[#4f6a82]">Detalle por tipo y materia</h3>
+        <div className="mt-3 grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
+          {types.map((type) => <article key={type.letter} className="min-w-0 rounded-lg border border-[#d6dfe8] bg-white p-4 shadow-[0_1px_2px_rgba(15,35,55,.02)]">
+            <div className="flex items-center gap-3 border-b border-[#e6edf2] pb-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white" style={{ background: type.accent }}>{type.letter}</span>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-[10px] font-semibold text-[#233a4e]">Tipo {type.letter}</h4>
+                {type.audience.trim() ? <p className="mt-[3px] text-[8px] text-[#91a3b7]">{type.audience}</p> : null}
+              </div>
+              <span className="text-[15px] font-semibold tabular-nums" style={{ color: type.accent }}>{type.avg}%</span>
+            </div>
+            <div className="mt-3 space-y-3">
+              {type.rows.map((item) => {
+                const value = percent(item);
+                return <div key={item.name}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 text-[9px] font-semibold text-[#29445b]">{item.name}</span>
+                    <span className="flex flex-none items-center gap-2">
+                      <Chip {...status(value)} />
+                      <span className="w-[30px] text-right text-[9px] font-semibold tabular-nums" style={{ color: value > 0 ? type.accent : "#9aabbd" }}>{value}%</span>
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#e8eef4]">
+                    <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${mounted ? value : 0}%`, background: type.accent }} />
+                  </div>
+                  <p className="mt-1 text-[8px] text-[#8a9bb0]"><strong className="font-semibold tabular-nums text-[#4f6a82]">{item.done} de {item.total}</strong> clases</p>
+                </div>;
+              })}
+            </div>
           </article>)}
         </div>
-        <p className="mt-4 text-center text-[8px] text-[#8fa1b5]">Los porcentajes muestran el avance de produccion reportado para cada componente.</p>
-      </div> : <article className="grid overflow-hidden rounded-lg border border-[#dce6ef] bg-white shadow-[0_3px_10px_rgba(26,67,110,.025)] lg:grid-cols-[190px_minmax(0,1fr)]">
-        <div className="flex min-h-[140px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#2f63a8] to-[#173d78] px-5 py-5 text-center text-white lg:min-h-[280px]"><span className="grid h-16 w-16 place-items-center rounded-full bg-white text-base font-black text-[#386fb8]">xAI</span><strong className="text-sm">Desarrollo xAI</strong><span className="text-[9px] leading-tight opacity-90">Alcance actual de la plataforma</span></div>
-        <div className="flex flex-col justify-center px-5 py-6 sm:px-7"><span className="mb-1 text-[9px] font-bold uppercase tracking-[.08em] text-[#386fb8]">6to grado</span><h3 className="text-lg font-semibold text-[#17324a]">Lenguaje y Matematicas</h3><p className="mt-2 max-w-[760px] text-[10px] leading-5 text-[#71869a]">La plataforma se encuentra en funcionamiento para estas dos asignaturas, con alcance actual unicamente en sexto grado.</p><span className="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-[#e3f6ef] px-3 py-2 text-[9px] font-bold text-[#08775e] before:h-2 before:w-2 before:rounded-full before:bg-[#10a67d]">En funcionamiento</span><div className="mt-4 grid max-w-[760px] gap-3 sm:grid-cols-2">{[['L', 'Lenguaje'], ['M', 'Matematicas']].map(([letter, subject]) => <div key={subject} className="flex min-h-[64px] items-center gap-3 rounded-md border border-[#dce6ef] bg-[#f8fbfe] px-3 py-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#386fb8] text-xs font-bold text-white">{letter}</span><div><strong className="block text-[10px] font-semibold text-[#29445b]">{subject}</strong><small className="text-[8px] text-[#8295a8]">6to grado</small></div></div>)}</div></div>
-      </article>}
+      </> : <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+        {data.xai.estado.trim() ? <Kpi badge={<MonitorCheck className="h-4 w-4 text-[#168a4c]" />} badgeClass="bg-[#e7f8ee]" title="Estado de la plataforma xAI">
+          <span className="flex items-center gap-2 text-[18px] font-semibold leading-none text-[#168a4c]"><span className="h-2.5 w-2.5 rounded-full bg-[#1fb45f] shadow-[0_0_0_4px_rgba(31,180,95,.18)]" />{data.xai.estado}</span>
+          {data.xai.alcance.trim() ? <p className="mt-3 text-[8px] text-[#8a9bb0]">{data.xai.alcance}</p> : null}
+        </Kpi> : null}
+        {xaiSubjects.map((subject, index) => <Kpi key={`${subject.nombre}-${index}`} badge={<span className="text-[11px] font-bold text-[#176fc8]">{subject.nombre.trim().charAt(0).toUpperCase()}</span>} badgeClass="bg-[#e8f3ff]" title={subject.nombre} aside={<Chip label={subject.activa ? "Activa" : "Inactiva"} className={subject.activa ? "bg-[#e7f8ee] text-[#168a4c]" : "bg-[#f1f3f5] text-[#8296a8]"} />}>
+          {subject.detalle.trim() ? <span className="text-[15px] font-semibold leading-none text-[#1670d2]">{subject.detalle}</span> : null}
+        </Kpi>)}
+      </div>}
     </section>
   );
+}
+
+// Misma estructura que KpiCard del dashboard, con un espacio opcional a la derecha.
+function Kpi({ badge, badgeClass = "", badgeStyle, title, aside, className = "", compact = false, children }: { badge: React.ReactNode; badgeClass?: string; badgeStyle?: React.CSSProperties; title: string; aside?: React.ReactNode; className?: string; compact?: boolean; children: React.ReactNode }) {
+  return <div className={`${compact ? "" : "min-h-[145px]"} min-w-0 rounded-lg border border-[#d7e0e9] bg-white p-4 ${className}`}>
+    <div className="flex items-start gap-3">
+      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${badgeClass}`} style={badgeStyle}>{badge}</span>
+      <h3 className="min-w-0 flex-1 pt-1 text-[8px] font-semibold uppercase leading-[1.35] tracking-[.04em] text-[#4f6a82]">{title}</h3>
+      {aside}
+    </div>
+    <div className="mt-4">{children}</div>
+  </div>;
+}
+
+function Chip({ label, className }: { label: string; className: string }) {
+  return <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[8px] font-bold uppercase ${className}`}>{label}</span>;
+}
+
+function LegendItem({ color, label, value }: { color: string; label: string; value: number }) {
+  return <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />{label} <strong className="font-semibold text-[#4f6a82]">{value}</strong></span>;
 }

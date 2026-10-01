@@ -80,7 +80,9 @@ export default function AllDashboardSections() {
         };
     }, [sections, setActiveSection]);
     if (!hasData) {
-        return <EmptyDashboardState message={isLoading ? "Consultando los datos para la fecha seleccionada..." : error ?? undefined}/>;
+        // Mientras carga, el modal del encabezado informa al usuario; aquí solo se muestra un esqueleto.
+        if (isLoading) return <LoadingDashboardSkeleton />;
+        return <EmptyDashboardState message={error ?? undefined}/>;
     }
     if (sections.length === 0) {
         return <EmptyDashboardState message="No existen secciones con datos para la fecha seleccionada."/>;
@@ -96,6 +98,19 @@ export default function AllDashboardSections() {
       </div>
       {sectionContent[section.id]}
     </section>))}</>;
+}
+function LoadingDashboardSkeleton() {
+    return <main className="flex-1 bg-[#f5f8fc]" aria-hidden="true">
+    <div className="mx-auto w-full max-w-[1020px] animate-pulse px-4 pb-16 pt-5 motion-reduce:animate-none">
+      <div className="h-3 w-40 rounded-full bg-[#e3eaf2]"/>
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[0, 1, 2, 3].map((item) => <div key={item} className="h-[110px] rounded-lg border border-[#e1e8ef] bg-white p-4"><div className="h-2 w-16 rounded-full bg-[#e8eef5]"/><div className="mt-5 h-6 w-12 rounded-md bg-[#e8eef5]"/><div className="mt-4 h-2 w-20 rounded-full bg-[#eef3f8]"/></div>)}
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {[0, 1].map((item) => <div key={item} className="h-[220px] rounded-lg border border-[#e1e8ef] bg-white p-4"><div className="h-2.5 w-28 rounded-full bg-[#e8eef5]"/><div className="mt-6 flex h-[150px] items-end gap-3">{[55, 80, 40, 95, 65, 75].map((height, index) => <div key={index} className="flex-1 rounded-t-md bg-[#eef3f8]" style={{ height: `${height}%` }}/>)}</div></div>)}
+      </div>
+    </div>
+  </main>;
 }
 function EmptyDashboardState({ message }: {
     message?: string;

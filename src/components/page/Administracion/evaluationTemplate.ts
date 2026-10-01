@@ -1,3 +1,5 @@
+import { emptyHeatmap } from "@/lib/progressHeatmap";
+
 const metric = (universo = "", aplicados = "", pendientes = "", porcentaje: number | null = null) => ({ universo, aplicados, pendientes, porcentaje });
 const block = (bloque: string, universo: number | null = null, aplicados: number | null = null, pendientes: number | null = null, porcentaje: number | null = null) => ({ bloque, universo, aplicados, pendientes, porcentaje });
 const distribution = (bloque: string) => ({ bloque, universo: 0, nivel1data: 0, nivel2data: 0, nivel3data: 0, nivel4data: 0, nivel5data: 0, nivel1percent: 0, nivel2percent: 0, nivel3percent: 0, nivel4percent: 0, nivel5percent: 0 });
@@ -22,6 +24,8 @@ export const evaluationTemplate = {
     progreso: { lengua: 0, matematica: 0 },
   },
   resultadosPorMes: Object.fromEntries(months.map((month) => [month, [monthlyBlock()]])),
+  heatmapProgreso: emptyHeatmap(),
+  factoresRiesgo: {},
 };
 
 // Secciones que forman parte del contrato JSON de Evaluación, aunque no se
