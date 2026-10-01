@@ -21,7 +21,12 @@ export type MonthValues = (number | null)[];
 export type LevelValues = Record<string, MonthValues>;
 export type HeatmapProgreso = {
   bloques: string[];
+  // Porcentaje por materia → bloque → nivel → mes.
   materias: Record<string, Record<string, LevelValues>>;
+  // Universo de estudiantes por materia → bloque (captura manual).
+  universos: Record<string, Record<string, number | null>>;
+  // Cantidad de estudiantes por materia → bloque → nivel → mes (captura manual).
+  estudiantes: Record<string, Record<string, LevelValues>>;
 };
 export type RiskFactor = { nombre: string; porcentaje: number | null; estudiantes: number | null };
 export type RiskFactorGroup = { intervenible: RiskFactor[]; noIntervenible: RiskFactor[] };
@@ -41,6 +46,8 @@ export function emptyHeatmap(blocks: string[] = DEFAULT_HEATMAP_BLOCKS): Heatmap
   return {
     bloques: [...blocks],
     materias: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, Object.fromEntries(blocks.map((block) => [block, emptyLevels()]))])),
+    universos: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, Object.fromEntries(blocks.map((block) => [block, null]))])),
+    estudiantes: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, Object.fromEntries(blocks.map((block) => [block, emptyLevels()]))])),
   };
 }
 
@@ -50,10 +57,9 @@ export function normalizeHeatmap(value: unknown): HeatmapProgreso {
   const blocks = Array.isArray(source.bloques)
     ? [...new Set(source.bloques.filter((item): item is string => typeof item === "string" && item.trim() !== "" && item !== ALL_BLOCKS))]
     : [...DEFAULT_HEATMAP_BLOCKS];
-  const subjects = isRecord(source.materias) ? source.materias : {};
-  return {
-    bloques: blocks,
-    materias: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => {
+  const levelTable = (table: unknown) => {
+    const subjects = isRecord(table) ? table : {};
+    return Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => {
       const subjectData = isRecord(subjects[subject]) ? subjects[subject] : {};
       return [subject, Object.fromEntries(blocks.map((block) => {
         const blockData = isRecord(subjectData[block]) ? subjectData[block] : {};
@@ -62,7 +68,17 @@ export function normalizeHeatmap(value: unknown): HeatmapProgreso {
           return [level.name, HEATMAP_MONTHS.map((_, index) => toNumber(values[index]))];
         }))];
       }))];
+    })) as Record<string, Record<string, LevelValues>>;
+  };
+  const universes = isRecord(source.universos) ? source.universos : {};
+  return {
+    bloques: blocks,
+    materias: levelTable(source.materias),
+    universos: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => {
+      const subjectData = isRecord(universes[subject]) ? universes[subject] : {};
+      return [subject, Object.fromEntries(blocks.map((block) => [block, toNumber(subjectData[block])]))];
     })),
+    estudiantes: levelTable(source.estudiantes),
   };
 }
 
@@ -115,9 +131,13 @@ function mixHex(from: string, to: string, amount: number) {
 // Color de la celda en una escala fija de 0 a 100 %: el mismo valor tiene siempre el mismo
 // tono, en cualquier fila o bloque. Valores sobre 100 usan el tono más intenso. La curva
 // suave (raíz) separa mejor los valores bajos, que son los más frecuentes.
-export function cellColor(levelName: string, value: number) {
+// `range` = mínimo y máximo de la fila visible. La intensidad se calcula dentro de ese rango para que
+// las diferencias entre meses se noten aunque los porcentajes estén cerca (ej. 15% a 24%).
+export function cellColor(levelName: string, value: number, range?: { min: number; max: number }) {
   const level = HEATMAP_LEVELS.find((item) => item.name === levelName) ?? HEATMAP_LEVELS[0];
-  const amount = Math.sqrt(Math.min(Math.max(value, 0), 100) / 100);
+  const amount = range
+    ? range.max > range.min ? 0.08 + 0.92 * ((value - range.min) / (range.max - range.min)) : 0.5
+    : Math.sqrt(Math.min(Math.max(value, 0), 100) / 100);
   const background = mixHex(level.light, level.dark, amount);
   // Texto oscuro sobre fondos claros y blanco sobre fondos intensos, para que siempre se lea.
   const [r, g, b] = [1, 3, 5].map((index) => Number.parseInt(background.slice(index, index + 2), 16) / 255);

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MoveHorizontal } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -263,6 +264,18 @@ function ChartCard({ data }: { data: BlockItem[] }) {
     appliedRaw: item.applied,
     pendingRaw: item.pending,
   }));
+  // Cada bloque tiene un ancho mínimo; si no caben todos, el gráfico se desplaza horizontalmente.
+  const minChartWidth = 52 + chartData.length * 110;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState(false);
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    // Se compara el ancho disponible con el ancho mínimo del gráfico (no con scrollWidth, que cambia mientras el gráfico se mide).
+    const observer = new ResizeObserver(() => setOverflow(element.clientWidth + 1 < minChartWidth));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [minChartWidth]);
 
   return (
     <section className="mt-3.5 rounded-lg border border-[#dce3ea] bg-white p-3">
@@ -273,19 +286,23 @@ function ChartCard({ data }: { data: BlockItem[] }) {
             Aplicados y pendientes respecto al universo
           </p>
         </div>
-        <div className="flex flex-wrap gap-3 text-[5.5px]">
-          <LegendDot color="#16a34a" label="Aplicados" />
-          <LegendDot color="#ef5b5b" label="Pendientes" />
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-wrap gap-3 text-[5.5px]">
+            <LegendDot color="#16a34a" label="Aplicados" />
+            <LegendDot color="#ef5b5b" label="Pendientes" />
+          </div>
+          {overflow ? <p className="flex items-center gap-1 text-[5.5px] text-[#a0aec0]"><MoveHorizontal className="h-2.5 w-2.5" strokeWidth={1.5} />Desplace horizontalmente</p> : null}
         </div>
       </div>
 
-      <div className="mt-4 h-[260px]">
+      <div ref={scrollRef} className="mt-4 w-full overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#e2e8f0] [&::-webkit-scrollbar-thumb:hover]:bg-[#cbd5e1] [&::-webkit-scrollbar-track]:bg-transparent">
+      <div className="h-[260px]" style={{ minWidth: minChartWidth }}>
         <ResponsiveContainer>
           <BarChart
             data={chartData}
-            barGap={1}
-            barCategoryGap="0%"
-            margin={{ top: 24, right: 2, bottom: 2, left: -18 }}
+            barGap={2}
+            barCategoryGap="22%"
+            margin={{ top: 24, right: 8, bottom: 2, left: 0 }}
             barSize={32}
           >
             <CartesianGrid vertical={false} stroke="#edf2f7" />
@@ -298,8 +315,9 @@ function ChartCard({ data }: { data: BlockItem[] }) {
             <YAxis
               axisLine={false}
               tickLine={false}
-              width={40}
+              width={44}
               domain={[0, 100]}
+              ticks={[0, 25, 50, 75, 100]}
               tickFormatter={(value) => `${value}%`}
               tick={{ fill: "#6f8294", fontSize: 10 }}
             />
@@ -312,6 +330,7 @@ function ChartCard({ data }: { data: BlockItem[] }) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      </div>
       </div>
     </section>
   );

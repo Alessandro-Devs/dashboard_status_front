@@ -13,6 +13,7 @@ import {
   normalizeRiskFactors,
   type FactoresRiesgo,
   type HeatmapProgreso,
+  type LevelValues,
   type RiskFactor,
   type RiskFactorGroup,
 } from "@/lib/progressHeatmap";
@@ -37,35 +38,51 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
   const [newBlock, setNewBlock] = useState("");
   const block = heatmap.bloques.includes(selectedBlock) ? selectedBlock : heatmap.bloques[0] ?? "";
   const levels = heatmap.materias[subject]?.[block] ?? emptyLevels();
+  const studentLevels = heatmap.estudiantes[subject]?.[block] ?? emptyLevels();
+  const universe = heatmap.universos[subject]?.[block] ?? null;
   // Celdas fuera de 0–100 en cualquier materia o bloque (se avisan antes de guardar).
   const outOfRange = Object.entries(heatmap.materias).flatMap(([subjectName, blocks]) => Object.entries(blocks).flatMap(([blockName, blockLevels]) => Object.entries(blockLevels).flatMap(([levelName, months]) => months.flatMap((cell, month) => typeof cell === "number" && (cell > 100 || cell < 0) ? [`${subjectName} · ${blockName} · ${levelName} · ${HEATMAP_MONTHS[month]}: ${cell}%`] : []))));
 
   const emit = (next: HeatmapProgreso) => onChange(next as unknown as JsonValue);
-  const setCell = (level: string, month: number, raw: string) => {
-    const nextLevels = { ...levels, [level]: levels[level].map((cell, index) => (index === month ? parseCell(raw) : cell)) };
-    emit({ ...heatmap, materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: nextLevels } } });
-  };
+  // Con universo capturado, el porcentaje de cada celda se calcula: estudiantes / universo × 100.
+  const automatic = universe !== null && universe > 0;
+  const withPercentages = (students: LevelValues, total: number | null, current: LevelValues): LevelValues => total !== null && total > 0
+    ? Object.fromEntries(Object.entries(students).map(([level, months]) => [level, months.map((cell) => (cell === null ? null : Math.round((cell / total) * 1000) / 10))]))
+    : current;
+  const saveBlock = (students: LevelValues, total: number | null) => emit({
+    ...heatmap,
+    estudiantes: { ...heatmap.estudiantes, [subject]: { ...heatmap.estudiantes[subject], [block]: students } },
+    universos: { ...heatmap.universos, [subject]: { ...heatmap.universos[subject], [block]: total } },
+    materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: withPercentages(students, total, levels) } },
+  });
+  const setStudentCell = (level: string, month: number, raw: string) => saveBlock({ ...studentLevels, [level]: studentLevels[level].map((cell, index) => (index === month ? parseCell(raw) : cell)) }, universe);
+  const setUniverse = (raw: string) => saveBlock(studentLevels, parseCell(raw));
   const addBlock = () => {
     const name = newBlock.trim().toUpperCase();
     if (!name || name === ALL_BLOCKS.toUpperCase() || heatmap.bloques.includes(name)) return;
     emit({
       bloques: [...heatmap.bloques, name],
       materias: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, { ...heatmap.materias[item], [name]: emptyLevels() }])),
+      universos: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, { ...heatmap.universos[item], [name]: null }])),
+      estudiantes: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, { ...heatmap.estudiantes[item], [name]: emptyLevels() }])),
     });
     setSelectedBlock(name);
     setNewBlock("");
   };
   const removeBlock = (name: string) => {
-    emit({
-      bloques: heatmap.bloques.filter((item) => item !== name),
-      materias: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => {
-        const rest = { ...heatmap.materias[item] };
-        delete rest[name];
-        return [item, rest];
-      })),
-    });
+    const without = <T,>(table: Record<string, Record<string, T>>) => Object.fromEntries(HEATMAP_SUBJECTS.map((item) => {
+      const rest = { ...table[item] };
+      delete rest[name];
+      return [item, rest];
+    }));
+    emit({ bloques: heatmap.bloques.filter((item) => item !== name), materias: without(heatmap.materias), universos: without(heatmap.universos), estudiantes: without(heatmap.estudiantes) });
   };
-  const clearBlock = () => emit({ ...heatmap, materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: emptyLevels() } } });
+  const clearBlock = () => emit({
+    ...heatmap,
+    materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: emptyLevels() } },
+    universos: { ...heatmap.universos, [subject]: { ...heatmap.universos[subject], [block]: null } },
+    estudiantes: { ...heatmap.estudiantes, [subject]: { ...heatmap.estudiantes[subject], [block]: emptyLevels() } },
+  });
 
   return <div className="col-span-full space-y-3">
     {outOfRange.length ? <div className="rounded-lg border border-[#f3c3c3] bg-[#fff5f5] px-3 py-2 text-[10px] text-[#b33a3a]"><p className="font-semibold">{outOfRange.length === 1 ? "Hay 1 celda" : `Hay ${outOfRange.length} celdas`} con porcentajes fuera de 0–100. Revísalas antes de guardar:</p><p className="mt-1 leading-relaxed">{outOfRange.slice(0, 6).join(" · ")}{outOfRange.length > 6 ? ` · y ${outOfRange.length - 6} más` : ""}</p></div> : null}
@@ -91,16 +108,33 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
 
     {block ? <div className="rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-2.5">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[11px] font-bold text-[#294b68]">{subject} · {block}<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Porcentaje de estudiantes por nivel (0–100). Deja la celda vacía si no hay dato.</span></p>
+        <p className="text-[11px] font-bold text-[#294b68]">{subject} · {block}<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Escribe el universo y los estudiantes por nivel; el porcentaje se calcula solo.</span></p>
         <button type="button" onClick={clearBlock} className="flex cursor-pointer items-center gap-1 text-[9px] font-semibold text-[#c05050] hover:underline"><Trash2 size={11} />Vaciar tabla</button>
       </div>
+      <label className="mb-3 flex w-fit items-center gap-2 rounded-md border border-[#d8e4ee] bg-white px-2.5 py-1.5">
+        <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[.04em] text-[#71869a]">Universo de estudiantes · {block}</span>
+        <input type="number" inputMode="numeric" min={0} step={1} value={universe ?? ""} placeholder="Ej. 1200" onChange={(event) => setUniverse(event.target.value)} className={`${inputStyle} !w-[110px]`} aria-label={`Universo ${subject} ${block}`} />
+      </label>
+      <p className="mb-1 text-[10px] font-semibold text-[#4b6378]">Cantidad de estudiantes por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">También se muestra al pasar el mouse en el dashboard.</span></p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] border-separate border-spacing-1">
           <thead><tr><th className="w-[92px]" />{HEATMAP_MONTHS.map((month) => <th key={month} className="text-[9px] font-semibold text-[#6b8196]">{month.slice(0, 3)}</th>)}</tr></thead>
           <tbody>{HEATMAP_LEVELS.map((level) => <tr key={level.name}>
             <td className="whitespace-nowrap pr-1 text-[10px] font-semibold text-[#4b6378]"><span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ backgroundColor: level.dotColor }} />{level.name}</td>
             {HEATMAP_MONTHS.map((month, index) => <td key={month}>
-              <input type="number" inputMode="decimal" min={0} max={100} step="any" aria-label={`${level.name} ${month}`} value={levels[level.name][index] ?? ""} onChange={(event) => setCell(level.name, index, event.target.value)} className={`${inputStyle} ${(levels[level.name][index] ?? 0) > 100 || (levels[level.name][index] ?? 0) < 0 ? "border-[#e25c5c] bg-[#fff3f3] text-[#c03030]" : ""}`} title={(levels[level.name][index] ?? 0) > 100 ? "El porcentaje no puede ser mayor que 100" : undefined} />
+              <input type="number" inputMode="numeric" min={0} step={1} aria-label={`Estudiantes ${level.name} ${month}`} value={studentLevels[level.name][index] ?? ""} onChange={(event) => setStudentCell(level.name, index, event.target.value)} className={inputStyle} />
+            </td>)}
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <p className="mb-1 mt-3 text-[10px] font-semibold text-[#4b6378]">Porcentaje por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">{automatic ? "Se calcula automáticamente: estudiantes ÷ universo × 100." : "Escribe el universo del bloque para calcular los porcentajes."}</span></p>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[860px] border-separate border-spacing-1">
+          <thead><tr><th className="w-[92px]" />{HEATMAP_MONTHS.map((month) => <th key={month} className="text-[9px] font-semibold text-[#6b8196]">{month.slice(0, 3)}</th>)}</tr></thead>
+          <tbody>{HEATMAP_LEVELS.map((level) => <tr key={level.name}>
+            <td className="whitespace-nowrap pr-1 text-[10px] font-semibold text-[#4b6378]"><span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ backgroundColor: level.dotColor }} />{level.name}</td>
+            {HEATMAP_MONTHS.map((month, index) => <td key={month}>
+              <input type="number" inputMode="decimal" min={0} max={100} step="any" aria-label={`${level.name} ${month}`} value={levels[level.name][index] ?? ""} disabled readOnly className={`${inputStyle} cursor-not-allowed !border-transparent !bg-[#eef4f9] font-semibold !text-[#176fc8] ${(levels[level.name][index] ?? 0) > 100 || (levels[level.name][index] ?? 0) < 0 ? "border-[#e25c5c] bg-[#fff3f3] text-[#c03030]" : ""}`} title={(levels[level.name][index] ?? 0) > 100 ? "El porcentaje no puede ser mayor que 100" : undefined} />
             </td>)}
           </tr>)}</tbody>
         </table>

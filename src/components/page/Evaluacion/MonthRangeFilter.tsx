@@ -7,10 +7,12 @@ export type MonthRange = { start: number; end: number };
 
 const shortMonths = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-export default function MonthRangeFilter({ months, value, onChange }: {
+export default function MonthRangeFilter({ months, value, onChange, available }: {
   months: readonly string[];
   value: MonthRange;
   onChange: (value: MonthRange) => void;
+  // Meses que tienen datos. Los demás se muestran deshabilitados y no se pueden elegir.
+  available?: readonly boolean[];
 }) {
   const { start, end } = value;
   const total = months.length;
@@ -18,7 +20,9 @@ export default function MonthRangeFilter({ months, value, onChange }: {
 
   // Primer clic = inicio, segundo clic = fin. El siguiente clic empieza un rango nuevo.
   const [awaitingEnd, setAwaitingEnd] = useState(false);
+  const isAvailable = (index: number) => available?.[index] ?? true;
   const selectMonth = (index: number) => {
+    if (!isAvailable(index)) return;
     if (!awaitingEnd) {
       onChange({ start: index, end: index });
       setAwaitingEnd(true);
@@ -32,7 +36,9 @@ export default function MonthRangeFilter({ months, value, onChange }: {
     const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
     if (!step) return;
     event.preventDefault();
-    const next = Math.min(total - 1, Math.max(0, index + step));
+    let next = index + step;
+    while (next >= 0 && next < total && !isAvailable(next)) next += step;
+    if (next < 0 || next >= total) return;
     (event.currentTarget.parentElement?.children[next] as HTMLButtonElement | undefined)?.focus();
   };
 
@@ -62,20 +68,23 @@ export default function MonthRangeFilter({ months, value, onChange }: {
           <div className="absolute top-[10px] h-[3px] -translate-y-1/2 rounded-full bg-[#9cc9ef] transition-all duration-200" style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }} />
           <div className="relative grid" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }} role="group" aria-label="Rango de meses">
             {labels.map((label, index) => {
-              const isEdge = index === start || index === end;
-              const inRange = index >= start && index <= end;
+              const enabled = isAvailable(index);
+              const isEdge = enabled && (index === start || index === end);
+              const inRange = enabled && index >= start && index <= end;
               return (
                 <button
                   key={months[index]}
                   type="button"
                   onClick={() => selectMonth(index)}
+                  disabled={!enabled}
+                  title={enabled ? undefined : "Sin datos para este mes"}
                   onKeyDown={(event) => handleKeyDown(event, index)}
                   aria-pressed={inRange}
-                  aria-label={`${months[index]}${index === start ? " (inicio)" : ""}${index === end ? " (fin)" : ""}`}
-                  className="group flex cursor-pointer flex-col items-center gap-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-[#b8d2ee]"
+                  aria-label={`${months[index]}${!enabled ? " (sin datos)" : ""}${isEdge && index === start ? " (inicio)" : ""}${isEdge && index === end ? " (fin)" : ""}`}
+                  className="group flex cursor-pointer flex-col disabled:cursor-not-allowed disabled:opacity-40 items-center gap-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-[#b8d2ee]"
                 >
-                  <span className={`flex h-5 w-5 items-center justify-center rounded-full transition ${isEdge ? "bg-[#17324a]" : inRange ? "bg-[#cfe3f7]" : "bg-[#e8edf2] group-hover:bg-[#d6e2ee]"}`}>
-                    <span className={`rounded-full transition-all ${isEdge ? "h-3 w-3 bg-[#1f6fc0]" : inRange ? "h-2.5 w-2.5 bg-[#7fb5e6]" : "h-2.5 w-2.5 bg-[#cdd6df] group-hover:bg-[#b3c3d3]"}`} />
+                  <span className={`flex h-5 w-5 items-center justify-center rounded-full transition ${isEdge ? "bg-[#17324a]" : inRange ? "bg-[#cfe3f7]" : enabled ? "bg-[#e8edf2] group-hover:bg-[#d6e2ee]" : "bg-[#eef1f4]"}`}>
+                    <span className={`rounded-full transition-all ${isEdge ? "h-3 w-3 bg-[#1f6fc0]" : inRange ? "h-2.5 w-2.5 bg-[#7fb5e6]" : enabled ? "h-2.5 w-2.5 bg-[#cdd6df] group-hover:bg-[#b3c3d3]" : "h-1.5 w-1.5 bg-[#d5dce3]"}`} />
                   </span>
                   <span className={`text-[10px] ${isEdge ? "font-bold text-[#176fc8]" : inRange ? "font-medium text-[#3d7fc2]" : "text-slate-500"}`}>{label}</span>
                 </button>

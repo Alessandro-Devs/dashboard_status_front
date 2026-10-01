@@ -70,9 +70,9 @@ export default function StaticProductionProgress() {
       </div>
 
       {platform === "kira" ? <>
-        <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-          {/* Avance global: ocupa toda la fila; los tipos van debajo en dos columnas (una en teléfono). */}
-          <Kpi className="sm:col-span-2" compact badge={<Gauge className="h-4 w-4 text-[#1976d2]" />} badgeClass="bg-[#e8f3ff]" title="Avance global Kira">
+        <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Avance global: ocupa toda la fila; los tipos van debajo en tres columnas (dos en tablet, una en teléfono). */}
+          <Kpi className="sm:col-span-2 lg:col-span-3" compact badge={<Gauge className="h-4 w-4 text-[#1976d2]" />} badgeClass="bg-[#e8f3ff]" title="Avance global Kira">
             <div className="flex items-baseline gap-1"><span className="text-[31px] font-semibold leading-none tabular-nums text-[#1670d2]">{global}%</span></div>
             <div className="mt-3 flex h-2 gap-[2px] overflow-hidden rounded-full" style={{ background: EMPTY_COLOR }}>
               <div className="transition-[width] duration-700 ease-out" style={{ width: share(done), background: DONE_COLOR }} />
