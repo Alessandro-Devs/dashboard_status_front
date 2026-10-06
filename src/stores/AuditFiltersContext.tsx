@@ -2,12 +2,16 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
+import { readDateFromUrl } from "@/lib/dateQuery";
 
 type DashboardState = { activeSection: string; setActiveSection: (value: string) => void; blocks: string[]; setBlocks: (value: string[]) => void; startDate: string; endDate: string; setPeriod: (start: string, end: string) => void };
 const DashboardContext = createContext<DashboardState | null>(null);
 const PERIOD_STORAGE_KEY = "dashboard:selected-period";
 
 function initialPeriod() {
+  // Un link compartido (?fecha=...) tiene prioridad sobre la fecha guardada en la sesión.
+  const urlDate = readDateFromUrl();
+  if (urlDate) return { startDate: urlDate, endDate: urlDate };
   if (typeof window !== "undefined") {
     const stored = window.sessionStorage.getItem(PERIOD_STORAGE_KEY);
     if (stored) {

@@ -7,6 +7,9 @@ import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
 import PeriodFilter from "./PeriodFilter";
 import LoadingDataModal from "@/components/ui/LoadingDataModal";
+import { withDateQuery } from "@/lib/dateQuery";
+import { hasActiveSession, subscribeToSession } from "@/lib/session";
+import { LayoutDashboard } from "lucide-react";
 
 const viewBySection: Record<string, string> = {
   "Gestión de Calidad": "gestion-calidad",
@@ -62,12 +65,12 @@ export default function AuditReportHeader() {
     state.setActiveSection(item);
 
     if (pathname !== "/") {
-      router.push(`/#${view}`);
+      router.push(withDateQuery(`/#${view}`));
       return;
     }
 
     window.dispatchEvent(new CustomEvent("dashboard:navigate", { detail: { id: view } }));
-    window.history.replaceState(null, "", `/#${view}`);
+    window.history.replaceState(window.history.state, "", withDateQuery(`/#${view}`));
 
     requestAnimationFrame(() => {
       const target = document.getElementById(view);
@@ -79,6 +82,9 @@ export default function AuditReportHeader() {
       window.scrollTo({ top: Math.max(targetTop - headerHeight, 0), behavior: "smooth" });
     });
   };
+
+  // Con sesión activa del panel se muestra el acceso directo a Administración.
+  const loggedIn = useSyncExternalStore(subscribeToSession, hasActiveSession, () => false);
 
   const sectionNumber = String(Math.max(navItems.indexOf(section), 0) + 1).padStart(2, "0");
 
@@ -99,7 +105,7 @@ export default function AuditReportHeader() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => navigate(item)}
-                  className={`relative flex h-full items-center whitespace-nowrap px-3 text-[11px] font-medium sm:px-5 ${
+                  className={`relative flex h-full cursor-pointer items-center whitespace-nowrap px-3 text-[11px] font-medium sm:px-5 ${
                     active ? "bg-[#102b40] text-white" : "text-[#9ab0c2] hover:text-white"
                   }`}
                 >
@@ -111,9 +117,21 @@ export default function AuditReportHeader() {
               );
             })}
           </div>
-          <p className="ml-auto hidden shrink-0 text-[9px] font-semibold uppercase lg:block">
-            Modernización Educativa
-          </p>
+          <div className="ml-auto flex shrink-0 items-center gap-3">
+            {loggedIn ? (
+              <button
+                type="button"
+                onClick={() => router.push("/administracion")}
+                className="flex h-[24px] cursor-pointer items-center gap-1.5 rounded-md border border-[#2f5470] bg-[#102b40] px-2.5 text-[10px] font-semibold text-white transition hover:border-[#59b8f8] hover:bg-[#15354e]"
+              >
+                <LayoutDashboard className="h-3 w-3 text-[#75c4fa]" />
+                Ir al panel
+              </button>
+            ) : null}
+            <p className="hidden text-[9px] font-semibold uppercase lg:block">
+              Modernización Educativa
+            </p>
+          </div>
         </nav>
 
         <div className="mx-auto flex min-h-[36px] max-w-[1080px] items-center gap-3 px-4 py-1 sm:px-6">

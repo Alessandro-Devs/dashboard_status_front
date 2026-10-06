@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenCheck, ClipboardCheck, GraduationCap, House, LogOut, School, ShieldCheck, UserCog, X } from "lucide-react";
+import { BookOpenCheck, ClipboardCheck, GraduationCap, House, LayoutDashboard, LogOut, School, ShieldCheck, UserCog, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -35,6 +35,7 @@ export default function AdministrationAside({ open, onClose }: { open: boolean; 
     </nav>
     <div className="mt-auto border-t border-white/10 pt-5">
       <div className="mb-4 min-w-0 text-center"><p className="truncate text-[14px] font-semibold text-white">{user.name}</p><p className="mt-1 truncate text-[12px] text-[#9bb0c1]">{user.role ?? "Usuario"}</p></div>
+      <button type="button" onClick={() => navigate("/")} className={`${secondaryClass()} mb-2`}><LayoutDashboard size={18}/><span>Ver dashboard</span></button>
       {isAdmin && <button type="button" onClick={() => navigate("/administracion/usuarios")} className={`${secondaryClass()} mb-2`}><UserCog size={18}/><span>Administrar usuarios</span></button>}
       <button type="button" onClick={logout} className={secondaryClass()}><LogOut size={16}/><span>Cerrar sesión</span></button>
     </div>

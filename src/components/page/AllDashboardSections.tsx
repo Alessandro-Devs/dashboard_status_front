@@ -8,6 +8,7 @@ import TutoringAndTrainingPage from "@/components/page/TutoriaFormacion/Tutoring
 import { dashboardSections } from "@/lib/dashboardSections";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
 import { useDashboardData } from "@/stores/DashboardDataContext";
+import { withDateQuery } from "@/lib/dateQuery";
 const sectionContent = {
     "gestion-calidad": <AuditReportPage />,
     "gestion-escolar": <SchoolNoAccessDashboard />,
@@ -23,8 +24,13 @@ export default function AllDashboardSections() {
         direction: "up" | "down";
     } | null>(null);
     const sections = hasData ? availableSections : dashboardSections;
+    // Sección del link compartido (#evaluacion, #aprendizaje…). Se lee una vez, antes de que el scroll la cambie.
+    const initialHash = useRef<string | null | undefined>(undefined);
     useEffect(() => {
-        if (sections.length === 0)
+        if (initialHash.current === undefined)
+            initialHash.current = window.location.hash.slice(1) || null;
+        // Mientras cargan los datos no hay secciones en pantalla: no se toca la URL.
+        if (!hasData || sections.length === 0)
             return;
         const beginNavigation = (event: Event) => {
             const id = (event as CustomEvent<{
@@ -39,6 +45,10 @@ export default function AllDashboardSections() {
             }
         };
         const updateActiveSection = () => {
+            // Al salir del dashboard (por ejemplo, "Ir al panel") todavía puede llegar un evento de scroll:
+            // si se reescribe la URL en ese momento, la navegación regresa al dashboard.
+            if (window.location.pathname !== "/")
+                return;
             const header = document.querySelector<HTMLElement>(".mobile-header");
             const marker = (header?.getBoundingClientRect().height ?? 0) + 4;
             if (pendingSection.current) {
@@ -65,11 +75,29 @@ export default function AllDashboardSections() {
                     current = section;
             }
             setActiveSection(current.label);
-            if (window.location.hash !== `#${current.id}` || window.location.search) {
-                window.history.replaceState(null, "", `/#${current.id}`);
+            const nextUrl = withDateQuery(`/#${current.id}`);
+            if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
+                window.history.replaceState(window.history.state, "", nextUrl);
             }
         };
-        updateActiveSection();
+        const hashTarget = initialHash.current && sections.some((section) => section.id === initialHash.current) ? initialHash.current : null;
+        initialHash.current = null;
+        if (hashTarget) {
+            // Abrir el link directamente en la sección indicada.
+            pendingSection.current = { id: hashTarget, direction: "down" };
+            requestAnimationFrame(() => {
+                const target = document.getElementById(hashTarget);
+                const header = document.querySelector<HTMLElement>(".mobile-header");
+                if (target) {
+                    const headerHeight = header?.getBoundingClientRect().height ?? 0;
+                    window.scrollTo({ top: Math.max(window.scrollY + target.getBoundingClientRect().top - headerHeight, 0) });
+                }
+                updateActiveSection();
+            });
+        }
+        else {
+            updateActiveSection();
+        }
         window.addEventListener("dashboard:navigate", beginNavigation);
         window.addEventListener("scroll", updateActiveSection, { passive: true });
         window.addEventListener("resize", updateActiveSection);
@@ -78,7 +106,7 @@ export default function AllDashboardSections() {
             window.removeEventListener("scroll", updateActiveSection);
             window.removeEventListener("resize", updateActiveSection);
         };
-    }, [sections, setActiveSection]);
+    }, [hasData, sections, setActiveSection]);
     if (!hasData) {
         // Mientras carga, el modal del encabezado informa al usuario; aquí solo se muestra un esqueleto.
         if (isLoading) return <LoadingDashboardSkeleton />;

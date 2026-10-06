@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/services/api";
 import { evaluationHiddenDefaults, evaluationTemplate } from "./evaluationTemplate";
 import { ProgressHeatmapEditor, RiskFactorsEditor } from "./ProgressHeatmapEditor";
-import { hasHeatmapData, normalizeHeatmap, normalizeRiskFactors } from "@/lib/progressHeatmap";
+import { hasHeatmapData, missingUniverses, normalizeHeatmap, normalizeRiskFactors } from "@/lib/progressHeatmap";
 
 type JsonValue = string | number | null | JsonValue[] | { [key: string]: JsonValue };
 const sections: Record<string, string> = { pruebas: "Pruebas", detallePorBloque: "Detalle por bloque", nivelesDesempeno: "Niveles de desempeño", distribucionPorBloqueMateriaNiveles: "Distribución por bloque" };
@@ -242,6 +242,11 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
   };
   const saveEvaluation = async () => {
     if (!snapshotDate || saving) return;
+    const missing = missingUniverses(normalizeHeatmap(data.heatmapProgreso));
+    if (missing.length) {
+      setSaveError(`Escribe el universo en los bloques con "Mostrar universo" marcado: ${missing.join(", ")}.`);
+      return;
+    }
     setSaving(true);
     setSaveError("");
     try {

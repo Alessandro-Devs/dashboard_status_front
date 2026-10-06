@@ -6,6 +6,7 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { dashboardSections, getAvailableDashboardSections, type DashboardSection } from "@/lib/dashboardSections";
 import { apiFetch } from "@/services/api";
 import { useAuditFilters } from "@/stores/AuditFiltersContext";
+import { readDateFromUrl, writeDateToUrl } from "@/lib/dateQuery";
 
 type DashboardResponse = {
   snapshot: { date: string } | null;
@@ -105,6 +106,8 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DashboardDataState>({ hasData: false, snapshotDate: null, resolvedDate: null, error: null });
   const resolvedDateRef = useRef<string | null>(null);
   const pathnameRef = useRef(pathname);
+  // Fecha recibida en el link (?fecha=...). Se lee una sola vez, al abrir la página.
+  const urlDateRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     if (pathnameRef.current !== pathname) {
@@ -117,9 +120,16 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     if (resolvedDateRef.current === endDate) {
       return;
     }
+    if (urlDateRef.current === undefined) urlDateRef.current = readDateFromUrl();
+    const urlDate = urlDateRef.current;
+    // Link compartido: primero se selecciona la fecha del link y luego se consulta esa fecha.
+    if (resolvedDateRef.current === null && urlDate && endDate !== urlDate) {
+      setPeriod(urlDate, urlDate);
+      return;
+    }
 
     const hasLoadedDashboard = typeof window !== "undefined" && window.sessionStorage.getItem("dashboard:has-loaded") === "true";
-    const isInitialLoad = resolvedDateRef.current === null && !hasLoadedDashboard;
+    const isInitialLoad = resolvedDateRef.current === null && !hasLoadedDashboard && !urlDate;
     const path = isInitialLoad ? "/dashboard" : `/dashboard?date=${encodeURIComponent(endDate)}`;
     let active = true;
     let showingCachedData = false;
@@ -171,6 +181,12 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       controller.abort();
     };
   }, [startDate, endDate, pathname, setPeriod]);
+
+  // Mantiene la fecha en la URL (también al cambiar de sección) para poder compartir el link.
+  useEffect(() => {
+    if (startDate !== endDate || state.resolvedDate !== endDate || !endDate) return;
+    writeDateToUrl(endDate);
+  }, [startDate, endDate, pathname, state.resolvedDate]);
 
   const value = useMemo(() => {
     const isCurrentDate = startDate === endDate && state.resolvedDate === endDate;
