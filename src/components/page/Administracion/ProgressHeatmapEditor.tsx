@@ -9,6 +9,7 @@ import {
   HEATMAP_LEVELS,
   HEATMAP_MONTHS,
   HEATMAP_SUBJECTS,
+  missingUniverses,
   normalizeHeatmap,
   normalizeRiskFactors,
   type FactoresRiesgo,
@@ -40,8 +41,13 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
   const levels = heatmap.materias[subject]?.[block] ?? emptyLevels();
   const studentLevels = heatmap.estudiantes[subject]?.[block] ?? emptyLevels();
   const universe = heatmap.universos[subject]?.[block] ?? null;
-  // Celdas fuera de 0–100 en cualquier materia o bloque (se avisan antes de guardar).
-  const outOfRange = Object.entries(heatmap.materias).flatMap(([subjectName, blocks]) => Object.entries(blocks).flatMap(([blockName, blockLevels]) => Object.entries(blockLevels).flatMap(([levelName, months]) => months.flatMap((cell, month) => typeof cell === "number" && (cell > 100 || cell < 0) ? [`${subjectName} · ${blockName} · ${levelName} · ${HEATMAP_MONTHS[month]}: ${cell}%`] : []))));
+  const showUniverse = heatmap.mostrarUniverso[subject]?.includes(block) ?? false;
+  const universeMissing = showUniverse && !(universe !== null && universe > 0);
+  const missingList = missingUniverses(heatmap);
+  const setShowUniverse = (checked: boolean) => {
+    const others = (heatmap.mostrarUniverso[subject] ?? []).filter((item) => item !== block);
+    emit({ ...heatmap, mostrarUniverso: { ...heatmap.mostrarUniverso, [subject]: checked ? [...others, block] : others } });
+  };
 
   const emit = (next: HeatmapProgreso) => onChange(next as unknown as JsonValue);
   // Con universo capturado, el porcentaje de cada celda se calcula: estudiantes / universo × 100.
@@ -72,6 +78,7 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
       bloques: [...heatmap.bloques, name],
       materias: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, { ...heatmap.materias[item], [name]: emptyLevels() }])),
       universos: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, { ...heatmap.universos[item], [name]: null }])),
+      mostrarUniverso: heatmap.mostrarUniverso,
       estudiantes: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, { ...heatmap.estudiantes[item], [name]: emptyLevels() }])),
     });
     setSelectedBlock(name);
@@ -83,17 +90,18 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
       delete rest[name];
       return [item, rest];
     }));
-    emit({ bloques: heatmap.bloques.filter((item) => item !== name), materias: without(heatmap.materias), universos: without(heatmap.universos), estudiantes: without(heatmap.estudiantes) });
+    emit({ bloques: heatmap.bloques.filter((item) => item !== name), materias: without(heatmap.materias), universos: without(heatmap.universos), mostrarUniverso: Object.fromEntries(HEATMAP_SUBJECTS.map((item) => [item, (heatmap.mostrarUniverso[item] ?? []).filter((entry) => entry !== name)])), estudiantes: without(heatmap.estudiantes) });
   };
   const clearBlock = () => emit({
     ...heatmap,
     materias: { ...heatmap.materias, [subject]: { ...heatmap.materias[subject], [block]: emptyLevels() } },
     universos: { ...heatmap.universos, [subject]: { ...heatmap.universos[subject], [block]: null } },
+    mostrarUniverso: { ...heatmap.mostrarUniverso, [subject]: (heatmap.mostrarUniverso[subject] ?? []).filter((item) => item !== block) },
     estudiantes: { ...heatmap.estudiantes, [subject]: { ...heatmap.estudiantes[subject], [block]: emptyLevels() } },
   });
 
   return <div className="col-span-full space-y-3">
-    {outOfRange.length ? <div className="rounded-lg border border-[#f3c3c3] bg-[#fff5f5] px-3 py-2 text-[10px] text-[#b33a3a]"><p className="font-semibold">{outOfRange.length === 1 ? "Hay 1 celda" : `Hay ${outOfRange.length} celdas`} con porcentajes fuera de 0–100. Revísalas antes de guardar:</p><p className="mt-1 leading-relaxed">{outOfRange.slice(0, 6).join(" · ")}{outOfRange.length > 6 ? ` · y ${outOfRange.length - 6} más` : ""}</p></div> : null}
+    {missingList.length ? <div className="rounded-lg border border-[#f3c3c3] bg-[#fff5f5] px-3 py-2 text-[10px] text-[#b33a3a]"><p className="font-semibold">Falta el universo en bloques con “Mostrar universo” marcado:</p><p className="mt-1">{missingList.join(" · ")}</p></div> : null}
     <div className="flex flex-wrap items-end gap-4">
       <div>
         <p className="mb-1 text-[9px] font-semibold uppercase tracking-[.04em] text-[#71869a]">Materia</p>
@@ -119,10 +127,14 @@ export function ProgressHeatmapEditor({ value, onChange }: { value: JsonValue; o
         <p className="text-[11px] font-bold text-[#294b68]">{subject} · {block}<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Porcentaje de estudiantes por nivel (0–100). Deja la celda vacía si no hay dato.</span></p>
         <button type="button" onClick={clearBlock} className="flex cursor-pointer items-center gap-1 text-[9px] font-semibold text-[#c05050] hover:underline"><Trash2 size={11} />Vaciar tabla</button>
       </div>
-      <label className="mb-3 flex w-fit items-center gap-2 rounded-md border border-[#d8e4ee] bg-white px-2.5 py-1.5">
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <label className="flex w-fit items-center gap-2 rounded-md border border-[#d8e4ee] bg-white px-2.5 py-1.5">
         <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[.04em] text-[#71869a]">Universo de estudiantes · {block}</span>
-        <input type="number" inputMode="numeric" min={0} step={1} value={universe ?? ""} placeholder="Ej. 1200" onChange={(event) => setUniverse(event.target.value)} className={`${inputStyle} !w-[110px]`} aria-label={`Universo ${subject} ${block}`} />
-      </label>
+        <input type="number" inputMode="numeric" min={0} step={1} value={universe ?? ""} placeholder="Ej. 1200" onChange={(event) => setUniverse(event.target.value)} required={showUniverse} aria-invalid={universeMissing} className={`${inputStyle} !w-[110px] ${universeMissing ? "!border-[#e25c5c] !bg-[#fff3f3]" : ""}`} aria-label={`Universo ${subject} ${block}`} />
+        </label>
+        <label className="flex cursor-pointer items-center gap-1.5 text-[10px] font-semibold text-[#4b6378]"><input type="checkbox" checked={showUniverse} onChange={(event) => setShowUniverse(event.target.checked)} className="h-3.5 w-3.5 cursor-pointer accent-[#176fc8]" />Mostrar universo</label>
+        {universeMissing ? <span className="text-[9px] font-semibold text-[#c03030]">El universo es obligatorio si se muestra en el dashboard.</span> : null}
+      </div>
       <p className="mb-1 text-[10px] font-semibold text-[#4b6378]">Cantidad de estudiantes por nivel<span className="ml-2 text-[9px] font-medium text-[#8a9cab]">Se muestra al pasar el mouse en el dashboard.</span></p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] border-separate border-spacing-1">

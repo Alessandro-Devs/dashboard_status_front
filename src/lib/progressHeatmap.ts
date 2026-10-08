@@ -25,6 +25,8 @@ export type HeatmapProgreso = {
   materias: Record<string, Record<string, LevelValues>>;
   // Universo de estudiantes por materia → bloque (captura manual).
   universos: Record<string, Record<string, number | null>>;
+  // Bloques (por materia) cuyo universo se muestra en el hover del dashboard.
+  mostrarUniverso: Record<string, string[]>;
   // Cantidad de estudiantes por materia → bloque → nivel → mes (captura manual).
   estudiantes: Record<string, Record<string, LevelValues>>;
 };
@@ -47,6 +49,7 @@ export function emptyHeatmap(blocks: string[] = DEFAULT_HEATMAP_BLOCKS): Heatmap
     bloques: [...blocks],
     materias: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, Object.fromEntries(blocks.map((block) => [block, emptyLevels()]))])),
     universos: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, Object.fromEntries(blocks.map((block) => [block, null]))])),
+    mostrarUniverso: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, []])),
     estudiantes: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => [subject, Object.fromEntries(blocks.map((block) => [block, emptyLevels()]))])),
   };
 }
@@ -71,12 +74,17 @@ export function normalizeHeatmap(value: unknown): HeatmapProgreso {
     })) as Record<string, Record<string, LevelValues>>;
   };
   const universes = isRecord(source.universos) ? source.universos : {};
+  const showUniverse = isRecord(source.mostrarUniverso) ? source.mostrarUniverso : {};
   return {
     bloques: blocks,
     materias: levelTable(source.materias),
     universos: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => {
       const subjectData = isRecord(universes[subject]) ? universes[subject] : {};
       return [subject, Object.fromEntries(blocks.map((block) => [block, toNumber(subjectData[block])]))];
+    })),
+    mostrarUniverso: Object.fromEntries(HEATMAP_SUBJECTS.map((subject) => {
+      const list = Array.isArray(showUniverse[subject]) ? showUniverse[subject] as unknown[] : [];
+      return [subject, blocks.filter((block) => list.includes(block))];
     })),
     estudiantes: levelTable(source.estudiantes),
   };
@@ -98,6 +106,10 @@ export const blocksWithData = (heatmap: HeatmapProgreso, subject: string) =>
   heatmap.bloques.filter((block) => levelsHaveData(heatmap.materias[subject]?.[block]));
 export const subjectsWithData = (heatmap: HeatmapProgreso) =>
   HEATMAP_SUBJECTS.filter((subject) => blocksWithData(heatmap, subject).length > 0) as string[];
+
+// Bloques con "Mostrar universo" marcado pero sin universo capturado (no se puede guardar así).
+export const missingUniverses = (heatmap: HeatmapProgreso) =>
+  HEATMAP_SUBJECTS.flatMap((subject) => (heatmap.mostrarUniverso[subject] ?? []).filter((block) => !(typeof heatmap.universos[subject]?.[block] === "number" && (heatmap.universos[subject][block] ?? 0) > 0)).map((block) => `${subject} · ${block}`));
 
 export const hasHeatmapData = (heatmap: HeatmapProgreso) =>
   Object.values(heatmap.materias).some((blocks) => Object.values(blocks).some((levels) => Object.values(levels).some((months) => months.some((item) => item !== null))));

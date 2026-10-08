@@ -17,6 +17,11 @@ const defaultProgressData = learningTemplate as LearningProgressData;
 const colorForIndex = (index: number) => ["text-[#126fd0] bg-[#eaf3ff]", "text-[#16863f] bg-[#eaf8ef]", "text-[#e77b13] bg-[#fff3e6]"][index % 3];
 const textColorForIndex = (index: number) => ["text-[#126fd0]", "text-[#16863f]", "text-[#e77b13]"][index % 3];
 const lastClassValue = (value: string) => value.split(/\s+de\s+|-|\//i).at(-1)?.trim() ?? value;
+const stageStatus = (value: number) => {
+  if (value >= 100) return { label: "Completo", className: "bg-[#e7f8ee] text-[#168a4c]" };
+  if (value > 0) return { label: "En curso", className: "bg-[#fff4e5] text-[#c87913]" };
+  return { label: "Sin iniciar", className: "bg-[#f1f3f5] text-[#8296a8]" };
+};
 const readNumber = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : null);
 const hasText = (value: unknown) => typeof value === "string" && value.trim().length > 0;
 
@@ -64,10 +69,18 @@ export function LearningProgressLineCards({ data = defaultProgressData }: { data
     </div>
     <div className="mt-4 space-y-3">{line.items.map((item, index) => {
       const color = textColorForIndex(index);
-      return <div key={item.label} className="rounded-md border border-[#e1e8ef] bg-[#f8fbfe] px-3 py-3">
-        <div className="flex items-start justify-between gap-3"><p className="text-[10px] font-semibold text-[#29445b]">{item.label}</p><strong className={`text-[20px] leading-none ${color}`}>{item.value}%</strong></div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e3ebf2]"><div className={`h-full rounded-full ${color}`} style={{ width: `${item.value}%`, backgroundColor: "currentColor" }}/></div>
-        <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[8px] text-[#8295a8]">Clase alcanzada</span><span className="text-[10px] font-semibold text-[#526a80]">{lastClassValue(item.classes)}</span></div>
+      const status = stageStatus(item.value);
+      const total = line.contenido ? lastClassValue(line.contenido) : "";
+      return <div key={item.label}>
+        <div className="flex items-center justify-between gap-2">
+          <span className="min-w-0 text-[9px] font-semibold text-[#29445b]">{item.label}</span>
+          <span className="flex flex-none items-center gap-2">
+            <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[8px] font-bold uppercase ${status.className}`}>{status.label}</span>
+            <span className={`w-[30px] text-right text-[9px] font-semibold tabular-nums ${item.value > 0 ? color : "text-[#9aabbd]"}`}>{item.value}%</span>
+          </span>
+        </div>
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#e8eef4]"><div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, Math.max(0, item.value))}%`, backgroundColor: "currentColor" }}/></div>
+        <p className="mt-1 text-[8px] text-[#8a9bb0]">{total ? <><strong className="font-semibold tabular-nums text-[#4f6a82]">{lastClassValue(item.classes)} de {total}</strong> clases</> : <>Clase alcanzada <strong className="font-semibold tabular-nums text-[#4f6a82]">{lastClassValue(item.classes)}</strong></>}</p>
       </div>;
     })}</div>
   </article>)}</div>;

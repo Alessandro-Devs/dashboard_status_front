@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, ArrowLeft, BarChart3, ChevronDown, ClipboardCheck, Gauge, Grid3x3, Layers3, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BarChart3, ChevronDown, ClipboardCheck, Copy, Gauge, Grid3x3, Layers3, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/services/api";
 import { evaluationHiddenDefaults, evaluationTemplate } from "./evaluationTemplate";
@@ -146,6 +146,29 @@ function ValueEditor({ label, value, onChange, depth = 0, prioritizeResumen = fa
   return <details className="group col-span-full rounded-lg border border-[#d9e5ee] bg-white transition open:shadow-[0_2px_8px_rgba(27,58,87,.04)]"><summary className="flex cursor-pointer list-none items-center justify-between rounded-lg bg-[#f5f9fc] px-3 py-2 text-[11px] font-bold text-[#294b68] transition hover:bg-[#edf5fa]">{label}<ChevronDown size={13} className="transition group-open:rotate-180"/></summary><div className="border-t border-[#e6edf2] p-3">{Object.keys(value).length ? content : <p className="text-[10px] text-[#8295a5]">Esta sección no contiene campos configurados.</p>}</div></details>;
 }
 
+// Convierte una evaluación guardada en el estado del formulario (secciones visibles y ocultas).
+const evaluationState = (evaluation: Record<string, JsonValue>) => ({
+  data: {
+    pruebas: evaluation.pruebas ?? clone(evaluationTemplate.pruebas) as JsonValue,
+    detallePorBloque: evaluation.detallePorBloque ?? clone(evaluationTemplate.detallePorBloque) as JsonValue,
+    nivelesDesempeno: evaluation.nivelesDesempeno ?? clone(evaluationTemplate.nivelesDesempeno) as JsonValue,
+    distribucionPorBloqueMateriaNiveles: ensureDistributionAverages(evaluation.distribucionPorBloqueMateriaNiveles ?? clone(evaluationTemplate.distribucionPorBloqueMateriaNiveles) as JsonValue),
+    promediosGenerales: evaluation.promediosGenerales ?? clone(evaluationTemplate.promediosGenerales) as JsonValue,
+    resultadosPorMes: calculateMonthlyPercentages(evaluation.resultadosPorMes ?? clone(evaluationTemplate.resultadosPorMes) as JsonValue),
+    heatmapProgreso: normalizeHeatmap(evaluation.heatmapProgreso) as unknown as JsonValue,
+    factoresRiesgo: normalizeRiskFactors(evaluation.factoresRiesgo) as unknown as JsonValue,
+  } as JsonValue,
+  hidden: {
+    vistaResultados: evaluation.vistaResultados ?? clone(evaluationHiddenDefaults.vistaResultados) as JsonValue,
+    sankeysSeparados: evaluation.sankeysSeparados ?? {},
+    comparativasPorMateria: evaluation.comparativasPorMateria ?? clone(evaluationHiddenDefaults.comparativasPorMateria) as JsonValue,
+    seguimientoAplicacionCml: evaluation.seguimientoAplicacionCml ?? clone(evaluationHiddenDefaults.seguimientoAplicacionCml) as JsonValue,
+    actualizacionPortalResultados: evaluation.actualizacionPortalResultados ?? clone(evaluationHiddenDefaults.actualizacionPortalResultados) as JsonValue,
+  } as Record<string, JsonValue>,
+});
+const displayDate = (value: string) => value.split("-").reverse().join("/");
+type EvaluationRecord = { id: number; date: string; data?: { evaluacion?: Record<string, JsonValue> } };
+
 export default function EvaluationFormPage({ recordId }: { recordId?: number }) {
   const router = useRouter();
   const [data, setData] = useState<JsonValue>(() => clone(evaluationTemplate) as JsonValue);
@@ -154,6 +177,11 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
   const [saveError, setSaveError] = useState("");
   const [loadingRecord, setLoadingRecord] = useState(Boolean(recordId));
   const [hiddenData, setHiddenData] = useState<Record<string, JsonValue>>(() => clone(evaluationHiddenDefaults) as Record<string, JsonValue>);
+  const [records, setRecords] = useState<EvaluationRecord[]>([]);
+  const [copiedFrom, setCopiedFrom] = useState("");
+  useEffect(() => {
+    apiFetch<{ records: EvaluationRecord[] }>("/dashboard/snapshots").then(({ records }) => setRecords(records)).catch(() => undefined);
+  }, []);
   useEffect(() => {
     if (!recordId) {
       apiFetch<{ records: Array<{ data?: { evaluacion?: Record<string, JsonValue> } }> }>("/dashboard/snapshots")
@@ -178,25 +206,10 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
     }
     apiFetch<{ record: { date: string; data: { evaluacion: Record<string, JsonValue> } } }>(`/dashboard/snapshots/${recordId}`)
       .then(({ record }) => {
-        const evaluation = record.data.evaluacion;
+        const state = evaluationState(record.data.evaluacion);
         setSnapshotDate(record.date);
-        setData({
-          pruebas: evaluation.pruebas ?? clone(evaluationTemplate.pruebas) as JsonValue,
-          detallePorBloque: evaluation.detallePorBloque ?? clone(evaluationTemplate.detallePorBloque) as JsonValue,
-          nivelesDesempeno: evaluation.nivelesDesempeno ?? clone(evaluationTemplate.nivelesDesempeno) as JsonValue,
-          distribucionPorBloqueMateriaNiveles: ensureDistributionAverages(evaluation.distribucionPorBloqueMateriaNiveles ?? clone(evaluationTemplate.distribucionPorBloqueMateriaNiveles) as JsonValue),
-          promediosGenerales: evaluation.promediosGenerales ?? clone(evaluationTemplate.promediosGenerales) as JsonValue,
-          resultadosPorMes: calculateMonthlyPercentages(evaluation.resultadosPorMes ?? clone(evaluationTemplate.resultadosPorMes) as JsonValue),
-          heatmapProgreso: normalizeHeatmap(evaluation.heatmapProgreso) as unknown as JsonValue,
-          factoresRiesgo: normalizeRiskFactors(evaluation.factoresRiesgo) as unknown as JsonValue,
-        });
-        setHiddenData({
-          vistaResultados: evaluation.vistaResultados ?? clone(evaluationHiddenDefaults.vistaResultados) as JsonValue,
-          sankeysSeparados: evaluation.sankeysSeparados ?? {},
-          comparativasPorMateria: evaluation.comparativasPorMateria ?? clone(evaluationHiddenDefaults.comparativasPorMateria) as JsonValue,
-          seguimientoAplicacionCml: evaluation.seguimientoAplicacionCml ?? clone(evaluationHiddenDefaults.seguimientoAplicacionCml) as JsonValue,
-          actualizacionPortalResultados: evaluation.actualizacionPortalResultados ?? clone(evaluationHiddenDefaults.actualizacionPortalResultados) as JsonValue,
-        });
+        setData(state.data);
+        setHiddenData(state.hidden);
       })
       .catch((cause) => setSaveError(cause instanceof Error ? cause.message : "No fue posible cargar el registro."))
       .finally(() => setLoadingRecord(false));
@@ -273,9 +286,21 @@ export default function EvaluationFormPage({ recordId }: { recordId?: number }) 
       setSaving(false);
     }
   };
+  // Registro más reciente (anterior a la fecha elegida, si ya hay una) para copiar el formulario completo.
+  const lastRecord = records.filter((record) => record.id !== recordId && record.data?.evaluacion && (!snapshotDate || record.date < snapshotDate)).sort((first, second) => second.date.localeCompare(first.date))[0];
+  const copyLastRecord = () => {
+    const evaluation = lastRecord?.data?.evaluacion;
+    if (!evaluation) return;
+    if (!window.confirm(`Se reemplazará lo que llevas capturado con los datos del ${displayDate(lastRecord.date)}. ¿Continuar?`)) return;
+    const state = evaluationState(clone(evaluation));
+    setData(state.data);
+    setHiddenData(state.hidden);
+    setSaveError("");
+    setCopiedFrom(lastRecord.date);
+  };
   if (loadingRecord) return <main className="min-h-screen bg-[#f3f7fb] p-8 text-center text-xs text-[#61788c]">Cargando registro...</main>;
   return <main className="min-h-screen bg-[#f3f7fb] p-3 sm:p-4 lg:p-5"><div className="mx-auto max-w-[1180px] overflow-clip rounded-xl border border-[#dce6ee] bg-[#f4f8fb] shadow-[0_6px_18px_rgba(27,58,87,.05)]">
-    <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6ee] bg-white/95 px-4 py-2.5 shadow-[0_2px_8px_rgba(27,58,87,.05)] backdrop-blur sm:px-5"><div className="flex items-center gap-2.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} aria-label="Volver a Evaluación" className="rounded-md p-1.5 text-[#61788c] transition hover:bg-[#edf4f9]"><ArrowLeft size={16}/></button><div><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#6f8799]">{recordId ? "Editar registro" : "Nuevo registro"}</p><h1 className="text-sm font-semibold text-[#17324a]">Información de Evaluación</h1></div></div><label className="flex items-center gap-2 text-[10px] font-semibold text-[#61788c]"><span>Fecha</span><input type="date" required value={snapshotDate} onChange={(event) => setSnapshotDate(event.target.value)} className="h-8 rounded-md border border-[#d5e2eb] bg-white px-2.5 text-[11px] font-medium text-[#294b68] outline-none transition focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]"/></label></header>
+    <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6ee] bg-white/95 px-4 py-2.5 shadow-[0_2px_8px_rgba(27,58,87,.05)] backdrop-blur sm:px-5"><div className="flex items-center gap-2.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} aria-label="Volver a Evaluación" className="rounded-md p-1.5 text-[#61788c] transition hover:bg-[#edf4f9]"><ArrowLeft size={16}/></button><div><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#6f8799]">{recordId ? "Editar registro" : "Nuevo registro"}</p><h1 className="text-sm font-semibold text-[#17324a]">Información de Evaluación</h1></div></div><div className="flex flex-wrap items-center gap-3">{lastRecord ? <div className="flex flex-col items-end gap-0.5"><button type="button" onClick={copyLastRecord} className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-[#cfe0ee] bg-[#f5faff] px-3 text-[10px] font-semibold text-[#176fc8] transition hover:bg-[#e8f3ff]"><Copy size={12}/>Copiar último registro ({displayDate(lastRecord.date)})</button>{copiedFrom === lastRecord.date ? <span className="text-[9px] text-[#168a4c]">Datos copiados. Revisa y edita antes de guardar.</span> : null}</div> : null}<label className="flex items-center gap-2 text-[10px] font-semibold text-[#61788c]"><span>Fecha</span><input type="date" required value={snapshotDate} onChange={(event) => setSnapshotDate(event.target.value)} className="h-8 rounded-md border border-[#d5e2eb] bg-white px-2.5 text-[11px] font-medium text-[#294b68] outline-none transition focus:border-[#5d9ed8] focus:ring-1 focus:ring-[#dceeff]"/></label></div></header>
     <form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{Object.entries(data).filter(([key]) => !hiddenFormSections.includes(key)).map(([key, value]) => { const config = sectionStyles[key]; const Icon = config.icon; return <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-[0_2px_8px_rgba(27,58,87,.03)]"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-3 py-2.5 sm:px-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.accent}`}><Icon size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{sections[key]}</h2><p className="text-[9px] leading-4 text-[#718799]">{sectionDescriptions[key]}</p></div></div><div className="p-3 sm:p-4">{key === "heatmapProgreso" ? <ProgressHeatmapEditor value={value} onChange={(updated) => updateSection(key, updated)}/> : key === "factoresRiesgo" ? <RiskFactorsEditor value={value} blocks={normalizeHeatmap(data.heatmapProgreso).bloques} onChange={(updated) => updateSection(key, updated)}/> : <ValueEditor label={sections[key]} value={value} onChange={(updated) => updateSection(key, updated)} prioritizeResumen={key === "distribucionPorBloqueMateriaNiveles"}/>}</div></section>; })}</form>
     <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#dce6ee] bg-white px-4 py-2.5 sm:px-5"><div><button type="button" onClick={() => { setData(clone(evaluationTemplate) as JsonValue); setSnapshotDate(""); setSaveError(""); }} className="text-[10px] font-semibold text-[#60798e] hover:text-[#176fc8]">Restablecer formulario</button>{saveError && <p className="mt-1 text-[10px] font-medium text-red-600">{saveError}</p>}</div><div className="flex gap-1.5"><button type="button" onClick={() => router.push('/administracion/evaluacion')} className="rounded-md border border-[#ccdbe6] px-3 py-1.5 text-[11px] font-semibold text-[#526b80]">Cancelar</button><button type="button" onClick={saveEvaluation} disabled={!snapshotDate || saving} title={!snapshotDate ? "Selecciona una fecha" : undefined} className="rounded-md bg-[#176fc8] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#1262b2] disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Guardando..." : "Guardar registro"}</button></div></footer>
   </div></main>;

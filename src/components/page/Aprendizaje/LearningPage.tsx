@@ -1,16 +1,28 @@
 "use client";
 
-import { Layers3 } from "lucide-react";
 import { dashboardDatabase } from "@/data/dashboardDatabase";
-import LearningSummary, { hasLearningProgressData, LearningProgressLineCards, LearningProgressNotes, LearningProgressSummaryCards } from "./LearningSummary";
-import LineProgressCard from "./LineProgressCard";
-import { getLearningLines } from "./learningData";
+import { learningSubjects } from "@/lib/learningSubjects";
+import { hasLearningProgressData, LearningProgressLineCards, LearningProgressSummaryCards, type LearningProgressData } from "./LearningSummary";
 import StaticProductionProgress from "./StaticProductionProgress";
+
+const stages = ["Autoría", "Producción / edición", "Publicación"];
+
+// Cards por materia capturadas en Administración > Aprendizaje (solo las materias actuales, en su orden).
+const subjectProgress = (data: LearningProgressData | undefined): LearningProgressData => {
+  const lines = learningSubjects.flatMap((subject) => data?.lineasAplicativo?.filter((line) => line.name?.trim().toLowerCase() === subject.toLowerCase()).slice(0, 1) ?? []);
+  const resumenAvance = stages.flatMap((title, index) => {
+    const values = lines.map((line) => line.items[index]?.value).filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+    return values.length ? [{ title, value: Math.round(values.reduce((sum, value) => sum + value, 0) / values.length), description: "Avance promedio" }] : [];
+  });
+  return { resumenAvance, lineasAplicativo: lines };
+};
 
 export default function LearningPage() {
   const learningProgressData = dashboardDatabase.aprendizaje;
   const progressData = hasLearningProgressData(learningProgressData) ? learningProgressData : undefined;
-  const hasNewLearningProgress = progressData !== undefined;
-  const lines = getLearningLines();
-  return <main className="flex-1 bg-[#f5f8fc] text-[#17324a]"><div className="mx-auto w-full max-w-[1020px] px-4 pb-16 pt-6"><section><div><h2 className="text-sm font-semibold tracking-[.04em] text-[#253d53]">ESTATUS DEL CONTENIDO POR LXP</h2></div>{hasNewLearningProgress ? <><LearningProgressSummaryCards data={progressData}/><LearningProgressLineCards data={progressData}/><LearningProgressNotes data={progressData}/></> : <LearningSummary lines={lines}/>}</section>{!hasNewLearningProgress && <section className="mt-7"><div className="flex items-start justify-between"><div><h2 className="text-sm font-semibold tracking-[.04em] text-[#253d53]">DESARROLLO POR LINEA / APLICATIVO</h2><p className="mt-1 text-[8px] text-[#8fa1b5]">Situacion del contenido para el trimestre seleccionado</p></div><Layers3 className="h-4 w-4 text-[#8fa3b8]"/></div>{lines.length ? <div className="mt-5 grid gap-4 lg:grid-cols-3">{lines.map((item) => <LineProgressCard key={item.id} item={item}/>)}</div> : <div className="mt-5 rounded-lg border border-dashed bg-white px-5 py-12 text-center"><p className="text-[10px] font-semibold text-[#526a80]">Sin informacion para los filtros seleccionados</p><p className="mt-2 text-[8px] text-[#91a3b5]">Selecciona otro trimestre o aplicativo.</p></div>}</section>}<StaticProductionProgress/></div></main>;
+  const subjects = subjectProgress(progressData);
+  return <main className="flex-1 bg-[#f5f8fc] text-[#17324a]"><div className="mx-auto w-full max-w-[1020px] px-4 pb-16 pt-6"><StaticProductionProgress>
+    <LearningProgressSummaryCards data={subjects}/>
+    <LearningProgressLineCards data={subjects}/>
+  </StaticProductionProgress></div></main>;
 }

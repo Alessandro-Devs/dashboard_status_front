@@ -15,7 +15,7 @@ const parseNumber = (raw: string): number | null => {
   return Number.isFinite(numeric) && numeric >= 0 ? numeric : null;
 };
 
-export default function ProductionProgressEditor({ value, onChange }: { value: AvanceProduccion; onChange: (value: AvanceProduccion) => void }) {
+export default function ProductionProgressEditor({ value, onChange, showKira = true }: { value: AvanceProduccion; onChange: (value: AvanceProduccion) => void; showKira?: boolean }) {
   const types = value.kira.tipos;
   const setTypes = (tipos: ProductionType[]) => onChange({ ...value, kira: { tipos } });
   const updateType = (index: number, next: ProductionType) => setTypes(types.map((type, typeIndex) => (typeIndex === index ? next : type)));
@@ -29,7 +29,7 @@ export default function ProductionProgressEditor({ value, onChange }: { value: A
 
   return <div className="space-y-4">
     {/* Kira */}
-    <div>
+    {showKira ? <div>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-[11px] font-bold text-[#294b68]">Kira · tipos y componentes</p>
@@ -64,10 +64,10 @@ export default function ProductionProgressEditor({ value, onChange }: { value: A
           </article>;
         })}
       </div>
-    </div>
+    </div> : null}
 
     {/* xAI */}
-    <div className="border-t border-[#e4ecf2] pt-4">
+    <div className={showKira ? "border-t border-[#e4ecf2] pt-4" : ""}>
       <p className="text-[11px] font-bold text-[#294b68]">xAI · estado y materias</p>
       <p className="text-[9px] text-[#8a9cab]">Deja el estado vacío y sin materias para ocultar la pestaña xAI en el dashboard.</p>
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
