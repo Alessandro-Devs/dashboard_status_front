@@ -7,7 +7,7 @@
       "description": "Avance promedio"
     },
     {
-      "title": "Producción / edición",
+      "title": "Edición",
       "value": 59,
       "description": "Avance promedio"
     },
@@ -27,7 +27,7 @@
           "classes": "101-160"
         },
         {
-          "label": "Producción / edición",
+          "label": "Edición",
           "value": 58,
           "classes": "110-139"
         },
@@ -47,7 +47,7 @@
           "classes": "101-160"
         },
         {
-          "label": "Producción / edición",
+          "label": "Edición",
           "value": 63,
           "classes": "101-138"
         },
@@ -67,7 +67,7 @@
           "classes": "101-160"
         },
         {
-          "label": "Producción / edición",
+          "label": "Edición",
           "value": 57,
           "classes": "101-135"
         },

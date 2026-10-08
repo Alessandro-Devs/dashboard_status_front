@@ -5,7 +5,7 @@ import { learningSubjects } from "@/lib/learningSubjects";
 import { hasLearningProgressData, LearningProgressLineCards, LearningProgressSummaryCards, type LearningProgressData } from "./LearningSummary";
 import StaticProductionProgress from "./StaticProductionProgress";
 
-const stages = ["Autoría", "Producción / edición", "Publicación"];
+const stages = ["Autoría", "Edición", "Publicación"];
 
 // Cards por materia capturadas en Administración > Aprendizaje (solo las materias actuales, en su orden).
 const subjectProgress = (data: LearningProgressData | undefined): LearningProgressData => {
@@ -14,7 +14,8 @@ const subjectProgress = (data: LearningProgressData | undefined): LearningProgre
     const values = lines.map((line) => line.items[index]?.value).filter((value): value is number => typeof value === "number" && Number.isFinite(value));
     return values.length ? [{ title, value: Math.round(values.reduce((sum, value) => sum + value, 0) / values.length), description: "Avance promedio" }] : [];
   });
-  return { resumenAvance, lineasAplicativo: lines };
+  // Las etapas siempre usan los nombres actuales, aunque el registro se haya guardado con otros.
+  return { resumenAvance, lineasAplicativo: lines.map((line) => ({ ...line, items: line.items.map((item, index) => ({ ...item, label: stages[index] ?? item.label })) })) };
 };
 
 export default function LearningPage() {
