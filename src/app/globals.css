@@ -15,7 +15,7 @@ section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first
 }
 
 section[class*="bg-[#f7f9fc]"] > div.mx-auto.w-full.max-w-\[1020px\] > div:first-child > div.mb-4.flex.flex-wrap.items-center.justify-between.gap-4 > h2::after {
-  content: "NO ACCESOS";
+  content: "REGISTRO SEMANAL DE NO ACCESOS";
   display: block;
   font-size: 0.875rem;
 }
