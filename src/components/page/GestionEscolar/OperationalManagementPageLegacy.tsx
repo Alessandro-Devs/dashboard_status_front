@@ -7,8 +7,11 @@ import { sortDescendingByNumber } from "@/lib/sortByPercentage";
 import { useDashboardData } from "@/stores/DashboardDataContext";
 import BackToSchoolSection from "./BackToSchoolSection";
 import CampaignsNerdsPanel from "./CampaignsNerdsPanel";
+import MonitoringPanel from "./MonitoringPanel";
+import { hasCampaignsData } from "./CampaignsNerdsPanel";
+import { hasContactsData } from "./ContactsDirectorsPanel";
 const formatFormationTooltip = (_value: unknown, _name: unknown, item: { payload?: { percentage?: number } }) => [`${item.payload?.percentage ?? 0}%`, "% de cumplimiento"];
-type MainTab = "observaciones" | "formacion" | "campanas";
+type MainTab = "observaciones" | "formacion" | "monitoreo" | "campanas";
 type FormationGroup = {
     name: string;
     value?: number;
@@ -30,10 +33,7 @@ function toNumber(value: unknown) {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 function hasCampaignData(value: unknown) {
-    if (Array.isArray(value)) return value.length > 0;
-    if (!value || typeof value !== "object") return false;
-    const groups = value as { directores?: unknown; docentes?: unknown };
-    return (Array.isArray(groups.directores) && groups.directores.length > 0) || (Array.isArray(groups.docentes) && groups.docentes.length > 0);
+    return hasCampaignsData(value);
 }
 function formatPercentage(value: string | number | undefined) {
     if (value === undefined || value === "") return "0%";
@@ -89,8 +89,8 @@ export default function OperationalManagementPageLegacy() {
     const activeTab = mainTab === "campanas" && !hasCampaigns ? "observaciones" : mainTab;
     return <main className="min-h-screen bg-[#f4f7fb] px-4 py-5 text-[#223b53] sm:px-6"><div className="mx-auto max-w-[1280px]">
     <div className="flex items-start justify-between gap-4"><div><h1 className="text-[18px] font-semibold tracking-[.04em] text-[#27435c]">GESTION OPERATIVA</h1></div><BackToSchoolSection className="rounded-lg border border-[#d8e0e8] bg-white px-4 py-2 text-[10px] text-[#667b90] transition hover:bg-[#f8fafc]">← Volver</BackToSchoolSection></div>
-    <div className="mt-5 flex flex-wrap gap-2"><TabButton active={activeTab === "observaciones"} onClick={() => setMainTab("observaciones")}>Observaciones de clases</TabButton><TabButton active={activeTab === "formacion"} onClick={() => setMainTab("formacion")}>Formacion de directores</TabButton>{hasCampaigns ? <TabButton compact active={activeTab === "campanas"} onClick={() => setMainTab("campanas")}>Campañas</TabButton> : null}</div>
-    {activeTab === "campanas" ? <CampaignsNerdsPanel /> : activeTab === "formacion" ? <>
+    <div className="mt-5 flex flex-wrap gap-2"><TabButton active={activeTab === "observaciones"} onClick={() => setMainTab("observaciones")}>Observaciones de clases</TabButton><TabButton active={activeTab === "formacion"} onClick={() => setMainTab("formacion")}>Formacion de directores</TabButton><TabButton active={activeTab === "monitoreo"} onClick={() => setMainTab("monitoreo")}>Monitoreo</TabButton>{hasCampaigns ? <TabButton compact active={activeTab === "campanas"} onClick={() => setMainTab("campanas")}>Campañas</TabButton> : null}</div>
+    {activeTab === "campanas" ? <CampaignsNerdsPanel /> : activeTab === "monitoreo" ? <MonitoringPanel hasCampaigns={hasCampaigns} hasContacts={hasContactsData()} /> : activeTab === "formacion" ? <>
       <div className="mt-8 flex items-start justify-between"><div><h2 className="text-[16px] font-semibold tracking-[.04em] text-[#29455f]">FORMACION DE DIRECTORES</h2><p className="mt-1 text-[10px] text-[#8ea1b5]">Seguimiento de formacion por bloque</p></div><GraduationCap className="h-4 w-4 text-[#8ba0b6]"/></div>
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"><MetricCard title="DIRECTORES PARTICIPANTES" value={operationalData.formacion.participantes} subtitle="Total de registros de formacion" color="blue" icon={<Users className="h-4 w-4"/>}/><MetricCard title="SECCIONES" value={operationalData.formacion.secciones} subtitle="En promedio, 27 directores por seccion" color="purple" icon={<BookOpenCheck className="h-4 w-4"/>}/></div>
       <div className="mt-4 rounded-xl border border-[#d9e1e8] bg-white p-5"><h3 className="text-[13px] font-semibold text-[#29455f]">Formacion por bloque</h3><p className="mt-1 text-[10px] text-[#8ea1b5]">Directores participantes y porcentaje de cumplimiento por grupo</p><div className="mt-4 h-[280px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={formationByBlock} margin={{ top: 28, right: 10, left: 0, bottom: 0 }} barCategoryGap="30%"><CartesianGrid vertical={false} stroke="#e8edf3" strokeDasharray="3 3"/><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#60778d", fontSize: 11 }}/><YAxis axisLine={false} tickLine={false} tick={{ fill: "#8da0b5", fontSize: 11 }} domain={formationAxis.domain} ticks={formationAxis.ticks}/><Tooltip cursor={{ fill: "rgba(36,109,193,.05)" }} formatter={formatFormationTooltip} contentStyle={{ borderRadius: 10, border: "1px solid #d9e1e8", boxShadow: "0 6px 20px rgba(15,23,42,.08)", fontSize: 12 }}/><Bar dataKey="value" name="Participantes" radius={[4, 4, 0, 0]} barSize={28}>{formationByBlock.map((item, index) => <Cell key={`formation-cell-${index}`} fill="#246dc1"/>)}<LabelList dataKey="value" position="top" formatter={(value: unknown) => Number(value).toLocaleString("es-SV")} fill="#52687c" fontSize={10}/></Bar></BarChart></ResponsiveContainer></div></div>

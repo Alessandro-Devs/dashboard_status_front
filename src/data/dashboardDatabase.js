@@ -27,13 +27,13 @@ export const dashboardDatabase = {
     hallazgosCriticos: [],
   },
   gestionEscolar: {
-    noAccesosSemanal: { docentesSinAcceso: 0, numeroDeClases: 0 },
+    noAccesosSemanal: { docentesSinAcceso: 0, universoDocentes: 0, numeroDeClases: 0, clasesProgramadas: 0 },
     motivosCriticos: [
-      { motivo: "Actividad institucional", porcentaje: 34, datoReal: 340 },
-      { motivo: "Asignación incorrecta", porcentaje: 27, datoReal: 270 },
-      { motivo: "Cuenta de emergencia", porcentaje: 19, datoReal: 190 },
-      { motivo: "Cuenta DEMO", porcentaje: 12, datoReal: 120 },
-      { motivo: "Incapacidad o permiso personal", porcentaje: 8, datoReal: 80 },
+      { motivo: "Actividad institucional", porcentaje: 34, datoReal: 340, resueltos: 0 },
+      { motivo: "Asignación incorrecta", porcentaje: 27, datoReal: 270, resueltos: 0 },
+      { motivo: "Cuenta de emergencia", porcentaje: 19, datoReal: 190, resueltos: 0 },
+      { motivo: "Cuenta DEMO", porcentaje: 12, datoReal: 120, resueltos: 0 },
+      { motivo: "Incapacidad o permiso personal", porcentaje: 8, datoReal: 80, resueltos: 0 },
     ],
     actividades: {
       periodo: "",
@@ -58,6 +58,16 @@ export const dashboardDatabase = {
     observacionesPorBloque: [],
     gestionOperativa: {
       campanasNerds: [],
+      // Formación de directores: CE que completaron cada sesión y % por bloque y sesión.
+      formacionDirectores: {
+        sesiones: [],
+        bloques: [],
+      },
+      // Contacto a directores: total de directores y contactados por tipo de contacto.
+      contactosDirectores: {
+        totalDirectores: 0,
+        tipos: [],
+      },
       formacion: {
         participantes: "0",
         secciones: "0",

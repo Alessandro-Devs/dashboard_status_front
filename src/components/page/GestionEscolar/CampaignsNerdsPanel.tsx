@@ -71,6 +71,8 @@ function campaignList(value: unknown): Campaign[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item))
+    // Las filas vacías (sin nombre ni datos) que deja el formulario no cuentan como campañas.
+    .filter((item) => String(item.nombre ?? item.name ?? "").trim() !== "" || Object.values(campaignFields(item)).some((value) => value > 0))
     .map((item, index) => ({
       ...campaignFields(item),
       name: String(item.nombre ?? item.name ?? `Campaña ${index + 1}`),
@@ -132,7 +134,13 @@ function CampaignSection({ title, campaigns }: { title: string; campaigns: Campa
   );
 }
 
-export default function CampaignsNerdsPanel() {
+// Hay campañas si directores o docentes tienen al menos una campaña con datos.
+export function hasCampaignsData(value: unknown) {
+  const groups = campaignGroups(value);
+  return groups.directors.length > 0 || groups.teachers.length > 0;
+}
+
+export default function CampaignsNerdsPanel({ embedded = false }: { embedded?: boolean }) {
   useDashboardData();
   const source = dashboardDatabase.gestionEscolar?.gestionOperativa?.campanasNerds;
   const groups = campaignGroups(source);
@@ -142,9 +150,9 @@ export default function CampaignsNerdsPanel() {
   const campaigns = activeGroup === "directors" ? groups.directors : groups.teachers;
 
   return (
-    <section className="mt-8">
-      <h2 className="text-[13px] font-semibold tracking-[.04em] text-[#29455f]">CAMPAÑAS NERDS</h2>
-      <div className="mt-4 inline-flex rounded-lg border border-[#d9e1e8] bg-white p-1 shadow-sm">
+    <section className={embedded ? "" : "mt-8"}>
+      {embedded ? null : <h2 className="text-[13px] font-semibold tracking-[.04em] text-[#29455f]">CAMPAÑAS NERDS</h2>}
+      <div className={`${embedded ? "" : "mt-4 "}inline-flex rounded-lg border border-[#d9e1e8] bg-white p-1 shadow-sm`}>
         <button type="button" onClick={() => setActiveGroup("directors")} className={`cursor-pointer rounded-md px-3 py-1 text-[9px] font-semibold transition ${activeGroup === "directors" ? "bg-[#eaf3ff] text-[#176dcc]" : "text-[#6f8294] hover:bg-[#f5f8fb]"}`}>Directores</button>
         <button type="button" onClick={() => setActiveGroup("teachers")} className={`cursor-pointer rounded-md px-3 py-1 text-[9px] font-semibold transition ${activeGroup === "teachers" ? "bg-[#f2ecff] text-[#7b3ff2]" : "text-[#6f8294] hover:bg-[#f5f8fb]"}`}>Docentes</button>
       </div>
