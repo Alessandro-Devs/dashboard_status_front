@@ -104,26 +104,13 @@ export default function SchoolComplianceTable() {
   const clearFilters = () => { setQuery(""); setGroup(ALL); setLevel("todos"); reset(); };
 
   if (!schools.length) return null;
-  const subtitle = filtersActive
-    ? `${formatInt(rows.length)} de ${formatInt(schools.length)} centros · promedio ${average(rows).toFixed(1)}%`
-    : `${formatInt(schools.length)} centros · promedio ${average(schools).toFixed(1)}%`;
 
   return <DashboardCard className="mt-4">
-    <CardTitle title="Cumplimiento por centro educativo" subtitle={subtitle} icon={<span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#e8f3ff]"><School className="h-4 w-4 text-[#1670d2]" /></span>} />
+    <CardTitle title="Cumplimiento por centro educativo" icon={<span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#e8f3ff]"><School className="h-4 w-4 text-[#1670d2]" /></span>} />
 
-    {/* Resumen por grupo: también sirve como filtro rápido */}
-    {hasGroups ? <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-      {groups.map((item) => {
-        const active = activeGroup === item.id;
-        return <button key={item.id} type="button" onClick={() => { setGroup(active ? ALL : item.id); reset(); }} aria-pressed={active} className={`min-w-[96px] shrink-0 rounded-lg border px-2.5 py-1.5 text-left transition ${active ? "border-[#1670d2] bg-[#eef6ff]" : "border-[#e3e9ef] bg-white hover:border-[#c9d6e2]"}`}>
-          <span className="block text-[9px] font-semibold text-[#29445b]">{item.label}</span>
-          <span className="mt-0.5 flex items-baseline justify-between gap-2"><span className="text-[12px] font-semibold tabular-nums" style={{ color: complianceText(item.average) }}>{item.average.toFixed(1)}%</span><span className="text-[8px] tabular-nums text-[#8a9bb0]">{formatInt(item.count)} CE</span></span>
-        </button>;
-      })}
-    </div> : null}
 
     {/* Filtros */}
-    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_210px]">
+    <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_170px_210px]">
       <label className="relative block">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a9bb0]" />
         <input value={query} onChange={(event) => { setQuery(event.target.value); reset(); }} placeholder="Buscar por código, nombre o grupo" className="h-7 w-full rounded-md border border-[#d6dfe8] bg-white pl-8 pr-3 text-[10px] text-[#17324a] outline-none transition placeholder:text-[#9aabbd] focus:border-[#1670d2] focus:ring-2 focus:ring-[#1670d2]/15" />
