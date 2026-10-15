@@ -144,17 +144,19 @@ export default function DirectorsTrainingPanel() {
             </thead>
             <tbody>
               {f.bloques.map((b) => {
-                const avance = b.pct.reduce<number>((total, value) => total + (has(value) ? value : 0), 0) / b.pct.length;
+                // Los valores por sesión son datos crudos (CE formados); solo el avance del bloque es porcentaje.
+                const avance = Math.min(100, pct(b.pct.reduce<number>((total, value) => total + (has(value) ? Math.min(value, b.ce || value) : 0), 0), b.ce * b.pct.length));
                 return (
                   <tr key={b.nombre}>
                     <td className="rounded-l-[7px] bg-[#f7f9fb] py-2 pl-3 pr-2"><span className="block font-semibold text-[#223c52]">{b.nombre}</span><span className="text-[8px] text-[#8fa1b5]">{fmt(b.ce)} CE</span></td>
                     {b.pct.map((value, i) => {
-                      const st = STATE[stateOf(value)];
+                      const share = has(value) && b.ce > 0 ? pct(value, b.ce) : has(value) && value > 0 ? 100 : null;
+                      const st = STATE[stateOf(share)];
                       return (
                         <td key={i} className="bg-[#f7f9fb] px-1 py-2 text-center">
                           <span className="inline-flex h-7 min-w-[46px] items-center justify-center gap-1 rounded-full px-2 text-[9px] font-semibold" style={{ background: st.soft, color: st.text }}
-                            title={has(value) ? `${b.nombre} · Sesión ${i + 1}: ${value}% · faltan ${fmt(Math.round(b.ce * (1 - value / 100)))} CE` : `${b.nombre} · Sesión ${i + 1}: pendiente`}>
-                            {has(value) ? <>{value >= COMPLETA ? <Check className="h-3 w-3" strokeWidth={3} /> : null}{value}%</> : "—"}
+                            title={has(value) ? `${b.nombre} · Sesión ${i + 1}: ${fmt(value)} de ${fmt(b.ce)} CE formados · faltan ${fmt(Math.max(0, b.ce - value))} CE` : `${b.nombre} · Sesión ${i + 1}: pendiente`}>
+                            {has(value) ? <>{share !== null && share >= COMPLETA ? <Check className="h-3 w-3" strokeWidth={3} /> : null}{fmt(value)}</> : "—"}
                           </span>
                         </td>
                       );
