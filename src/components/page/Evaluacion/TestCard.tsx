@@ -119,14 +119,14 @@ function Panel({
           <p className="text-[7px] uppercase text-[#8194a6]">Aplicados</p>
           <p className="mt-1 text-2xl font-medium text-[#4b5563]">
             <span style={{ color }}>{formattedApplied}</span>
-            <span className="ml-1 text-[14px] font-medium text-[#4b5563]">{`/${formattedUniverse}`}</span>
-            <span className="ml-1 text-[9px] font-medium uppercase tracking-[0.04em] text-[#4b5563]">universo</span>
+            <span className="ml-1 text-[19px] font-semibold text-[#17324a]">{`/${formattedUniverse}`}</span>
+            <span className="ml-1 text-[9px] font-semibold uppercase tracking-[0.04em] text-[#17324a]">universo</span>
           </p>
-          <div className="mt-3 rounded-md bg-[#ffe1e1] px-3 py-2 text-[#ef3434]">
+          <div className="mt-3 rounded-md border border-[#f6d6d6] bg-[#fff8f8] px-3 py-1.5 text-[#d35454]">
             <div className="text-[7px] font-semibold">
               <span>Pendiente</span>
             </div>
-            <div className="mt-1 flex items-center justify-between gap-3 text-base font-semibold">
+            <div className="mt-0.5 flex items-center justify-between gap-3 text-[12px] font-medium">
               <span>{formattedPending}</span>
               <span>{pendingPercentage}%</span>
             </div>

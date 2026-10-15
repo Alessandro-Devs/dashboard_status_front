@@ -86,7 +86,7 @@ export default function ContactsDirectorsPanel() {
   return (
     <article className="rounded-[12px] border border-[#d9e1e8] bg-white p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-[13px] font-semibold text-[#29455f]">Contacto a directores</h3>
+        <h3 className="text-[13px] font-semibold text-[#29455f]">Asistencia técnica pedagógica</h3>
         <div className="flex flex-wrap gap-2 text-[10px]">
           <span className="rounded-full bg-[#f4f7fa] px-3 py-1 text-[#60778d]">Total <b className="ml-1 font-semibold text-[#223c52]">{fmt(total)}</b></span>
           <span className="rounded-full bg-[#fff1e8] px-3 py-1 text-[#c2410c]">Sin contactar <b className="ml-1 font-semibold">{fmt(sinContactar)}</b></span>

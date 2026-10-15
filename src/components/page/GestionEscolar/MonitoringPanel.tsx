@@ -9,7 +9,7 @@ import ContactsDirectorsPanel from "./ContactsDirectorsPanel";
 type SubTab = "campanas" | "contactos";
 const SUB_TABS: Array<{ key: SubTab; label: string; icon: LucideIcon }> = [
   { key: "campanas", label: "Campañas nerds", icon: Megaphone },
-  { key: "contactos", label: "Contactos directores", icon: ContactRound },
+  { key: "contactos", label: "Asistencia técnica pedagógica", icon: ContactRound },
 ];
 
 function Pending({ title, icon: Icon }: { title: string; icon: LucideIcon }) {
