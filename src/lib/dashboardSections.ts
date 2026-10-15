@@ -1,7 +1,7 @@
 "use client";
 
 import { dashboardDatabase } from "@/data/dashboardDatabase";
-import { hasAvanceProduccion, normalizeAvanceProduccion } from "@/lib/productionProgress";
+import { readEditorial } from "@/lib/learningEditorial";
 
 export type DashboardSection = {
   id: "gestion-calidad" | "gestion-escolar" | "aprendizaje" | "evaluacion" | "tutoria-formacion";
@@ -29,10 +29,6 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function readNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
 function hasMeaningfulData(value: unknown, visited = new WeakSet<object>()): boolean {
   if (value == null) return false;
   if (typeof value === "string") {
@@ -48,30 +44,9 @@ function hasMeaningfulData(value: unknown, visited = new WeakSet<object>()): boo
   return Object.values(value).some((item) => hasMeaningfulData(item, visited));
 }
 
+// Aprendizaje muestra el flujo editorial (aprendizaje.editorial); la sección aparece cuando tiene datos.
 function hasLearningData(value: unknown) {
-  if (!isObject(value)) return false;
-
-  const estadoLxp = value.estadoLxp;
-  if (Array.isArray(estadoLxp) && estadoLxp.some((item) => hasMeaningfulData(item))) return true;
-
-  const resumenAvance = value.resumenAvance;
-  if (Array.isArray(resumenAvance) && resumenAvance.some((item) => isObject(item) && (readNumber(item.value) ?? 0) > 0)) return true;
-
-  const lineasAplicativo = value.lineasAplicativo;
-  if (
-    Array.isArray(lineasAplicativo) &&
-    lineasAplicativo.some((line) => {
-      if (!isObject(line) || !Array.isArray(line.items)) return false;
-      return line.items.some((item) => isObject(item) && (readNumber(item.value) ?? 0) > 0);
-    })
-  ) {
-    return true;
-  }
-
-  // El avance de producción (Kira / xAI) también cuenta como dato del módulo.
-  if (hasAvanceProduccion(normalizeAvanceProduccion(value.avanceProduccion))) return true;
-
-  return false;
+  return isObject(value) && readEditorial(value.editorial) !== null;
 }
 
 const sectionAvailability = {

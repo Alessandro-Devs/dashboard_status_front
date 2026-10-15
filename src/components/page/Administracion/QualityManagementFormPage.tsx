@@ -7,6 +7,7 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { apiFetch } from "@/services/api";
 import { qualityHtmlExample } from "@/components/page/GestionCalidad/qualityHtmlExample";
 import HtmlCodeEditor from "./HtmlCodeEditor";
+import SchoolComplianceEditor, { toSchoolRows } from "./SchoolComplianceEditor";
 import Select from "@/components/ui/Select";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -118,12 +119,15 @@ const orderedObjectEntries = (value: { [key: string]: JsonValue }, fieldKey: str
 };
 const orderedEntries = (value: { [key: string]: JsonValue }) => [
   ...sectionOrder.filter((key) => key in value).map((key) => [key, value[key]] as [string, JsonValue]),
-  ...Object.entries(value).filter(([key]) => !sectionOrder.includes(key) && key !== "hallazgosCriticos"),
+  // cumplimientoPorCentro tiene su propio editor (puede tener miles de filas).
+  ...Object.entries(value).filter(([key]) => !sectionOrder.includes(key) && key !== "hallazgosCriticos" && key !== "cumplimientoPorCentro"),
 ];
 const withFindingTitleDefaults = (value: JsonValue): JsonValue => {
   if (!object(value) || !Array.isArray(value.hallazgosCriticos)) return value;
   return { ...value, hallazgosCriticos: [{ severity: "", leader: "", component: "", finding: "", action: "", leaderAction: "", impact: "", count: "" }] };
 };
+// Un registro nuevo inicia sin centros (no se copian ni se dejan miles de filas vacías).
+const withoutSchools = (value: JsonValue): JsonValue => object(value) ? { ...value, cumplimientoPorCentro: [] } : value;
 const withCodeDefault = (value: JsonValue): JsonValue => {
   if (!object(value) || typeof value.codigoHtml === "string") return value;
   return { ...value, codigoHtml: qualityHtmlExample };
@@ -171,7 +175,7 @@ function JsonField({ fieldKey, label, value, onChange, root = false }: { fieldKe
 export default function QualityManagementFormPage({ recordId }: { recordId?: number }) {
   const router = useRouter();
   const [date, setDate] = useState("");
-  const [data, setData] = useState<JsonValue>(() => recordId ? withCoverageDefaults(clone(dashboardDatabase.gestionCalidad) as JsonValue) : withCoverageDefaults(emptyValues(clone(dashboardDatabase.gestionCalidad) as JsonValue)));
+  const [data, setData] = useState<JsonValue>(() => recordId ? withCoverageDefaults(clone(dashboardDatabase.gestionCalidad) as JsonValue) : withoutSchools(withCoverageDefaults(emptyValues(clone(dashboardDatabase.gestionCalidad) as JsonValue))));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -188,11 +192,11 @@ export default function QualityManagementFormPage({ recordId }: { recordId?: num
     apiFetch<{ records: Array<{ data: JsonValue }> }>("/dashboard/sections/gestionCalidad")
       .then(({ records }) => {
         const source = records[0]?.data ?? clone(dashboardDatabase.gestionCalidad) as JsonValue;
-        setData(withCodeDefault(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData)))));
+        setData(withoutSchools(withCodeDefault(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData))))));
       })
       .catch((cause) => {
         const source = clone(dashboardDatabase.gestionCalidad) as JsonValue;
-        setData(withCodeDefault(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData)))));
+        setData(withoutSchools(withCodeDefault(withFindingTitleDefaults(withCoverageDefaults(emptyValues(object(source) ? source : fallbackQualityData))))));
         setError(cause instanceof Error ? cause.message : "No fue posible preparar el formulario.");
       })
       .finally(() => setLoading(false));
@@ -206,7 +210,7 @@ export default function QualityManagementFormPage({ recordId }: { recordId?: num
     setSaving(true);
     setError("");
     try {
-      await apiFetch(recordId ? `/dashboard/sections/gestionCalidad/${recordId}` : "/dashboard/sections/gestionCalidad", { method: recordId ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ metadata: { fechaCorte: date }, gestionCalidad: data }) });
+      await apiFetch(recordId ? `/dashboard/sections/gestionCalidad/${recordId}` : "/dashboard/sections/gestionCalidad", { method: recordId ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ metadata: { fechaCorte: date }, gestionCalidad: { ...data, cumplimientoPorCentro: toSchoolRows(data.cumplimientoPorCentro).filter((row) => (row.codigo.trim() || row.nombre.trim()) && row.cumplimiento !== "").map((row) => ({ codigo: row.codigo.trim(), nombre: row.nombre.trim(), cumplimiento: row.cumplimiento })) } }) });
       router.push("/administracion/gestion-calidad");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No fue posible guardar el registro.");
@@ -215,5 +219,5 @@ export default function QualityManagementFormPage({ recordId }: { recordId?: num
     }
   };
 
-  return <main className="min-h-screen bg-[#f3f7fb] p-3 sm:p-4 lg:p-5"><div className="mx-auto max-w-[1180px] overflow-clip rounded-xl border border-[#dce6ee] bg-[#f4f8fb] shadow-[0_6px_18px_rgba(27,58,87,.05)]"><header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6ee] bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur sm:px-5"><div className="flex items-center gap-2.5"><button type="button" onClick={() => router.push("/administracion/gestion-calidad")} className="rounded-md p-1.5 text-[#61788c] hover:bg-[#edf4f9]" aria-label="Volver"><ArrowLeft size={16}/></button><div><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#6f8799]">{recordId ? "Editar registro" : "Nuevo registro"}</p><h1 className="text-sm font-semibold text-[#17324a]">Información de Gestión de Calidad</h1></div></div><label className="flex items-center gap-2 text-[10px] font-semibold text-[#61788c]">Fecha<input type="date" required value={date} onChange={(event) => setDate(event.target.value)} className="h-8 rounded-md border border-[#d5e2eb] px-2.5 text-[11px] text-[#294b68] outline-none focus:border-[#5d9ed8]"/></label></header><form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{orderedEntries(data).map(([key, value]) => <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-sm"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-4 py-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eaf4ff] text-[#176fc8]"><ShieldCheck size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{humanize(key)}</h2><p className="text-[9px] text-[#718799]">{sectionDescriptions[key] ?? "Completa la información correspondiente."}</p></div></div><div className="p-3 sm:p-4"><JsonField root fieldKey={key} label={humanize(key)} value={value} onChange={(updated) => setData({ ...data, [key]: updated })}/></div></section>)}</form><footer className="flex items-center justify-between gap-2 border-t border-[#dce6ee] bg-white px-4 py-2.5"><div>{error && <p className="text-[10px] font-medium text-red-600">{error}</p>}</div><div className="flex gap-1.5"><button type="button" onClick={() => router.push("/administracion/gestion-calidad")} className="rounded-md border border-[#ccdbe6] px-3 py-1.5 text-[11px] font-semibold text-[#526b80]">Cancelar</button><button type="button" onClick={save} disabled={!date || saving} className="rounded-md bg-[#176fc8] px-3.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50">{saving ? "Guardando..." : "Guardar registro"}</button></div></footer></div></main>;
+  return <main className="min-h-screen bg-[#f3f7fb] p-3 sm:p-4 lg:p-5"><div className="mx-auto max-w-[1180px] overflow-clip rounded-xl border border-[#dce6ee] bg-[#f4f8fb] shadow-[0_6px_18px_rgba(27,58,87,.05)]"><header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6ee] bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur sm:px-5"><div className="flex items-center gap-2.5"><button type="button" onClick={() => router.push("/administracion/gestion-calidad")} className="rounded-md p-1.5 text-[#61788c] hover:bg-[#edf4f9]" aria-label="Volver"><ArrowLeft size={16}/></button><div><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#6f8799]">{recordId ? "Editar registro" : "Nuevo registro"}</p><h1 className="text-sm font-semibold text-[#17324a]">Información de Gestión de Calidad</h1></div></div><label className="flex items-center gap-2 text-[10px] font-semibold text-[#61788c]">Fecha<input type="date" required value={date} onChange={(event) => setDate(event.target.value)} className="h-8 rounded-md border border-[#d5e2eb] px-2.5 text-[11px] text-[#294b68] outline-none focus:border-[#5d9ed8]"/></label></header><form className="space-y-3 p-3 sm:p-4" onSubmit={(event) => event.preventDefault()}>{orderedEntries(data).map(([key, value]) => <section key={key} className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-sm"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-4 py-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eaf4ff] text-[#176fc8]"><ShieldCheck size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">{humanize(key)}</h2><p className="text-[9px] text-[#718799]">{sectionDescriptions[key] ?? "Completa la información correspondiente."}</p></div></div><div className="p-3 sm:p-4"><JsonField root fieldKey={key} label={humanize(key)} value={value} onChange={(updated) => setData({ ...data, [key]: updated })}/></div></section>)}<section className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-sm"><div className="flex items-center gap-3 border-b border-[#e4ecf2] px-4 py-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eaf4ff] text-[#176fc8]"><ShieldCheck size={15}/></span><div><h2 className="text-[13px] font-bold text-[#17324a]">Cumplimiento por centro educativo</h2><p className="text-[9px] text-[#718799]">Tabla paginada al final de Gestión de Calidad: código, nombre y cumplimiento de cada centro.</p></div></div><div className="p-3 sm:p-4"><SchoolComplianceEditor value={toSchoolRows(data.cumplimientoPorCentro)} onChange={(rows) => setData({ ...data, cumplimientoPorCentro: rows })}/></div></section></form><footer className="flex items-center justify-between gap-2 border-t border-[#dce6ee] bg-white px-4 py-2.5"><div>{error && <p className="text-[10px] font-medium text-red-600">{error}</p>}</div><div className="flex gap-1.5"><button type="button" onClick={() => router.push("/administracion/gestion-calidad")} className="rounded-md border border-[#ccdbe6] px-3 py-1.5 text-[11px] font-semibold text-[#526b80]">Cancelar</button><button type="button" onClick={save} disabled={!date || saving} className="rounded-md bg-[#176fc8] px-3.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50">{saving ? "Guardando..." : "Guardar registro"}</button></div></footer></div></main>;
 }

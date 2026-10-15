@@ -4,6 +4,7 @@ import { dashboardDatabase } from "@/data/dashboardDatabase";
 import { learningSubjects } from "@/lib/learningSubjects";
 import { hasLearningProgressData, LearningProgressLineCards, LearningProgressSummaryCards, type LearningProgressData } from "./LearningSummary";
 import StaticProductionProgress from "./StaticProductionProgress";
+import LearningEditorialFlow from "./LearningEditorialFlow";
 
 const stages = ["Autoría", "Edición", "Publicación"];
 
@@ -19,6 +20,12 @@ const subjectProgress = (data: LearningProgressData | undefined): LearningProgre
 };
 
 export default function LearningPage() {
+  // Aprendizaje muestra el flujo editorial capturado en el panel (LearningEditorialFlow).
+  // La vista anterior por materia (KIRA / xAI) se conserva en LearningPageFromDatabase.
+  return <main className="flex-1 bg-[#f5f8fc] text-[#17324a]"><div className="mx-auto w-full max-w-[1020px] px-4 pb-16 pt-6"><LearningEditorialFlow /></div></main>;
+}
+
+export function LearningPageFromDatabase() {
   const learningProgressData = dashboardDatabase.aprendizaje;
   const progressData = hasLearningProgressData(learningProgressData) ? learningProgressData : undefined;
   const subjects = subjectProgress(progressData);
