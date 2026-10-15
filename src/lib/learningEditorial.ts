@@ -14,7 +14,7 @@ export const toNumber = (value: Json): number | null => {
   return null;
 };
 
-export const EDITORIAL_STAGES = ["Autoría", "Producción / edición", "Publicación"];
+export const EDITORIAL_STAGES = ["Autoría", "Edición", "Publicación"];
 export const SUMMARY_TITLES = ["Autoría", "Edición", "Publicación"];
 export const PUBLISHED_PHASES = ["Fase 1", "Fase 2", "Fase 3"];
 export const DEFAULT_LINES = ["IHFB", "Kira", "xAI"];
@@ -69,7 +69,8 @@ export function readEditorial(value: Json): EditorialData | null {
     .map((line) => ({
       nombre: line.nombre.trim(),
       rango: line.rango.trim(),
-      producido: toNumber(line.producido) ?? 0,
+      // Clases producidas = clases de Edición.
+      producido: toNumber(line.etapas[1]?.clases) ?? toNumber(line.producido) ?? 0,
       total: toNumber(line.total) ?? 0,
       etapas: line.etapas.map((stage, index) => ({ label: EDITORIAL_STAGES[index], pct: Math.min(100, Math.max(0, toNumber(stage.pct) ?? 0)), clases: toNumber(stage.clases) })),
     }));

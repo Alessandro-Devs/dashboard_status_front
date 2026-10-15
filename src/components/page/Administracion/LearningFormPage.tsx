@@ -19,8 +19,8 @@ function TextField({ label, value, placeholder, onChange }: { label: string; val
   return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<input value={value} placeholder={placeholder ? `Ej. ${placeholder}` : undefined} onChange={(event) => onChange(event.target.value)} className={input}/></label>;
 }
 
-function NumberField({ label, value, placeholder, onChange, suffix }: { label: string; value: string | number; placeholder?: string; onChange: (value: string | number) => void; suffix?: string }) {
-  return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<span className="relative block"><input type="number" step="any" min={0} value={value} placeholder={placeholder ? `Ej. ${placeholder}` : undefined} onChange={(event) => onChange(event.target.value === "" ? "" : Number(event.target.value))} className={`${input} ${suffix ? "pr-6" : ""}`}/>{suffix ? <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 pt-0.5 text-[10px] text-[#8a9cab]">{suffix}</span> : null}</span></label>;
+function NumberField({ label, value, placeholder, onChange, suffix, disabled = false }: { label: string; value: string | number; placeholder?: string; onChange: (value: string | number) => void; suffix?: string; disabled?: boolean }) {
+  return <label className="block text-[10px] font-semibold text-[#5d7285]">{label}<span className="relative block"><input type="number" step="any" min={0} value={value} placeholder={placeholder ? `Ej. ${placeholder}` : undefined} onChange={(event) => onChange(event.target.value === "" ? "" : Number(event.target.value))} disabled={disabled} className={`${input} ${suffix ? "pr-6" : ""}`}/>{suffix ? <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 pt-0.5 text-[10px] text-[#8a9cab]">{suffix}</span> : null}</span></label>;
 }
 
 export default function LearningFormPage({ recordId }: { recordId?: number }) {
@@ -51,7 +51,7 @@ export default function LearningFormPage({ recordId }: { recordId?: number }) {
     setSaving(true);
     setError("");
     try {
-      await apiFetch(recordId ? `/dashboard/sections/aprendizaje/${recordId}` : "/dashboard/sections/aprendizaje", { method: recordId ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ metadata: { fechaCorte: date }, aprendizaje: { ...raw, editorial: data } }) });
+      await apiFetch(recordId ? `/dashboard/sections/aprendizaje/${recordId}` : "/dashboard/sections/aprendizaje", { method: recordId ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ metadata: { fechaCorte: date }, aprendizaje: { ...raw, editorial: { ...data, lineas: data.lineas.map((line) => ({ ...line, producido: line.etapas[1]?.clases ?? "" })) } } }) });
       router.push("/administracion/aprendizaje");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No fue posible guardar el registro.");
@@ -72,14 +72,14 @@ export default function LearningFormPage({ recordId }: { recordId?: number }) {
       </section>
 
       {/* Líneas: flujo editorial + avance por línea */}
-      <section className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-sm"><SectionHeader title="Flujo editorial y avance por línea" description="Cada línea alimenta su barra del flujo editorial (producido de total) y su card con Autoría, Producción / edición y Publicación."/>
+      <section className="overflow-hidden rounded-xl border border-[#dce6ee] bg-white shadow-sm"><SectionHeader title="Flujo editorial y avance por línea" description="Cada línea alimenta su barra del flujo editorial (producido de total) y su card con Autoría, Edición y Publicación."/>
         <div className="space-y-3 p-3 sm:p-4">
           {data.lineas.map((line, lineIndex) => <article key={lineIndex} className="rounded-lg border border-[#dce7ef] bg-[#f8fbfe] p-3">
             <div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-bold text-[#294b68]">{line.nombre.trim() || `Línea ${lineIndex + 1}`}</p><button type="button" onClick={() => setData((current) => ({ ...current, lineas: current.lineas.filter((_, index) => index !== lineIndex) }))} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold text-[#c2410c] hover:bg-[#fff1ea]" aria-label={`Eliminar línea ${lineIndex + 1}`}><Trash2 size={12}/>Eliminar</button></div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <TextField label="Nombre de la línea" value={line.nombre} placeholder={["IHFB (Trimestre 3)", "Kira 2° - 6° (Trimestre 3)", "xAI - 6° (Trimestre 2)"][lineIndex] ?? "IHFB (Trimestre 3)"} onChange={(nombre) => updateLine(lineIndex, { ...line, nombre })}/>
               <TextField label="Rango de clases" value={line.rango} placeholder="110 a 160" onChange={(rango) => updateLine(lineIndex, { ...line, rango })}/>
-              <NumberField label="Clases producidas" value={line.producido} placeholder="139" onChange={(producido) => updateLine(lineIndex, { ...line, producido })}/>
+              <NumberField label="Clases producidas" value={line.etapas[1]?.clases ?? ""} disabled onChange={() => undefined}/>
               <NumberField label="Total de clases" value={line.total} placeholder="160" onChange={(total) => updateLine(lineIndex, { ...line, total })}/>
             </div>
             <div className="mt-3 grid gap-2 lg:grid-cols-3">{line.etapas.map((stage, stageIndex) => <div key={stageIndex} className="rounded-md border border-[#e3ebf2] bg-white p-2.5"><p className="text-[10px] font-bold text-[#294b68]">{EDITORIAL_STAGES[stageIndex]}</p><div className="mt-1.5 grid grid-cols-2 gap-2">
